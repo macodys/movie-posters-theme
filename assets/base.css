@@ -385,7 +385,7 @@ main#MainContent {
 /* Featured Posters */
 .posters-grid { 
   display: grid; 
-  grid-template-columns: 0.8fr 1.2fr 1.2fr 0.8fr; 
+  grid-template-columns: 1fr 1fr 1fr 1fr; 
   gap: 20px; 
   align-items: start;
   perspective: 1000px;
@@ -464,11 +464,7 @@ main#MainContent {
   display: block;
 }
 
-/* Middle cards - larger size but same aspect ratio */
-.poster-card:nth-child(2),
-.poster-card:nth-child(3) {
-  max-width: 347px; /* 520 * (2/3) = 346.67px */
-}
+/* All cards same size */
 
 .poster-card::before {
   content: '';
