@@ -401,7 +401,8 @@ main#MainContent {
     height: 400px;
     min-height: 400px;
     max-height: 400px;
-    max-width: 280px;
+    max-width: 267px; /* 400 * (2/3) = 266.67px */
+    aspect-ratio: 2/3;
   }
   .poster-image {
     height: 100%;
@@ -411,7 +412,8 @@ main#MainContent {
     height: 400px;
     min-height: 400px;
     max-height: 400px;
-    max-width: 280px;
+    max-width: 267px;
+    aspect-ratio: 2/3;
   }
   .poster-card[href*="tv-movies"] .poster-image {
     min-height: 400px;
@@ -432,7 +434,8 @@ main#MainContent {
     height: 350px;
     min-height: 350px;
     max-height: 350px;
-    max-width: 250px;
+    max-width: 233px; /* 350 * (2/3) = 233.33px */
+    aspect-ratio: 2/3;
   }
   .poster-image {
     height: 100%;
@@ -442,7 +445,8 @@ main#MainContent {
     height: 350px;
     min-height: 350px;
     max-height: 350px;
-    max-width: 250px;
+    max-width: 233px;
+    aspect-ratio: 2/3;
   }
   .poster-card[href*="tv-movies"] .poster-image {
     min-height: 350px;
@@ -472,7 +476,7 @@ main#MainContent {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   width: 100%;
-  max-width: 300px;
+  max-width: 300px; /* 450 * (2/3) = 300px */
   height: 450px;
   min-height: 450px;
   max-height: 450px;
@@ -482,13 +486,14 @@ main#MainContent {
   margin: 0 auto;
 }
 
-/* Middle cards - larger size */
+/* Middle cards - larger size but same aspect ratio */
 .poster-card:nth-child(2),
 .poster-card:nth-child(3) {
   height: 520px;
   min-height: 520px;
   max-height: 520px;
-  max-width: 350px;
+  max-width: 347px; /* 520 * (2/3) = 346.67px */
+  aspect-ratio: 2/3;
 }
 
 .poster-card::before {
