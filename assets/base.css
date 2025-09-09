@@ -392,6 +392,7 @@ main#MainContent {
   max-width: 1200px;
   margin: 0 auto;
   justify-items: center;
+  width: 100%;
 }
 
 /* Ensure aspect ratio is maintained across all screen sizes */
@@ -399,6 +400,9 @@ main#MainContent {
   position: relative;
   width: 100%;
   max-width: 100%;
+  height: 0;
+  padding-bottom: 150%; /* 3/2 = 1.5 = 150% for 2:3 aspect ratio */
+  overflow: hidden;
 }
 @media (max-width: 1200px) { 
   .posters-grid { 
@@ -408,23 +412,11 @@ main#MainContent {
   } 
   .poster-card {
     max-width: 267px; /* 400 * (2/3) = 266.67px */
-    aspect-ratio: 2/3;
-    height: auto;
     width: 100%;
-  }
-  .poster-image {
-    height: 100%;
-    flex: 1;
   }
   .poster-card[href*="tv-movies"] {
     max-width: 267px;
-    aspect-ratio: 2/3;
-    height: auto;
     width: 100%;
-  }
-  .poster-card[href*="tv-movies"] .poster-image {
-    height: 100%;
-    flex: 1;
   }
   .poster-card[href*="tv-movies"] .poster-image::before {
     width: 200px;
@@ -439,23 +431,11 @@ main#MainContent {
   } 
   .poster-card {
     max-width: 233px; /* 350 * (2/3) = 233.33px */
-    aspect-ratio: 2/3;
-    height: auto;
     width: 100%;
-  }
-  .poster-image {
-    height: 100%;
-    flex: 1;
   }
   .poster-card[href*="tv-movies"] {
     max-width: 233px;
-    aspect-ratio: 2/3;
-    height: auto;
     width: 100%;
-  }
-  .poster-card[href*="tv-movies"] .poster-image {
-    height: 100%;
-    flex: 1;
   }
   .poster-card[href*="tv-movies"] .poster-image::before {
     width: 180px;
@@ -466,7 +446,6 @@ main#MainContent {
 .poster-card { 
   background: rgba(26, 26, 26, 0.8); 
   border-radius: 16px; 
-  overflow: hidden; 
   box-shadow: 
     0 12px 40px rgba(0,0,0,0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
@@ -481,19 +460,14 @@ main#MainContent {
   -webkit-backdrop-filter: blur(20px);
   width: 100%;
   max-width: 300px;
-  aspect-ratio: 2/3;
-  display: flex;
-  flex-direction: column;
   margin: 0 auto;
-  height: auto;
+  display: block;
 }
 
 /* Middle cards - larger size but same aspect ratio */
 .poster-card:nth-child(2),
 .poster-card:nth-child(3) {
   max-width: 347px; /* 520 * (2/3) = 346.67px */
-  aspect-ratio: 2/3;
-  height: auto;
 }
 
 .poster-card::before {
@@ -551,23 +525,19 @@ main#MainContent {
 .poster-card[href*="tv-movies"] {
   width: 100%;
   max-width: 300px;
-  height: 450px;
-  min-height: 450px;
-  max-height: 450px;
-  aspect-ratio: 2/3;
   margin: 0 auto;
 }
 
 .poster-card[href*="tv-movies"] .poster-image {
   background: transparent !important;
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  height: 100%;
-  flex: 1;
-  min-height: 450px;
 }
 
 .poster-card[href*="tv-movies"] .poster-image::before {
@@ -660,17 +630,22 @@ main#MainContent {
 }
 
 .poster-image { 
-  height: 100%; 
-  flex: 1;
-  position: relative; 
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background-size: cover; 
   background-position: center; 
   transition: transform 0.4s ease;
 }
 
 .poster-large .poster-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
-  flex: 1;
 }
 
 .poster-card:hover .poster-image {
@@ -679,7 +654,10 @@ main#MainContent {
 
 .poster-overlay { 
   position: absolute; 
-  inset: 0; 
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4)); 
   display: flex; 
   align-items: center; 
@@ -710,12 +688,17 @@ main#MainContent {
 }
 
 .poster-category { 
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   padding: 16px; 
   text-align: center; 
   color: var(--muted); 
   font-size: 14px; 
   font-weight: 500;
   transition: color 0.3s ease;
+  background: rgba(26, 26, 26, 0.9);
 }
 
 .poster-card:hover .poster-category {
