@@ -1,0 +1,6 @@
+# Auto-push configuration for movie-posters-theme
+# This file contains settings for automatic GitHub pushing
+
+AUTO_PUSH_ENABLED=true
+REPOSITORY_URL=https://github.com/macodys/movie-posters-theme.git
+BRANCH=main
