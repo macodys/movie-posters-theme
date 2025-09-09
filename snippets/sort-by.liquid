@@ -1,0 +1,13 @@
+<form method="get" class="collection-sort" style="margin-bottom:16px;">
+  <label for="SortBy" class="visually-hidden">Sort by</label>
+  <select name="sort_by" id="SortBy" onchange="this.form.submit()">
+    {% assign sort_by = collection.sort_by | default: 'best-selling' %}
+    <option value="best-selling" {% if sort_by == 'best-selling' %}selected{% endif %}>Best selling</option>
+    <option value="price-ascending" {% if sort_by == 'price-ascending' %}selected{% endif %}>Price, low to high</option>
+    <option value="price-descending" {% if sort_by == 'price-descending' %}selected{% endif %}>Price, high to low</option>
+    <option value="created-descending" {% if sort_by == 'created-descending' %}selected{% endif %}>Newest</option>
+    <option value="created-ascending" {% if sort_by == 'created-ascending' %}selected{% endif %}>Oldest</option>
+    <option value="title-ascending" {% if sort_by == 'title-ascending' %}selected{% endif %}>Title A-Z</option>
+    <option value="title-descending" {% if sort_by == 'title-descending' %}selected{% endif %}>Title Z-A</option>
+  </select>
+</form>

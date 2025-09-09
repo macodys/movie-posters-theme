@@ -1,0 +1,48 @@
+<section style="max-width:1200px;margin:0 auto;padding:32px 24px;">
+  <nav style="margin-bottom:12px;color:var(--muted);font-size:14px;">
+    <a href="/" style="color:var(--muted);text-decoration:none;">Home</a> /
+    {% if product.collections.first %}
+      <a href="{{ product.collections.first.url }}" style="color:var(--muted);text-decoration:none;">{{ product.collections.first.title }}</a> /
+    {% endif %}
+    <span>{{ product.title }}</span>
+  </nav>
+
+  <div style="display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:start;">
+    <div class="reveal">
+      {% if product.featured_image %}
+        <img src="{{ product.featured_image | image_url: width: 1200 }}" alt="{{ product.title | escape }}">
+      {% endif %}
+    </div>
+    <div class="reveal">
+      <h1 style="margin:0 0 10px;">{{ product.title }}</h1>
+      <div style="color:var(--muted);margin-bottom:8px;">{{ product.vendor }}</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:16px;">{{ product.price | money }}</div>
+
+      <form method="post" action="/cart/add" enctype="multipart/form-data" id="AddToCartForm">
+        {% if product.has_only_default_variant %}
+          <input type="hidden" name="id" value="{{ product.variants.first.id }}">
+        {% else %}
+          {% for option in product.options_with_values %}
+            <label for="Option{{ forloop.index }}">{{ option.name }}</label>
+            <select id="Option{{ forloop.index }}" name="options[{{ option.name }}]" style="display:block;margin-bottom:12px;">
+              {% for value in option.values %}
+                <option value="{{ value | escape }}" {% if option.selected_value == value %}selected{% endif %}>{{ value }}</option>
+              {% endfor %}
+            </select>
+          {% endfor %}
+          <select name="id" id="VariantId" style="display:none;">
+            {% for variant in product.variants %}
+              <option value="{{ variant.id }}" {% if variant == product.selected_or_first_available_variant %}selected{% endif %}>
+                {{ variant.title }} - {{ variant.price | money }}
+              </option>
+            {% endfor %}
+          </select>
+        {% endif %}
+
+        <button type="submit" class="btn-primary">Add to cart</button>
+      </form>
+
+      <div style="margin-top:18px;color:var(--muted);">{{ product.description }}</div>
+    </div>
+  </div>
+</section>

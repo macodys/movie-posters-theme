@@ -1,0 +1,24 @@
+<section style="max-width:1200px;margin:0 auto;padding:32px 24px;">
+  <header class="reveal" style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;">
+    <div>
+      <h1 style="margin:0 0 8px;">{{ collection.title }}</h1>
+      {% if collection.description != blank %}
+        <div style="color:var(--muted);max-width:800px;">{{ collection.description }}</div>
+      {% endif %}
+    </div>
+    {% render 'sort-by' %}
+  </header>
+
+  {% paginate collection.products by 12 %}
+    {% if collection.products.size > 0 %}
+      <div class="grid cols-3">
+        {% for product in collection.products %}
+          {% render 'product-card', product: product %}
+        {% endfor %}
+      </div>
+      {% render 'pagination', paginate: paginate %}
+    {% else %}
+      <p>No posters in this collection yet.</p>
+    {% endif %}
+  {% endpaginate %}
+</section>

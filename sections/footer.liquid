@@ -1,0 +1,43 @@
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">{{ shop.name }}</div>
+      <p class="footer-tag">Premium movie posters, curated for cinephiles.</p>
+    </div>
+    <div class="footer-links">
+      <div class="col">
+        <h4>Shop</h4>
+        <ul>
+          <li><a href="/collections/all">All Posters</a></li>
+          <li><a href="/collections/new">New Arrivals</a></li>
+          <li><a href="/collections/bestsellers">Bestsellers</a></li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>Info</h4>
+        <ul>
+          <li><a href="/pages/about">About</a></li>
+          <li><a href="/pages/contact">Contact</a></li>
+          <li><a href="/policies/shipping-policy">Shipping</a></li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>Follow</h4>
+        <ul class="socials">
+          <li><a href="#" aria-label="Instagram">Instagram</a></li>
+          <li><a href="#" aria-label="Twitter">Twitter</a></li>
+          <li><a href="#" aria-label="Facebook">Facebook</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© {{ 'now' | date: '%Y' }} {{ shop.name }}. All rights reserved.</span>
+  </div>
+</footer>
+{% schema %}
+{
+  "name": "Footer",
+  "settings": []
+}
+{% endschema %}
