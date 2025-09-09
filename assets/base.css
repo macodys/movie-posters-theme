@@ -419,8 +419,8 @@ main#MainContent {
     width: 100%;
   }
   .poster-card[href*="tv-movies"] .poster-image::before {
-    width: 200px;
-    height: 130px;
+    width: 250px;
+    height: 170px;
   }
 }
 @media (max-width: 600px) { 
@@ -438,8 +438,8 @@ main#MainContent {
     width: 100%;
   }
   .poster-card[href*="tv-movies"] .poster-image::before {
-    width: 180px;
-    height: 120px;
+    width: 220px;
+    height: 150px;
   }
 }
 
@@ -541,8 +541,8 @@ main#MainContent {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 220px;
-  height: 150px;
+  width: 280px;
+  height: 190px;
   background-image: url('clapperboard-icon.png');
   background-size: contain;
   background-repeat: no-repeat;
