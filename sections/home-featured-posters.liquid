@@ -28,13 +28,13 @@
         <div class="poster-category">{{ settings.poster_3_category | default: "Music" }}</div>
       </a>
       
-      <a href="{{ settings.poster_4_link | default: '/collections/music' }}" class="poster-card poster-small reveal" data-tilt="right">
+      <a href="{{ settings.poster_4_link | default: '/collections/sports' }}" class="poster-card poster-small reveal" data-tilt="right">
         <div class="poster-image" style="background-image: {% if settings.poster_4_image %}{{ settings.poster_4_image | image_url: width: 800 }}{% else %}linear-gradient(135deg, #667eea, #764ba2, #f093fb){% endif %};">
           <div class="poster-overlay">
             <h3>{{ settings.poster_4_title | default: "SOUND & VISION" }}</h3>
           </div>
         </div>
-        <div class="poster-category">{{ settings.poster_4_category | default: "Music" }}</div>
+        <div class="poster-category">{{ settings.poster_4_category | default: "Sports" }}</div>
       </a>
     </div>
   </div>
