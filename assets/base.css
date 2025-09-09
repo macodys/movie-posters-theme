@@ -422,6 +422,10 @@ main#MainContent {
     width: 250px;
     height: 170px;
   }
+  .poster-card:nth-child(2) .poster-image::before {
+    width: 250px;
+    height: 170px;
+  }
 }
 @media (max-width: 600px) { 
   .posters-grid { 
@@ -438,6 +442,10 @@ main#MainContent {
     width: 100%;
   }
   .poster-card[href*="tv-movies"] .poster-image::before {
+    width: 220px;
+    height: 150px;
+  }
+  .poster-card:nth-child(2) .poster-image::before {
     width: 220px;
     height: 150px;
   }
@@ -536,6 +544,25 @@ main#MainContent {
   justify-content: center;
 }
 
+/* Games Controller Icon - Second Button */
+.poster-card:nth-child(2) {
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.poster-card:nth-child(2) .poster-image {
+  background: transparent !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .poster-card[href*="tv-movies"] .poster-image::before {
   content: '';
   position: absolute;
@@ -554,11 +581,60 @@ main#MainContent {
   opacity: 1;
 }
 
+/* Games Controller Icon */
+.poster-card:nth-child(2) .poster-image::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 280px;
+  height: 190px;
+  background: 
+    /* Controller outline with gradient */
+    linear-gradient(45deg, #00d4aa 0%, #8b5cf6 50%, #ff6b9d 100%),
+    /* D-pad */
+    linear-gradient(45deg, #00d4aa 0%, #8b5cf6 100%),
+    /* Left analog stick */
+    linear-gradient(45deg, #00d4aa 0%, #8b5cf6 100%),
+    /* Right analog stick */
+    linear-gradient(45deg, #8b5cf6 0%, #ff6b9d 100%),
+    /* Action buttons */
+    linear-gradient(45deg, #ff6b9d 0%, #ff6b9d 100%);
+  background-size: 
+    100% 100%,  /* Controller outline */
+    20% 20%,    /* D-pad */
+    15% 15%,    /* Left stick */
+    15% 15%,    /* Right stick */
+    12% 12%;    /* Action buttons */
+  background-position: 
+    center,      /* Controller outline */
+    25% 30%,     /* D-pad */
+    20% 70%,     /* Left stick */
+    80% 70%,     /* Right stick */
+    75% 30%;     /* Action buttons */
+  background-repeat: no-repeat;
+  border-radius: 20px;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  filter: drop-shadow(0 0 30px rgba(0, 212, 170, 0.9)) drop-shadow(0 0 60px rgba(139, 92, 246, 0.7)) drop-shadow(0 0 90px rgba(255, 107, 157, 0.5));
+  animation: clapperboardFloat 4s ease-in-out infinite;
+  opacity: 1;
+}
+
 .poster-card[href*="tv-movies"] .poster-overlay {
   display: none;
 }
 
 .poster-card[href*="tv-movies"] .poster-category {
+  display: none;
+}
+
+/* Hide overlay and category for games controller */
+.poster-card:nth-child(2) .poster-overlay {
+  display: none;
+}
+
+.poster-card:nth-child(2) .poster-category {
   display: none;
 }
 
