@@ -385,7 +385,7 @@ main#MainContent {
 /* Featured Posters */
 .posters-grid { 
   display: grid; 
-  grid-template-columns: 1fr 1.2fr 1.2fr 1fr; 
+  grid-template-columns: 1fr 1fr 1fr 1fr; 
   gap: 20px; 
   align-items: end;
   perspective: 1000px;
@@ -395,12 +395,40 @@ main#MainContent {
     grid-template-columns: repeat(2, 1fr); 
     gap: 24px;
   } 
+  .poster-card {
+    height: 280px;
+    min-height: 280px;
+  }
+  .poster-image {
+    height: 280px;
+  }
+  .poster-card[href*="tv-movies"] {
+    height: 280px;
+    min-height: 280px;
+  }
+  .poster-card[href*="tv-movies"] .poster-image {
+    min-height: 280px;
+  }
 }
 @media (max-width: 600px) { 
   .posters-grid { 
     grid-template-columns: 1fr; 
     gap: 20px;
   } 
+  .poster-card {
+    height: 250px;
+    min-height: 250px;
+  }
+  .poster-image {
+    height: 250px;
+  }
+  .poster-card[href*="tv-movies"] {
+    height: 250px;
+    min-height: 250px;
+  }
+  .poster-card[href*="tv-movies"] .poster-image {
+    min-height: 250px;
+  }
 }
 
 .poster-card { 
@@ -419,6 +447,10 @@ main#MainContent {
   transform-style: preserve-3d;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  width: 100%;
+  height: 300px;
+  min-height: 300px;
+  aspect-ratio: 2/3;
 }
 
 .poster-card::before {
@@ -475,9 +507,9 @@ main#MainContent {
 /* TV & Movies Clapperboard Icon - Portrait Rectangle */
 .poster-card[href*="tv-movies"] {
   width: 100%;
-  height: 250px;
-  min-height: 250px;
-  aspect-ratio: 3/2;
+  height: 300px;
+  min-height: 300px;
+  aspect-ratio: 2/3;
 }
 
 .poster-card[href*="tv-movies"] .poster-image {
@@ -488,7 +520,7 @@ main#MainContent {
   justify-content: center;
   width: 100%;
   height: 100%;
-  min-height: 250px;
+  min-height: 300px;
 }
 
 .poster-card[href*="tv-movies"] .poster-image::before {
@@ -581,7 +613,7 @@ main#MainContent {
 }
 
 .poster-image { 
-  height: 280px; 
+  height: 300px; 
   position: relative; 
   background-size: cover; 
   background-position: center; 
@@ -589,7 +621,7 @@ main#MainContent {
 }
 
 .poster-large .poster-image {
-  height: 320px;
+  height: 300px;
 }
 
 .poster-card:hover .poster-image {
