@@ -100,68 +100,138 @@ class NormalMappingEffect {
       precision mediump float;
       
       uniform sampler2D u_posterTexture;
-      uniform sampler2D u_normalTexture;
       uniform vec2 u_resolution;
       uniform vec2 u_mouse;
       uniform float u_time;
       
       varying vec2 v_texCoord;
       
+      // Using a sobel filter to create a normal map and then applying simple lighting.
+      #define USE_LINEAR_FOR_BUMPMAP
+      
+      struct C_Sample
+      {
+        vec3 vAlbedo;
+        vec3 vNormal;
+      };
+      
+      C_Sample SampleMaterial(const in vec2 vUV, sampler2D sampler, const in vec2 vTextureSize, const in float fNormalScale)
+      {
+        C_Sample result;
+        
+        vec2 vInvTextureSize = vec2(1.0) / vTextureSize;
+        
+        vec3 cSampleNegXNegY = texture2D(sampler, vUV + (vec2(-1.0, -1.0)) * vInvTextureSize.xy).rgb;
+        vec3 cSampleZerXNegY = texture2D(sampler, vUV + (vec2( 0.0, -1.0)) * vInvTextureSize.xy).rgb;
+        vec3 cSamplePosXNegY = texture2D(sampler, vUV + (vec2( 1.0, -1.0)) * vInvTextureSize.xy).rgb;
+        
+        vec3 cSampleNegXZerY = texture2D(sampler, vUV + (vec2(-1.0, 0.0)) * vInvTextureSize.xy).rgb;
+        vec3 cSampleZerXZerY = texture2D(sampler, vUV + (vec2( 0.0, 0.0)) * vInvTextureSize.xy).rgb;
+        vec3 cSamplePosXZerY = texture2D(sampler, vUV + (vec2( 1.0, 0.0)) * vInvTextureSize.xy).rgb;
+        
+        vec3 cSampleNegXPosY = texture2D(sampler, vUV + (vec2(-1.0,  1.0)) * vInvTextureSize.xy).rgb;
+        vec3 cSampleZerXPosY = texture2D(sampler, vUV + (vec2( 0.0,  1.0)) * vInvTextureSize.xy).rgb;
+        vec3 cSamplePosXPosY = texture2D(sampler, vUV + (vec2( 1.0,  1.0)) * vInvTextureSize.xy).rgb;
+
+        // convert to linear	
+        vec3 cLSampleNegXNegY = cSampleNegXNegY * cSampleNegXNegY;
+        vec3 cLSampleZerXNegY = cSampleZerXNegY * cSampleZerXNegY;
+        vec3 cLSamplePosXNegY = cSamplePosXNegY * cSamplePosXNegY;
+
+        vec3 cLSampleNegXZerY = cSampleNegXZerY * cSampleNegXZerY;
+        vec3 cLSampleZerXZerY = cSampleZerXZerY * cSampleZerXZerY;
+        vec3 cLSamplePosXZerY = cSamplePosXZerY * cSamplePosXZerY;
+
+        vec3 cLSampleNegXPosY = cSampleNegXPosY * cSampleNegXPosY;
+        vec3 cLSampleZerXPosY = cSampleZerXPosY * cSampleZerXPosY;
+        vec3 cLSamplePosXPosY = cSamplePosXPosY * cSamplePosXPosY;
+
+        // Average samples to get albedo colour
+        result.vAlbedo = ( cLSampleNegXNegY + cLSampleZerXNegY + cLSamplePosXNegY 
+                         + cLSampleNegXZerY + cLSampleZerXZerY + cLSamplePosXZerY
+                         + cLSampleNegXPosY + cLSampleZerXPosY + cLSamplePosXPosY ) / 9.0;	
+        
+        vec3 vScale = vec3(0.3333);
+        
+        #ifdef USE_LINEAR_FOR_BUMPMAP
+          
+          float fSampleNegXNegY = dot(cLSampleNegXNegY, vScale);
+          float fSampleZerXNegY = dot(cLSampleZerXNegY, vScale);
+          float fSamplePosXNegY = dot(cLSamplePosXNegY, vScale);
+          
+          float fSampleNegXZerY = dot(cLSampleNegXZerY, vScale);
+          float fSampleZerXZerY = dot(cLSampleZerXZerY, vScale);
+          float fSamplePosXZerY = dot(cLSamplePosXZerY, vScale);
+          
+          float fSampleNegXPosY = dot(cLSampleNegXPosY, vScale);
+          float fSampleZerXPosY = dot(cLSampleZerXPosY, vScale);
+          float fSamplePosXPosY = dot(cLSamplePosXPosY, vScale);
+        
+        #else
+        
+          float fSampleNegXNegY = dot(cSampleNegXNegY, vScale);
+          float fSampleZerXNegY = dot(cSampleZerXNegY, vScale);
+          float fSamplePosXNegY = dot(cSamplePosXNegY, vScale);
+          
+          float fSampleNegXZerY = dot(cSampleNegXZerY, vScale);
+          float fSampleZerXZerY = dot(cSampleZerXZerY, vScale);
+          float fSamplePosXZerY = dot(cSamplePosXZerY, vScale);
+          
+          float fSampleNegXPosY = dot(cSampleNegXPosY, vScale);
+          float fSampleZerXPosY = dot(cSampleZerXPosY, vScale);
+          float fSamplePosXPosY = dot(cSamplePosXPosY, vScale);	
+        
+        #endif
+        
+        // Sobel operator - http://en.wikipedia.org/wiki/Sobel_operator
+        
+        vec2 vEdge;
+        vEdge.x = (fSampleNegXNegY - fSamplePosXNegY) * 0.25 
+                + (fSampleNegXZerY - fSamplePosXZerY) * 0.5
+                + (fSampleNegXPosY - fSamplePosXPosY) * 0.25;
+
+        vEdge.y = (fSampleNegXNegY - fSampleNegXPosY) * 0.25 
+                + (fSampleZerXNegY - fSampleZerXPosY) * 0.5
+                + (fSamplePosXNegY - fSamplePosXPosY) * 0.25;
+
+        result.vNormal = normalize(vec3(vEdge * fNormalScale, 1.0));	
+        
+        return result;
+      }
+      
       void main() {
         vec2 uv = v_texCoord;
         
-        // Sample the poster texture
-        vec4 posterColor = texture2D(u_posterTexture, uv);
+        C_Sample materialSample;
         
-        // Sample the normal map
-        vec3 normal = texture2D(u_normalTexture, uv).rgb * 2.0 - 1.0;
+        float fNormalScale = 10.0;
+        materialSample = SampleMaterial(uv, u_posterTexture, u_resolution, fNormalScale);
         
-        // Calculate distance from mouse position
-        vec2 lightPos = u_mouse;
-        float lightDist = distance(uv, lightPos);
+        // Lighting setup
+        float fLightHeight = 0.2;
+        float fViewHeight = 2.0;
         
-        // Create a soft radial light around the mouse
-        float lightIntensity = 1.0 - smoothstep(0.0, 0.6, lightDist);
-        lightIntensity = pow(lightIntensity, 1.2);
+        vec3 vSurfacePos = vec3(uv, 0.0);
         
-        // Calculate light direction from cursor to current pixel
-        vec2 lightDir = uv - lightPos;
-        float lightDirLength = length(lightDir);
-        if (lightDirLength > 0.0) {
-          lightDir = lightDir / lightDirLength;
-        }
+        vec3 vViewPos = vec3(0.5, 0.5, fViewHeight);
         
-        // Convert to 3D with slight upward bias for natural lighting
-        vec3 light3D = normalize(vec3(lightDir, 0.2));
+        vec3 vLightPos = vec3(u_mouse, fLightHeight);
         
-        // Calculate diffuse lighting based on normal and light direction
-        float diffuse = max(dot(normal, light3D), 0.0);
+        vec3 vDirToView = normalize(vViewPos - vSurfacePos);
+        vec3 vDirToLight = normalize(vLightPos - vSurfacePos);
         
-        // Add ambient lighting
-        float ambient = 0.4;
+        float fNDotL = clamp(dot(materialSample.vNormal, vDirToLight), 0.0, 1.0);
+        float fDiffuse = fNDotL;
         
-        // Calculate final lighting with directional shadows from light source
-        float lighting = ambient + (diffuse * lightIntensity * 0.8);
+        vec3 vHalf = normalize(vDirToView + vDirToLight);
+        float fNDotH = clamp(dot(materialSample.vNormal, vHalf), 0.0, 1.0);
+        float fSpec = pow(fNDotH, 10.0) * fNDotL * 0.5;
         
-        // Apply lighting to poster color
-        vec3 finalColor = posterColor.rgb * lighting;
+        vec3 vResult = materialSample.vAlbedo * fDiffuse + fSpec;
         
-        // Add rim lighting for depth (based on light direction)
-        float rim = 1.0 - max(dot(normal, light3D), 0.0);
-        rim = pow(rim, 1.5);
-        finalColor += rim * 0.8 * lightIntensity;
+        vResult = sqrt(vResult);
         
-        // Add shadows based on light direction and normal map
-        float shadow = 1.0 - diffuse;
-        shadow = pow(shadow, 2.0);
-        finalColor *= (1.0 - shadow * 0.6 * lightIntensity);
-        
-        // Add a soft glow around the mouse area
-        float glow = 1.0 - smoothstep(0.0, 0.5, lightDist);
-        glow = pow(glow, 2.0);
-        finalColor += glow * 0.2;
-        
-        gl_FragColor = vec4(finalColor, posterColor.a);
+        gl_FragColor = vec4(vResult, 1.0);
       }
     `;
     
@@ -242,7 +312,6 @@ class NormalMappingEffect {
   setupTextures() {
     console.log('Setting up textures...');
     console.log('Poster image dimensions:', this.posterImage.width, 'x', this.posterImage.height);
-    console.log('Normal map image dimensions:', this.normalMapImage.width, 'x', this.normalMapImage.height);
     
     // Create poster texture
     this.posterTexture = this.gl.createTexture();
@@ -255,18 +324,6 @@ class NormalMappingEffect {
     // Load poster image
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.posterImage);
     console.log('Poster texture loaded');
-    
-    // Create normal map texture
-    this.normalTexture = this.gl.createTexture();
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-    
-    // Load normal map image
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
-    console.log('Normal map texture loaded');
   }
   
   setupEventListeners() {
@@ -329,22 +386,18 @@ class NormalMappingEffect {
     
     // Set uniforms
     const posterTextureLocation = this.gl.getUniformLocation(this.program, 'u_posterTexture');
-    const normalTextureLocation = this.gl.getUniformLocation(this.program, 'u_normalTexture');
     const resolutionLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
     const mouseLocation = this.gl.getUniformLocation(this.program, 'u_mouse');
     const timeLocation = this.gl.getUniformLocation(this.program, 'u_time');
     
     this.gl.uniform1i(posterTextureLocation, 0);
-    this.gl.uniform1i(normalTextureLocation, 1);
     this.gl.uniform2f(resolutionLocation, this.canvas.width, this.canvas.height);
     this.gl.uniform2f(mouseLocation, this.mouseX, this.mouseY);
     this.gl.uniform1f(timeLocation, Date.now() * 0.001);
     
-    // Bind textures
+    // Bind texture
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.posterTexture);
-    this.gl.activeTexture(this.gl.TEXTURE1);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
     
     // Draw
     this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
@@ -373,37 +426,20 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
   
-  console.log('Found product image, loading normal map...');
-  console.log('Normal map URL:', window.normalMapUrl || 'poster-normal.png');
+  console.log('Found product image, initializing Sobel normal mapping effect...');
   
-  // Load normal map image
-  const normalImg = new Image();
-  normalImg.crossOrigin = 'anonymous';
+  // Keep the original image visible as background
+  img.style.position = 'absolute';
+  img.style.top = '0';
+  img.style.left = '0';
+  img.style.width = '100%';
+  img.style.height = '100%';
+  img.style.zIndex = '1';
   
-  normalImg.onload = function() {
-    console.log('Normal map loaded, initializing effect...');
-    
-    // Keep the original image visible as background
-    img.style.position = 'absolute';
-    img.style.top = '0';
-    img.style.left = '0';
-    img.style.width = '100%';
-    img.style.height = '100%';
-    img.style.zIndex = '1';
-    
-    // Create the normal mapping effect
-    try {
-      window.normalMappingEffect = new NormalMappingEffect(productImageMain, img, normalImg);
-    } catch (error) {
-      console.error('Failed to create normal mapping effect:', error);
-    }
-  };
-  
-  normalImg.onerror = function() {
-    console.error('Failed to load normal map image');
-    // Show original image if normal map fails to load
-    img.style.display = 'block';
-  };
-  
-  normalImg.src = window.normalMapUrl || 'poster-normal.png';
+  // Create the normal mapping effect (no normal map image needed)
+  try {
+    window.normalMappingEffect = new NormalMappingEffect(productImageMain, img, null);
+  } catch (error) {
+    console.error('Failed to create normal mapping effect:', error);
+  }
 });
