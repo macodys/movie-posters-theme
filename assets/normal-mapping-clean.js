@@ -312,35 +312,55 @@ class NormalMappingEffect {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
     
     // Use the normal map directly (no conversion needed)
-    if (this.normalMapImage) {
+    if (this.normalMapImage && this.normalMapImage.naturalWidth > 0 && this.normalMapImage.naturalHeight > 0) {
       console.log('Loading normal map image:', this.normalMapImage.src);
       console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
       console.log('Normal map complete:', this.normalMapImage.complete);
-      console.log('Normal map naturalWidth:', this.normalMapImage.naturalWidth);
-      console.log('Normal map naturalHeight:', this.normalMapImage.naturalHeight);
       
-      // Check if image actually loaded
-      if (this.normalMapImage.naturalWidth === 0 || this.normalMapImage.naturalHeight === 0) {
-        console.error('Normal map image failed to load properly!');
-        console.error('Image src:', this.normalMapImage.src);
-        console.error('Image complete:', this.normalMapImage.complete);
-        console.error('Image naturalWidth:', this.normalMapImage.naturalWidth);
-        console.error('Image naturalHeight:', this.normalMapImage.naturalHeight);
+      try {
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
+        console.log('Normal map texture loaded successfully');
+      } catch (error) {
+        console.error('Failed to load normal map texture:', error);
+        this.createFallbackNormalMap();
       }
-      
-      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
-      console.log('Normal map texture loaded successfully');
     } else {
-      console.log('No normal map image available, using fallback');
-      // Create a fallback normal map (pointing up)
-      const fallbackData = new Uint8Array(4);
-      fallbackData[0] = 128; // R = 0.5 (neutral X)
-      fallbackData[1] = 128; // G = 0.5 (neutral Y) 
-      fallbackData[2] = 255; // B = 1.0 (pointing up)
-      fallbackData[3] = 255; // A = 1.0
-      
-      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, fallbackData);
+      console.log('Normal map image not available or failed to load, using fallback');
+      this.createFallbackNormalMap();
     }
+  }
+  
+  createFallbackNormalMap() {
+    console.log('Creating fallback normal map...');
+    // Create a 64x64 fallback normal map with some variation
+    const size = 64;
+    const data = new Uint8Array(size * size * 4);
+    
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const index = (y * size + x) * 4;
+        
+        // Create a simple bump pattern
+        const centerX = size / 2;
+        const centerY = size / 2;
+        const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+        const normalizedDistance = distance / (size / 2);
+        
+        // Create normal vectors pointing outward from center
+        const normalX = (x - centerX) / (size / 2);
+        const normalY = (y - centerY) / (size / 2);
+        const normalZ = Math.sqrt(1.0 - Math.min(normalX * normalX + normalY * normalY, 1.0));
+        
+        // Convert to [0,1] range
+        data[index] = Math.floor((normalX * 0.5 + 0.5) * 255); // R
+        data[index + 1] = Math.floor((normalY * 0.5 + 0.5) * 255); // G
+        data[index + 2] = Math.floor((normalZ * 0.5 + 0.5) * 255); // B
+        data[index + 3] = 255; // A
+      }
+    }
+    
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, size, size, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, data);
+    console.log('Fallback normal map created successfully');
   }
   
   
@@ -481,6 +501,12 @@ class NormalMappingEffect {
       
       this.gl.activeTexture(this.gl.TEXTURE1);
       this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
+      
+      // Debug: Check if normal texture is actually bound
+      const currentTexture = this.gl.getParameter(this.gl.TEXTURE_BINDING_2D);
+      console.log('Normal texture bound:', currentTexture === this.normalTexture);
+      console.log('Normal texture ID:', this.normalTexture);
+      console.log('Current bound texture ID:', currentTexture);
       
       
       // Draw
