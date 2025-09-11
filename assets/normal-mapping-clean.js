@@ -309,10 +309,23 @@ class NormalMappingEffect {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
     
     // Load custom normal map image directly (conversion happens in shader)
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
-    console.log('Custom normal map loaded for shader processing');
-    console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
-    console.log('Normal map src:', this.normalMapImage.src);
+    if (this.normalMapImage) {
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
+      console.log('Custom normal map loaded for shader processing');
+      console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
+      console.log('Normal map src:', this.normalMapImage.src);
+    } else {
+      console.error('Normal map image is not available!');
+      // Create a fallback normal map (pointing up)
+      const fallbackData = new Uint8Array(4);
+      fallbackData[0] = 128; // R = 0.5 (neutral X)
+      fallbackData[1] = 128; // G = 0.5 (neutral Y) 
+      fallbackData[2] = 255; // B = 1.0 (pointing up)
+      fallbackData[3] = 255; // A = 1.0
+      
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, fallbackData);
+      console.log('Using fallback normal map');
+    }
   }
   
   
@@ -395,6 +408,13 @@ class NormalMappingEffect {
       
       this.gl.activeTexture(this.gl.TEXTURE1);
       this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
+      
+      // Debug: Check if normal texture is valid
+      if (!this.normalTexture) {
+        console.error('Normal texture is null!');
+      } else {
+        console.log('Normal texture bound successfully');
+      }
       
       // Draw
       this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
