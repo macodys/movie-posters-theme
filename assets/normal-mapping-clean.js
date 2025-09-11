@@ -124,20 +124,23 @@ class NormalMappingEffect {
         
         // Generate normal map from Poster_Normal.png using Sobel (Buffer A pass)
         vec2 offset = 1.0 / u_resolution;
-        vec3 height;
-        height.x = texture2D(u_normalTexture, uv).x;
-        height.y = texture2D(u_normalTexture, uv + vec2(offset.x, 0.0)).x;
-        height.z = texture2D(u_normalTexture, uv + vec2(0.0, offset.y)).x;
         
-        vec3 normal;
-        normal.xy = (height.x - height.yz);
-        normal.xy /= offset;
-        normal.z = 5.0; // invNormalMapScale
+        // Sample heights using grayscale values
+        float h1 = texture2D(u_normalTexture, uv).x;
+        float h2 = texture2D(u_normalTexture, uv + vec2(offset.x, 0.0)).x;
+        float h3 = texture2D(u_normalTexture, uv + vec2(0.0, offset.y)).x;
+        
+        // Calculate gradients using Sobel operator
+        float dx = h2 - h1;
+        float dy = h3 - h1;
+        
+        // Create normal vector
+        vec3 normal = vec3(dx, dy, 5.0); // invNormalMapScale = 5.0
         normal = normalize(normal);
-        normal = normal * 0.5 + 0.5; // Convert to 0-1 range
         
-        // Convert back to -1 to 1 range for lighting
-        normal = normal * 2.0 - 1.0;
+        // Debug: Uncomment to see normal map as colors
+        // gl_FragColor = vec4(normal * 0.5 + 0.5, 1.0);
+        // return;
         
         // Lighting setup (Image pass)
         vec3 lightposition = vec3(0.0, 0.0, 0.1);
@@ -174,19 +177,17 @@ class NormalMappingEffect {
         
         // Shadow sampling loop
         for (int i = 0; i < iSampleCount; i++) {
-          // Generate normal at sample position
-          vec3 tmpHeight;
-          tmpHeight.x = texture2D(u_normalTexture, uv + dir * pos).x;
-          tmpHeight.y = texture2D(u_normalTexture, uv + dir * pos + vec2(offset.x, 0.0)).x;
-          tmpHeight.z = texture2D(u_normalTexture, uv + dir * pos + vec2(0.0, offset.y)).x;
+          // Generate normal at sample position using same Sobel approach
+          vec2 sampleUV = uv + dir * pos;
+          float sh1 = texture2D(u_normalTexture, sampleUV).x;
+          float sh2 = texture2D(u_normalTexture, sampleUV + vec2(offset.x, 0.0)).x;
+          float sh3 = texture2D(u_normalTexture, sampleUV + vec2(0.0, offset.y)).x;
           
-          vec3 tmpNormal;
-          tmpNormal.xy = (tmpHeight.x - tmpHeight.yz);
-          tmpNormal.xy /= offset;
-          tmpNormal.z = 5.0;
+          float sdx = sh2 - sh1;
+          float sdy = sh3 - sh1;
+          
+          vec3 tmpNormal = vec3(sdx, sdy, 5.0);
           tmpNormal = normalize(tmpNormal);
-          tmpNormal = tmpNormal * 0.5 + 0.5;
-          tmpNormal = tmpNormal * 2.0 - 1.0;
           
           float tmpLighting = dot(lightdir, tmpNormal);
           float shadowed = -tmpLighting;
