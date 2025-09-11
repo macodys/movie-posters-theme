@@ -11,11 +11,16 @@ class NormalMappingEffect {
     this.mouseY = 0.5;
     this.isInitialized = false;
     
+    console.log('Creating NormalMappingEffect with container:', container);
+    console.log('Poster image:', posterImage);
+    console.log('Normal map image:', normalMapImage);
+    
     this.init();
   }
   
   init() {
     try {
+      console.log('Initializing normal mapping effect...');
       this.createCanvas();
       if (this.setupWebGL()) {
         this.createShaders();
@@ -25,6 +30,8 @@ class NormalMappingEffect {
         this.render();
         this.isInitialized = true;
         console.log('Normal mapping effect initialized successfully');
+      } else {
+        console.error('WebGL setup failed');
       }
     } catch (error) {
       console.error('Failed to initialize normal mapping effect:', error);
@@ -32,6 +39,7 @@ class NormalMappingEffect {
   }
   
   createCanvas() {
+    console.log('Creating canvas...');
     this.canvas = document.createElement('canvas');
     this.canvas.style.position = 'absolute';
     this.canvas.style.top = '0';
@@ -43,20 +51,27 @@ class NormalMappingEffect {
     
     this.container.style.position = 'relative';
     this.container.appendChild(this.canvas);
+    console.log('Canvas created and appended to container');
   }
   
   setupWebGL() {
+    console.log('Setting up WebGL...');
     this.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
     if (!this.gl) {
       console.error('WebGL not supported');
       return false;
     }
     
+    console.log('WebGL context created successfully');
+    
     // Set canvas size
     const rect = this.container.getBoundingClientRect();
+    console.log('Container rect:', rect);
     this.canvas.width = rect.width;
     this.canvas.height = rect.height;
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    
+    console.log('Canvas size set to:', this.canvas.width, 'x', this.canvas.height);
     
     // Enable blending
     this.gl.enable(this.gl.BLEND);
@@ -66,6 +81,7 @@ class NormalMappingEffect {
   }
   
   createShaders() {
+    console.log('Creating shaders...');
     const vertexShaderSource = `
       attribute vec2 a_position;
       attribute vec2 a_texCoord;
@@ -131,8 +147,19 @@ class NormalMappingEffect {
     const vertexShader = this.createShader(this.gl.VERTEX_SHADER, vertexShaderSource);
     const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fragmentShaderSource);
     
+    if (!vertexShader || !fragmentShader) {
+      console.error('Failed to create shaders');
+      return;
+    }
+    
     this.program = this.createProgram(vertexShader, fragmentShader);
+    if (!this.program) {
+      console.error('Failed to create program');
+      return;
+    }
+    
     this.gl.useProgram(this.program);
+    console.log('Shaders created and program linked successfully');
   }
   
   createShader(type, source) {
@@ -192,6 +219,10 @@ class NormalMappingEffect {
   }
   
   setupTextures() {
+    console.log('Setting up textures...');
+    console.log('Poster image dimensions:', this.posterImage.width, 'x', this.posterImage.height);
+    console.log('Normal map image dimensions:', this.normalMapImage.width, 'x', this.normalMapImage.height);
+    
     // Create poster texture
     this.posterTexture = this.gl.createTexture();
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.posterTexture);
@@ -202,6 +233,7 @@ class NormalMappingEffect {
     
     // Load poster image
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.posterImage);
+    console.log('Poster texture loaded');
     
     // Create normal map texture
     this.normalTexture = this.gl.createTexture();
@@ -213,6 +245,7 @@ class NormalMappingEffect {
     
     // Load normal map image
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
+    console.log('Normal map texture loaded');
   }
   
   setupEventListeners() {

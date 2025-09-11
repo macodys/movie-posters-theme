@@ -129,29 +129,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // CSS Fallback Normal Mapping Effect
-  const productImageMain = document.querySelector('.product-image-main');
-  
-  if (productImageMain) {
-    productImageMain.addEventListener('mousemove', (e) => {
-      const rect = productImageMain.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      // Calculate relative position as percentage
-      const relativeX = (x / rect.width) * 100;
-      const relativeY = (y / rect.height) * 100;
-      
-      // Update CSS variables for light source
-      productImageMain.style.setProperty('--mouse-x', `${relativeX}%`);
-      productImageMain.style.setProperty('--mouse-y', `${relativeY}%`);
-    });
-
-    productImageMain.addEventListener('mouseleave', () => {
-      productImageMain.style.setProperty('--mouse-x', '50%');
-      productImageMain.style.setProperty('--mouse-y', '50%');
-    });
-  }
+  // WebGL Normal Mapping Effect will be initialized by normal-mapping.js
 
   // Thumbnail switching
   const thumbnails = document.querySelectorAll('.thumbnail-item');
