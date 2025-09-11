@@ -318,8 +318,18 @@ class NormalMappingEffect {
   
   setupTextures() {
     console.log('Setting up textures...');
-    console.log('Poster image dimensions:', this.posterImage.width, 'x', this.posterImage.height);
-    console.log('Normal map image dimensions:', this.normalMapImage.width, 'x', this.normalMapImage.height);
+    console.log('Poster image:', this.posterImage);
+    
+    if (!this.posterImage) {
+      throw new Error('Poster image is not defined');
+    }
+    
+    if (!this.posterImage.complete) {
+      throw new Error('Poster image is not loaded yet');
+    }
+    
+    console.log('Poster image loaded:', this.posterImage.complete);
+    console.log('Poster image dimensions:', this.posterImage.naturalWidth, 'x', this.posterImage.naturalHeight);
     
     // Create poster texture
     this.posterTexture = this.gl.createTexture();
@@ -438,6 +448,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   console.log('Found product image, initializing Sobel filter effect...');
   console.log('Image src:', img.src);
+  console.log('Image loaded:', img.complete);
   console.log('Image dimensions:', img.naturalWidth, 'x', img.naturalHeight);
   
   // Keep the original image visible as background
@@ -448,13 +459,26 @@ document.addEventListener('DOMContentLoaded', function() {
   img.style.height = '100%';
   img.style.zIndex = '1';
   
-  // Create the normal mapping effect with Sobel filter
-  try {
-    console.log('Creating NormalMappingEffect...');
-    window.normalMappingEffect = new NormalMappingEffect(productImageMain, img);
-    console.log('Sobel filter effect initialized successfully');
-  } catch (error) {
-    console.error('Failed to create normal mapping effect:', error);
-    console.error('Error stack:', error.stack);
+  // Wait for image to load if it's not already loaded
+  if (img.complete) {
+    createEffect();
+  } else {
+    console.log('Waiting for image to load...');
+    img.onload = createEffect;
+    img.onerror = function() {
+      console.error('Failed to load product image');
+    };
+  }
+  
+  function createEffect() {
+    // Create the normal mapping effect with Sobel filter
+    try {
+      console.log('Creating NormalMappingEffect...');
+      window.normalMappingEffect = new NormalMappingEffect(productImageMain, img);
+      console.log('Sobel filter effect initialized successfully');
+    } catch (error) {
+      console.error('Failed to create normal mapping effect:', error);
+      console.error('Error stack:', error.stack);
+    }
   }
 });
