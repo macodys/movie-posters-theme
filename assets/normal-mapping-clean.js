@@ -155,6 +155,9 @@ class NormalMappingEffect {
             } else {
               gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green if has data
             }
+          } else if (u_normalMapMode == 7) {
+            // Show the normal map texture directly without any processing
+            gl_FragColor = vec4(normal, 1.0);
           }
           return;
         }
@@ -384,9 +387,24 @@ class NormalMappingEffect {
       }
     }
     
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, size, size, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, data);
-    console.log('Fallback normal map created successfully');
     console.log('Fallback data sample:', data.slice(0, 16)); // Show first 16 bytes
+    console.log('Data length:', data.length);
+    console.log('Expected length:', size * size * 4);
+    
+    try {
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, size, size, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, data);
+      console.log('Fallback normal map uploaded to GPU successfully');
+      
+      // Verify the texture was uploaded
+      const error = this.gl.getError();
+      if (error !== this.gl.NO_ERROR) {
+        console.error('OpenGL error after uploading fallback normal map:', error);
+      } else {
+        console.log('No OpenGL errors after uploading fallback normal map');
+      }
+    } catch (error) {
+      console.error('Failed to upload fallback normal map to GPU:', error);
+    }
   }
   
   
@@ -430,7 +448,7 @@ class NormalMappingEffect {
     // Add keyboard handler for normal map mode cycling
     document.addEventListener('keydown', (event) => {
       if (this.debugMode) {
-        if (event.key >= '1' && event.key <= '7') {
+        if (event.key >= '1' && event.key <= '8') {
           this.normalMapMode = parseInt(event.key) - 1;
           console.log('Normal map mode set to:', this.normalMapMode);
           this.render();
@@ -467,7 +485,7 @@ class NormalMappingEffect {
   }
   
   cycleNormalMapMode() {
-    this.normalMapMode = (this.normalMapMode + 1) % 7;
+    this.normalMapMode = (this.normalMapMode + 1) % 8;
     console.log('Normal map mode:', this.normalMapMode);
     if (this.normalMapMode === 0) {
       console.log('Mode 0: Raw normal map colors');
@@ -483,6 +501,8 @@ class NormalMappingEffect {
       console.log('Mode 5: Poster texture (should show poster image)');
     } else if (this.normalMapMode === 6) {
       console.log('Mode 6: Normal map test (red=black, green=data)');
+    } else if (this.normalMapMode === 7) {
+      console.log('Mode 7: Direct normal map texture (no processing)');
     }
   }
   
