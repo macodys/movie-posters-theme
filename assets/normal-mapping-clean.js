@@ -111,21 +111,56 @@ class NormalMappingEffect {
       
       varying vec2 v_texCoord;
       
-      // Normal Mapping Shadow (NMS) - Exact Shadertoy implementation
-      #define iSampleCount 15
-      #define SampleCount float(iSampleCount)
-      #define HeightScale 1.5
-      #define ShadowHardness 2.0
-      #define ShadowLength 0.05
-      
       void main() {
         vec2 uv = v_texCoord;
         
-        // Sample the poster texture
+        // Sample the poster texture (diffuse map)
         vec4 posterColor = texture2D(u_posterTexture, uv);
         
-        // Show the poster image without any effects
-        gl_FragColor = posterColor;
+        // Sample the normal map
+        vec3 normal = texture2D(u_normalTexture, uv).rgb;
+        // Transform normal from [0,1] to [-1,1] range (LearnOpenGL technique)
+        normal = normalize(normal * 2.0 - 1.0);
+        
+        // Calculate cursor position in UV space
+        vec2 cursorUV = u_mouse / u_resolution;
+        
+        // Fallback light position when mouse is not over the element
+        vec3 lightPos = vec3(cursorUV, 0.2);
+        if (u_mouse.x <= 0.0 && u_mouse.y <= 0.0) {
+          // Default light position (center-right)
+          lightPos = vec3(0.7, 0.3, 0.2);
+        }
+        
+        vec3 fragPos = vec3(uv, 0.0);
+        vec3 lightDir = normalize(lightPos - fragPos);
+        
+        // View direction (camera looking down at the surface)
+        vec3 viewDir = normalize(vec3(0.0, 0.0, 1.0) - fragPos);
+        
+        // Calculate distance for attenuation
+        float distance = length(lightPos - fragPos);
+        float attenuation = 1.0 / (1.0 + 0.1 * distance + 0.01 * distance * distance);
+        
+        // Diffuse lighting (Lambertian reflection)
+        float diff = max(dot(normal, lightDir), 0.0);
+        vec3 diffuse = diff * vec3(1.0, 0.9, 0.8) * attenuation; // Warm light color
+        
+        // Specular lighting (Blinn-Phong)
+        vec3 halfDir = normalize(lightDir + viewDir);
+        float spec = pow(max(dot(normal, halfDir), 0.0), 32.0);
+        vec3 specular = spec * vec3(1.0, 0.9, 0.8) * 0.5 * attenuation;
+        
+        // Ambient lighting
+        vec3 ambient = vec3(0.1, 0.1, 0.15);
+        
+        // Combine lighting
+        vec3 lighting = ambient + diffuse + specular;
+        
+        // Apply lighting to poster color
+        vec3 result = posterColor.rgb * lighting;
+        
+        gl_FragColor = vec4(result, posterColor.a);
       }
     `;
     
@@ -278,6 +313,9 @@ class NormalMappingEffect {
       const rect = this.container.getBoundingClientRect();
       this.mouseX = (event.clientX - rect.left) / rect.width;
       this.mouseY = (event.clientY - rect.top) / rect.height;
+      // Convert to screen coordinates for proper lighting
+      this.mouseX = this.mouseX * this.canvas.width;
+      this.mouseY = this.mouseY * this.canvas.height;
       this.render();
     });
     
