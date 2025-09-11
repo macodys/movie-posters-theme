@@ -292,7 +292,7 @@ class NormalMappingEffect {
   }
   
   convertToNormalMap(normalMapImage) {
-    console.log('Converting image to proper normal map format...');
+    console.log('Converting Poster_Normal.png to normal map format using Sobel operator...');
     
     // Create a canvas to process the normal map
     const canvas = document.createElement('canvas');
@@ -309,49 +309,55 @@ class NormalMappingEffect {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;
     
-    // Convert each pixel to proper normal map format
+    // Convert using Sobel operator (same as Shadertoy)
     for (let i = 0; i < data.length; i += 4) {
-      const r = data[i];     // Red channel
-      const g = data[i + 1]; // Green channel
-      const b = data[i + 2]; // Blue channel
-      const a = data[i + 3]; // Alpha channel
+      const x = (i / 4) % canvas.width;
+      const y = Math.floor((i / 4) / canvas.width);
       
-      // Convert from 0-255 range to -1 to 1 range for normal vectors
-      // Normal maps typically store:
-      // R = X component (left-right)
-      // G = Y component (up-down) 
-      // B = Z component (depth)
+      // Get surrounding heights (using grayscale values)
+      const getHeight = (px, py) => {
+        const clampedX = Math.max(0, Math.min(canvas.width - 1, px));
+        const clampedY = Math.max(0, Math.min(canvas.height - 1, py));
+        const idx = (clampedY * canvas.width + clampedX) * 4;
+        return (data[idx] + data[idx + 1] + data[idx + 2]) / 3; // Average RGB for height
+      };
       
-      // Convert to normal vector components
-      const normalX = (r / 255.0) * 2.0 - 1.0; // -1 to 1
-      const normalY = (g / 255.0) * 2.0 - 1.0; // -1 to 1
-      const normalZ = (b / 255.0) * 2.0 - 1.0; // -1 to 1
+      // Sobel operator (same as Shadertoy)
+      const h1 = getHeight(x - 1, y - 1);
+      const h2 = getHeight(x, y - 1);
+      const h3 = getHeight(x + 1, y - 1);
+      const h4 = getHeight(x - 1, y);
+      const h6 = getHeight(x + 1, y);
+      const h7 = getHeight(x - 1, y + 1);
+      const h8 = getHeight(x, y + 1);
+      const h9 = getHeight(x + 1, y + 1);
       
-      // Normalize the vector
+      // Calculate gradients
+      const dx = (h3 + 2 * h6 + h9) - (h1 + 2 * h4 + h7);
+      const dy = (h7 + 2 * h8 + h9) - (h1 + 2 * h2 + h3);
+      
+      // Create normal vector
+      const normalX = dx;
+      const normalY = dy;
+      const normalZ = 5.0; // invNormalMapScale (same as Shadertoy)
+      
+      // Normalize
       const length = Math.sqrt(normalX * normalX + normalY * normalY + normalZ * normalZ);
-      if (length > 0) {
-        const normalizedX = normalX / length;
-        const normalizedY = normalY / length;
-        const normalizedZ = normalZ / length;
-        
-        // Convert back to 0-255 range for texture storage
-        data[i] = Math.round((normalizedX + 1.0) * 0.5 * 255);     // X component
-        data[i + 1] = Math.round((normalizedY + 1.0) * 0.5 * 255); // Y component
-        data[i + 2] = Math.round((normalizedZ + 1.0) * 0.5 * 255); // Z component
-        data[i + 3] = 255; // Alpha
-      } else {
-        // Default normal pointing up if length is 0
-        data[i] = 128;     // X = 0
-        data[i + 1] = 128; // Y = 0
-        data[i + 2] = 255; // Z = 1 (pointing up)
-        data[i + 3] = 255; // Alpha
-      }
+      const normalizedX = normalX / length;
+      const normalizedY = normalY / length;
+      const normalizedZ = normalZ / length;
+      
+      // Convert to 0-255 range for texture storage
+      data[i] = Math.round((normalizedX + 1.0) * 0.5 * 255);     // X component
+      data[i + 1] = Math.round((normalizedY + 1.0) * 0.5 * 255); // Y component
+      data[i + 2] = Math.round((normalizedZ + 1.0) * 0.5 * 255); // Z component
+      data[i + 3] = 255; // Alpha
     }
     
     // Put the processed data back
     ctx.putImageData(imageData, 0, 0);
     
-    console.log('Normal map conversion completed');
+    console.log('Normal map conversion completed using Sobel operator');
     return canvas;
   }
   
