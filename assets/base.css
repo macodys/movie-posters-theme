@@ -837,7 +837,52 @@ main#MainContent {
   transform-style: preserve-3d;
 }
 
-/* WebGL Normal Mapping Effect - CSS styles removed, handled by JavaScript */
+/* Fallback CSS Normal Mapping Effect */
+.product-image-main {
+  position: relative;
+  overflow: hidden;
+}
+
+.product-image-main::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('poster-normal.png');
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: multiply;
+  filter: brightness(0.8) contrast(1.2);
+}
+
+.product-image-main::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+    rgba(255, 255, 255, 0.15) 0%, 
+    rgba(255, 255, 255, 0.05) 30%, 
+    transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: soft-light;
+}
+
+.product-image-main:hover::before,
+.product-image-main:hover::after {
+  opacity: 1;
+}
 
 /* WebGL Normal Mapping Effect - Enhanced shadows handled by shaders */
 

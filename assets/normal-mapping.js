@@ -9,18 +9,26 @@ class NormalMappingEffect {
     this.program = null;
     this.mouseX = 0.5;
     this.mouseY = 0.5;
+    this.isInitialized = false;
     
     this.init();
   }
   
   init() {
-    this.createCanvas();
-    this.setupWebGL();
-    this.createShaders();
-    this.setupBuffers();
-    this.setupTextures();
-    this.setupEventListeners();
-    this.render();
+    try {
+      this.createCanvas();
+      if (this.setupWebGL()) {
+        this.createShaders();
+        this.setupBuffers();
+        this.setupTextures();
+        this.setupEventListeners();
+        this.render();
+        this.isInitialized = true;
+        console.log('Normal mapping effect initialized successfully');
+      }
+    } catch (error) {
+      console.error('Failed to initialize normal mapping effect:', error);
+    }
   }
   
   createCanvas() {
@@ -41,7 +49,7 @@ class NormalMappingEffect {
     this.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
     if (!this.gl) {
       console.error('WebGL not supported');
-      return;
+      return false;
     }
     
     // Set canvas size
@@ -49,6 +57,12 @@ class NormalMappingEffect {
     this.canvas.width = rect.width;
     this.canvas.height = rect.height;
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    
+    // Enable blending
+    this.gl.enable(this.gl.BLEND);
+    this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+    
+    return true;
   }
   
   createShaders() {
@@ -226,10 +240,18 @@ class NormalMappingEffect {
   }
   
   render() {
-    if (!this.gl || !this.program) return;
+    if (!this.gl || !this.program || !this.isInitialized) {
+      console.log('WebGL not ready for rendering');
+      return;
+    }
     
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-    this.gl.useProgram(this.program);
+    try {
+      this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+      this.gl.useProgram(this.program);
+    } catch (error) {
+      console.error('Error in render setup:', error);
+      return;
+    }
     
     // Set up attributes
     const positionLocation = this.gl.getAttribLocation(this.program, 'a_position');
@@ -277,31 +299,47 @@ class NormalMappingEffect {
 
 // Initialize normal mapping effect when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded, looking for product image...');
+  
   const productImageMain = document.querySelector('.product-image-main');
-  if (productImageMain) {
-    const img = productImageMain.querySelector('img');
-    if (img) {
-      // Wait for images to load
-      Promise.all([
-        new Promise(resolve => {
-          if (img.complete) resolve();
-          else img.onload = resolve;
-        }),
-        new Promise(resolve => {
-          const normalImg = new Image();
-          normalImg.onload = resolve;
-          normalImg.src = 'poster-normal.png';
-        })
-      ]).then(() => {
-        const normalImg = new Image();
-        normalImg.src = 'poster-normal.png';
-        
-        // Hide the original image
-        img.style.display = 'none';
-        
-        // Create the normal mapping effect
-        window.normalMappingEffect = new NormalMappingEffect(productImageMain, img, normalImg);
-      });
-    }
+  if (!productImageMain) {
+    console.log('Product image container not found');
+    return;
   }
+  
+  const img = productImageMain.querySelector('img');
+  if (!img) {
+    console.log('Product image not found');
+    return;
+  }
+  
+  console.log('Found product image, loading normal map...');
+  
+  // Load normal map image
+  const normalImg = new Image();
+  normalImg.crossOrigin = 'anonymous';
+  
+  normalImg.onload = function() {
+    console.log('Normal map loaded, initializing effect...');
+    
+    // Hide the original image
+    img.style.display = 'none';
+    
+    // Create the normal mapping effect
+    try {
+      window.normalMappingEffect = new NormalMappingEffect(productImageMain, img, normalImg);
+    } catch (error) {
+      console.error('Failed to create normal mapping effect:', error);
+      // Show original image if effect fails
+      img.style.display = 'block';
+    }
+  };
+  
+  normalImg.onerror = function() {
+    console.error('Failed to load normal map image');
+    // Show original image if normal map fails to load
+    img.style.display = 'block';
+  };
+  
+  normalImg.src = 'poster-normal.png';
 });
