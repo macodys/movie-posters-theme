@@ -59,6 +59,148 @@ class NormalMappingEffect {
     const rect = this.container.getBoundingClientRect();
     this.canvas.width = rect.width;
     this.canvas.height = rect.height;
+    
+    // Create debug UI
+    this.createDebugUI();
+  }
+  
+  createDebugUI() {
+    // Create debug panel
+    this.debugPanel = document.createElement('div');
+    this.debugPanel.style.cssText = `
+      position: fixed;
+      left: 12px;
+      top: 12px;
+      color: #eee;
+      font: 12px/1.3 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: rgba(0,0,0,0.8);
+      padding: 15px;
+      border-radius: 10px;
+      z-index: 1000;
+      min-width: 250px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+    `;
+    
+    this.debugPanel.innerHTML = `
+      <div style="margin-bottom: 15px; font-weight: bold; color: #fff;">🎛️ Normal Mapping Debug</div>
+      
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; margin-bottom: 4px;">Normal Intensity</label>
+        <input type="range" id="debugNormalIntensity" min="0" max="3" step="0.1" value="${this.normalIntensity}" style="width: 100%;">
+        <span id="normalIntensityValue" style="color: #ccc; font-size: 11px;">${this.normalIntensity}</span>
+      </div>
+      
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; margin-bottom: 4px;">Specular Power</label>
+        <input type="range" id="debugSpecPower" min="1" max="128" step="1" value="${this.specPower}" style="width: 100%;">
+        <span id="specPowerValue" style="color: #ccc; font-size: 11px;">${this.specPower}</span>
+      </div>
+      
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; margin-bottom: 4px;">Rim Power</label>
+        <input type="range" id="debugRimPower" min="0" max="8" step="0.1" value="${this.rimPower}" style="width: 100%;">
+        <span id="rimPowerValue" style="color: #ccc; font-size: 11px;">${this.rimPower}</span>
+      </div>
+      
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; margin-bottom: 4px;">Rim Strength</label>
+        <input type="range" id="debugRimStrength" min="0" max="2" step="0.01" value="${this.rimStrength}" style="width: 100%;">
+        <span id="rimStrengthValue" style="color: #ccc; font-size: 11px;">${this.rimStrength}</span>
+      </div>
+      
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; margin-bottom: 4px;">Light Height (Z)</label>
+        <input type="range" id="debugLightZ" min="0.1" max="3" step="0.01" value="${this.lightZ}" style="width: 100%;">
+        <span id="lightZValue" style="color: #ccc; font-size: 11px;">${this.lightZ}</span>
+      </div>
+      
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; margin-bottom: 4px;">Light Radius</label>
+        <input type="range" id="debugLightRadius" min="0.1" max="3" step="0.01" value="${this.lightRadius}" style="width: 100%;">
+        <span id="lightRadiusValue" style="color: #ccc; font-size: 11px;">${this.lightRadius}</span>
+      </div>
+      
+      <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <div style="font-size: 11px; color: #999;">Move mouse to drag the light</div>
+        <button id="copyValues" style="margin-top: 8px; padding: 6px 12px; background: #333; border: 1px solid #555; color: #fff; border-radius: 4px; cursor: pointer; font-size: 11px;">Copy Values</button>
+      </div>
+    `;
+    
+    document.body.appendChild(this.debugPanel);
+    this.setupDebugEventListeners();
+  }
+  
+  setupDebugEventListeners() {
+    const normalIntensitySlider = document.getElementById('debugNormalIntensity');
+    const specPowerSlider = document.getElementById('debugSpecPower');
+    const rimPowerSlider = document.getElementById('debugRimPower');
+    const rimStrengthSlider = document.getElementById('debugRimStrength');
+    const lightZSlider = document.getElementById('debugLightZ');
+    const lightRadiusSlider = document.getElementById('debugLightRadius');
+    const copyButton = document.getElementById('copyValues');
+    
+    const normalIntensityValue = document.getElementById('normalIntensityValue');
+    const specPowerValue = document.getElementById('specPowerValue');
+    const rimPowerValue = document.getElementById('rimPowerValue');
+    const rimStrengthValue = document.getElementById('rimStrengthValue');
+    const lightZValue = document.getElementById('lightZValue');
+    const lightRadiusValue = document.getElementById('lightRadiusValue');
+    
+    normalIntensitySlider.addEventListener('input', (e) => {
+      this.normalIntensity = parseFloat(e.target.value);
+      normalIntensityValue.textContent = this.normalIntensity.toFixed(1);
+    });
+    
+    specPowerSlider.addEventListener('input', (e) => {
+      this.specPower = parseFloat(e.target.value);
+      specPowerValue.textContent = this.specPower;
+    });
+    
+    rimPowerSlider.addEventListener('input', (e) => {
+      this.rimPower = parseFloat(e.target.value);
+      rimPowerValue.textContent = this.rimPower.toFixed(1);
+    });
+    
+    rimStrengthSlider.addEventListener('input', (e) => {
+      this.rimStrength = parseFloat(e.target.value);
+      rimStrengthValue.textContent = this.rimStrength.toFixed(2);
+    });
+    
+    lightZSlider.addEventListener('input', (e) => {
+      this.lightZ = parseFloat(e.target.value);
+      lightZValue.textContent = this.lightZ.toFixed(2);
+    });
+    
+    lightRadiusSlider.addEventListener('input', (e) => {
+      this.lightRadius = parseFloat(e.target.value);
+      lightRadiusValue.textContent = this.lightRadius.toFixed(2);
+    });
+    
+    copyButton.addEventListener('click', () => {
+      const values = {
+        normalIntensity: this.normalIntensity,
+        specPower: this.specPower,
+        rimPower: this.rimPower,
+        rimStrength: this.rimStrength,
+        lightZ: this.lightZ,
+        lightRadius: this.lightRadius
+      };
+      
+      const valuesText = `this.normalIntensity = ${this.normalIntensity};
+this.specPower = ${this.specPower};
+this.rimPower = ${this.rimPower};
+this.rimStrength = ${this.rimStrength};
+this.lightZ = ${this.lightZ};
+this.lightRadius = ${this.lightRadius};`;
+      
+      navigator.clipboard.writeText(valuesText).then(() => {
+        copyButton.textContent = 'Copied!';
+        setTimeout(() => {
+          copyButton.textContent = 'Copy Values';
+        }, 2000);
+      });
+    });
   }
   
   setupWebGL() {
