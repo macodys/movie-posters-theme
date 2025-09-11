@@ -206,8 +206,9 @@ class NormalMappingEffect {
         // Sample the poster texture
         vec4 posterColor = texture2D(u_posterTexture, uv);
         
-        // Sample the custom normal map
-        vec3 normal = texture2D(u_normalTexture, uv).rgb * 2.0 - 1.0;
+        // Sample the custom normal map with tiling to fit the poster
+        vec2 normalUV = uv * 2.0; // Tile the normal map 2x2 times
+        vec3 normal = texture2D(u_normalTexture, normalUV).rgb * 2.0 - 1.0;
         
         // Lighting setup
         float fLightHeight = 0.2;
@@ -331,8 +332,8 @@ class NormalMappingEffect {
     // Create normal map texture
     this.normalTexture = this.gl.createTexture();
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
     
@@ -477,5 +478,5 @@ document.addEventListener('DOMContentLoaded', function() {
     img.style.display = 'block';
   };
   
-  normalImg.src = window.normalMapUrl || 'poster-normal.png';
+  normalImg.src = window.normalMapUrl || 'paper-normal.jpg';
 });
