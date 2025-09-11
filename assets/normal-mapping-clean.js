@@ -331,9 +331,22 @@ class NormalMappingEffect {
     this.createFallbackNormalMap();
     console.log('Normal texture after fallback:', this.normalTexture);
     
-    // Skip loading the actual normal map for now - use fallback only
-    console.log('Skipping actual normal map loading, using fallback only for testing');
-    console.log('Fallback normal map should now be visible in debug mode');
+    // Now that fallback works, try loading the actual normal map
+    if (this.normalMapImage && this.normalMapImage.naturalWidth > 0 && this.normalMapImage.naturalHeight > 0) {
+      console.log('Loading actual normal map image:', this.normalMapImage.src);
+      console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
+      
+      try {
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
+        console.log('Actual normal map texture loaded successfully');
+        console.log('Now using actual normal map instead of fallback');
+      } catch (error) {
+        console.error('Failed to load actual normal map texture:', error);
+        console.log('Using fallback normal map instead');
+      }
+    } else {
+      console.log('No actual normal map image available, using fallback');
+    }
   }
   
   createFallbackNormalMap() {
