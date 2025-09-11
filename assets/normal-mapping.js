@@ -120,38 +120,41 @@ class NormalMappingEffect {
         vec2 lightPos = u_mouse;
         float lightDist = distance(uv, lightPos);
         
-        // Create a soft light around the mouse (inverse distance)
-        float lightIntensity = 1.0 - smoothstep(0.0, 0.4, lightDist);
-        lightIntensity = pow(lightIntensity, 2.0);
+        // Create a soft radial light around the mouse
+        float lightIntensity = 1.0 - smoothstep(0.0, 0.5, lightDist);
+        lightIntensity = pow(lightIntensity, 1.5);
         
-        // Calculate light direction from mouse position
-        vec2 lightDir = lightPos - uv;
-        lightDir = normalize(lightDir);
+        // Create radial light direction (pointing outward from mouse)
+        vec2 lightDir = uv - lightPos;
+        float lightDirLength = length(lightDir);
+        if (lightDirLength > 0.0) {
+          lightDir = lightDir / lightDirLength;
+        }
         
-        // Convert 2D light direction to 3D
-        vec3 light3D = normalize(vec3(lightDir, 0.2));
+        // Convert to 3D with slight upward bias for natural lighting
+        vec3 light3D = normalize(vec3(lightDir, 0.1));
         
-        // Calculate diffuse lighting based on normal and light direction
+        // Calculate diffuse lighting based on normal and radial light direction
         float diffuse = max(dot(normal, light3D), 0.0);
         
         // Add ambient lighting
-        float ambient = 0.4;
+        float ambient = 0.3;
         
-        // Calculate final lighting with mouse-based intensity
-        float lighting = ambient + (diffuse * lightIntensity * 0.8);
+        // Calculate final lighting with radial intensity
+        float lighting = ambient + (diffuse * lightIntensity * 0.6);
         
         // Apply lighting to poster color
         vec3 finalColor = posterColor.rgb * lighting;
         
-        // Add rim lighting for depth
+        // Add rim lighting for depth (also radial)
         float rim = 1.0 - max(dot(normal, vec3(0.0, 0.0, 1.0)), 0.0);
-        rim = pow(rim, 1.5);
-        finalColor += rim * 0.15 * lightIntensity;
+        rim = pow(rim, 2.0);
+        finalColor += rim * 0.2 * lightIntensity;
         
-        // Add a subtle glow around the mouse area
-        float glow = 1.0 - smoothstep(0.0, 0.3, lightDist);
-        glow = pow(glow, 3.0);
-        finalColor += glow * 0.1;
+        // Add a soft glow around the mouse area
+        float glow = 1.0 - smoothstep(0.0, 0.4, lightDist);
+        glow = pow(glow, 2.0);
+        finalColor += glow * 0.15;
         
         gl_FragColor = vec4(finalColor, posterColor.a);
       }
