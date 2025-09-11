@@ -138,6 +138,12 @@ class NormalMappingEffect {
             vec3 transformed = normalize(normal * 2.0 - 1.0);
             transformed.y = -transformed.y;
             gl_FragColor = vec4(transformed * 0.5 + 0.5, 1.0);
+          } else if (u_normalMapMode == 3) {
+            // Show UV coordinates to test if texture is working
+            gl_FragColor = vec4(uv, 0.0, 1.0);
+          } else if (u_normalMapMode == 4) {
+            // Show a test pattern
+            gl_FragColor = vec4(0.5, 0.5, 1.0, 1.0);
           }
           return;
         }
@@ -309,6 +315,19 @@ class NormalMappingEffect {
     if (this.normalMapImage) {
       console.log('Loading normal map image:', this.normalMapImage.src);
       console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
+      console.log('Normal map complete:', this.normalMapImage.complete);
+      console.log('Normal map naturalWidth:', this.normalMapImage.naturalWidth);
+      console.log('Normal map naturalHeight:', this.normalMapImage.naturalHeight);
+      
+      // Check if image actually loaded
+      if (this.normalMapImage.naturalWidth === 0 || this.normalMapImage.naturalHeight === 0) {
+        console.error('Normal map image failed to load properly!');
+        console.error('Image src:', this.normalMapImage.src);
+        console.error('Image complete:', this.normalMapImage.complete);
+        console.error('Image naturalWidth:', this.normalMapImage.naturalWidth);
+        console.error('Image naturalHeight:', this.normalMapImage.naturalHeight);
+      }
+      
       this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
       console.log('Normal map texture loaded successfully');
     } else {
@@ -365,7 +384,7 @@ class NormalMappingEffect {
     // Add keyboard handler for normal map mode cycling
     document.addEventListener('keydown', (event) => {
       if (this.debugMode) {
-        if (event.key === '1' || event.key === '2' || event.key === '3') {
+        if (event.key >= '1' && event.key <= '5') {
           this.normalMapMode = parseInt(event.key) - 1;
           console.log('Normal map mode set to:', this.normalMapMode);
           this.render();
@@ -402,7 +421,7 @@ class NormalMappingEffect {
   }
   
   cycleNormalMapMode() {
-    this.normalMapMode = (this.normalMapMode + 1) % 3;
+    this.normalMapMode = (this.normalMapMode + 1) % 5;
     console.log('Normal map mode:', this.normalMapMode);
     if (this.normalMapMode === 0) {
       console.log('Mode 0: Raw normal map colors');
@@ -410,6 +429,10 @@ class NormalMappingEffect {
       console.log('Mode 1: Transformed normal vectors');
     } else if (this.normalMapMode === 2) {
       console.log('Mode 2: Flipped Y normal vectors');
+    } else if (this.normalMapMode === 3) {
+      console.log('Mode 3: UV coordinates (should show gradient)');
+    } else if (this.normalMapMode === 4) {
+      console.log('Mode 4: Test pattern (should show blue)');
     }
   }
   
