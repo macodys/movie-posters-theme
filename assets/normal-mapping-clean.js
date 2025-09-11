@@ -103,6 +103,10 @@ class NormalMappingEffect {
         // gl_FragColor = vec4(normal * 0.5 + 0.5, 1.0);
         // return;
         
+        // Enhance normal map strength for more dramatic effect
+        normal.xy *= 3.0; // Increase normal map strength significantly
+        normal = normalize(normal);
+        
         // Convert from tangent space to world space
         // For a flat surface, we need to transform the normal properly
         vec3 worldNormal = normalize(vec3(normal.xy, normal.z));
@@ -120,22 +124,27 @@ class NormalMappingEffect {
         
         // Calculate lighting with enhanced normal map effect
         float NdotL = max(dot(worldNormal, lightDir), 0.0);
-        float diffuse = NdotL * 1.5; // Enhance diffuse lighting
+        float diffuse = NdotL * 2.5; // Much stronger diffuse lighting
         
         vec3 halfDir = normalize(viewDir + lightDir);
         float NdotH = max(dot(worldNormal, halfDir), 0.0);
-        float specular = pow(NdotH, 16.0) * NdotL * 0.8; // Enhanced specular
+        float specular = pow(NdotH, 8.0) * NdotL * 1.2; // Stronger specular
         
         // Add ambient lighting
-        float ambient = 0.4;
+        float ambient = 0.2; // Lower ambient for more contrast
         
         // Add rim lighting for extra depth
         float rim = 1.0 - max(dot(worldNormal, viewDir), 0.0);
-        rim = pow(rim, 2.0);
-        float rimLight = rim * 0.3;
+        rim = pow(rim, 1.5);
+        float rimLight = rim * 0.5;
         
-        // Apply lighting to poster color
-        vec3 result = posterColor.rgb * (diffuse + ambient) + specular + rimLight;
+        // Add shadow calculation for more dramatic effect
+        float shadow = 1.0 - NdotL;
+        shadow = pow(shadow, 2.0);
+        shadow *= 0.6;
+        
+        // Apply lighting to poster color with enhanced contrast
+        vec3 result = posterColor.rgb * (diffuse + ambient - shadow) + specular + rimLight;
         
         gl_FragColor = vec4(result, posterColor.a);
       }
