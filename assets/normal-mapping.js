@@ -210,6 +210,10 @@ class NormalMappingEffect {
         vec2 normalUV = uv * 2.0; // Tile the normal map 2x2 times
         vec3 normal = texture2D(u_normalTexture, normalUV).rgb * 2.0 - 1.0;
         
+        // Enhance normal map strength for more pronounced effect
+        normal.xy *= 2.0; // Increase normal map strength
+        normal = normalize(normal);
+        
         // Lighting setup
         float fLightHeight = 0.2;
         float fViewHeight = 2.0;
@@ -224,13 +228,22 @@ class NormalMappingEffect {
         vec3 vDirToLight = normalize(vLightPos - vSurfacePos);
         
         float fNDotL = clamp(dot(normal, vDirToLight), 0.0, 1.0);
-        float fDiffuse = fNDotL;
+        float fDiffuse = fNDotL * 1.5; // Enhanced diffuse strength
         
         vec3 vHalf = normalize(vDirToView + vDirToLight);
         float fNDotH = clamp(dot(normal, vHalf), 0.0, 1.0);
-        float fSpec = pow(fNDotH, 10.0) * fNDotL * 0.5;
+        float fSpec = pow(fNDotH, 8.0) * fNDotL * 0.8; // Enhanced specular
         
-        vec3 vResult = posterColor.rgb * fDiffuse + fSpec;
+        // Add ambient lighting to prevent complete darkness
+        float fAmbient = 0.3;
+        
+        // Apply lighting to poster color with enhanced contrast
+        vec3 vResult = posterColor.rgb * (fDiffuse + fAmbient) + fSpec;
+        
+        // Add some rim lighting for extra depth
+        float fRim = 1.0 - max(dot(normal, vDirToView), 0.0);
+        fRim = pow(fRim, 2.0);
+        vResult += fRim * 0.2;
         
         vResult = sqrt(vResult);
         
