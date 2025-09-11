@@ -125,53 +125,30 @@
   }, { threshold: 0.15 });
   reveals.forEach((el) => io.observe(el));
 
-  // Enhanced poster card interactions with 3D normal mapping
+  // Simple poster card interactions for collection page
   const posterCards = document.querySelectorAll('.poster-card');
   posterCards.forEach(card => {
-    const productImage = card.querySelector('.product-image');
-    
-    if (productImage) {
-      productImage.addEventListener('mousemove', (e) => {
-        const rect = productImage.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        
-        // Calculate relative position as percentage
-        const relativeX = (x / rect.width) * 100;
-        const relativeY = (y / rect.height) * 100;
-        
-        // Calculate 3D tilt based on mouse position
-        const rotateX = (y - centerY) / 15;
-        const rotateY = (centerX - x) / 15;
-        
-        // Update CSS variables for light source and 3D effect
-        productImage.style.setProperty('--mouse-x', `${relativeX}%`);
-        productImage.style.setProperty('--mouse-y', `${relativeY}%`);
-        productImage.style.setProperty('--rotate-x', `${rotateX}deg`);
-        productImage.style.setProperty('--rotate-y', `${rotateY}deg`);
-        
-        // Apply 3D transform to the image
-        const img = productImage.querySelector('img');
-        if (img) {
-          img.style.transform = `scale(1.05) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-        }
-      });
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const rotateX = (y - centerY) / 10;
+      const rotateY = (centerX - x) / 10;
+      
+      card.style.setProperty('--mouse-x', `${x}px`);
+      card.style.setProperty('--mouse-y', `${y}px`);
+      card.style.setProperty('--rotate-x', `${rotateX}deg`);
+      card.style.setProperty('--rotate-y', `${rotateY}deg`);
+    });
 
-      productImage.addEventListener('mouseleave', () => {
-        productImage.style.setProperty('--mouse-x', '50%');
-        productImage.style.setProperty('--mouse-y', '50%');
-        productImage.style.setProperty('--rotate-x', '0deg');
-        productImage.style.setProperty('--rotate-y', '0deg');
-        
-        // Reset image transform
-        const img = productImage.querySelector('img');
-        if (img) {
-          img.style.transform = 'scale(1.05) rotateX(0deg) rotateY(0deg)';
-        }
-      });
-    }
+    card.addEventListener('mouseleave', () => {
+      card.style.setProperty('--mouse-x', '50%');
+      card.style.setProperty('--mouse-y', '50%');
+      card.style.setProperty('--rotate-x', '0deg');
+      card.style.setProperty('--rotate-y', '0deg');
+    });
   });
 
   // Hero button glow effects
