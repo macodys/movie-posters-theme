@@ -12,7 +12,6 @@ class NormalMappingEffect {
     
     console.log('Creating NormalMappingEffect with container:', container);
     console.log('Poster image:', posterImage);
-    console.log('Normal map image:', normalMapImage);
     
     this.init();
   }
@@ -438,6 +437,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   console.log('Found product image, initializing Sobel filter effect...');
+  console.log('Image src:', img.src);
+  console.log('Image dimensions:', img.naturalWidth, 'x', img.naturalHeight);
   
   // Keep the original image visible as background
   img.style.position = 'absolute';
@@ -449,9 +450,11 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Create the normal mapping effect with Sobel filter
   try {
+    console.log('Creating NormalMappingEffect...');
     window.normalMappingEffect = new NormalMappingEffect(productImageMain, img);
-    console.log('Sobel filter effect initialized');
+    console.log('Sobel filter effect initialized successfully');
   } catch (error) {
     console.error('Failed to create normal mapping effect:', error);
+    console.error('Error stack:', error.stack);
   }
 });
