@@ -9,6 +9,48 @@
     });
   }
 
+  // Animated Search Box
+  const searchBox = document.querySelector('.search-box');
+  const searchInput = document.querySelector('.search-input');
+  const searchIcon = document.querySelector('.search-icon');
+  
+  if (searchBox && searchInput && searchIcon) {
+    // Click on search icon to activate
+    searchIcon.addEventListener('click', () => {
+      searchBox.classList.add('active');
+      searchInput.focus();
+    });
+
+    // Click outside to deactivate
+    document.addEventListener('click', (e) => {
+      if (!searchBox.contains(e.target)) {
+        searchBox.classList.remove('active');
+        searchInput.blur();
+        searchInput.value = '';
+      }
+    });
+
+    // Handle search input
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const query = searchInput.value.trim();
+        if (query) {
+          // Redirect to search page with query
+          window.location.href = `/search?q=${encodeURIComponent(query)}`;
+        }
+      }
+    });
+
+    // Handle escape key
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        searchBox.classList.remove('active');
+        searchInput.blur();
+        searchInput.value = '';
+      }
+    });
+  }
+
 
   // Parallax background effect
   const hero = document.querySelector('.parallax-hero');
