@@ -331,18 +331,36 @@ class NormalMappingEffect {
     this.createFallbackNormalMap();
     console.log('Normal texture after fallback:', this.normalTexture);
     
-    // Now that fallback works, try loading the actual normal map
+    // Test the actual normal map loading with debugging
     if (this.normalMapImage && this.normalMapImage.naturalWidth > 0 && this.normalMapImage.naturalHeight > 0) {
       console.log('Loading actual normal map image:', this.normalMapImage.src);
       console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
+      console.log('Normal map complete:', this.normalMapImage.complete);
       
       try {
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
         console.log('Actual normal map texture loaded successfully');
-        console.log('Now using actual normal map instead of fallback');
+        
+        // Test if the texture actually has data
+        const testCanvas = document.createElement('canvas');
+        const testCtx = testCanvas.getContext('2d');
+        testCanvas.width = 1;
+        testCanvas.height = 1;
+        testCtx.drawImage(this.normalMapImage, 0, 0, 1, 1);
+        const testData = testCtx.getImageData(0, 0, 1, 1).data;
+        console.log('Normal map pixel sample:', testData);
+        
+        if (testData[0] === 0 && testData[1] === 0 && testData[2] === 0) {
+          console.warn('Normal map appears to be black, keeping fallback');
+          // Re-upload the fallback
+          this.createFallbackNormalMap();
+        } else {
+          console.log('Normal map has data, using actual normal map');
+        }
       } catch (error) {
         console.error('Failed to load actual normal map texture:', error);
         console.log('Using fallback normal map instead');
+        this.createFallbackNormalMap();
       }
     } else {
       console.log('No actual normal map image available, using fallback');
