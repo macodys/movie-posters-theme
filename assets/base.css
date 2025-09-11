@@ -317,6 +317,7 @@ main#MainContent {
 }
 
 .search-box.active .search-icon {
+  left: auto;
   right: 20px;
   transform: translateY(-50%) rotate(90deg);
 }
