@@ -162,58 +162,8 @@ class NormalMappingEffect {
           return;
         }
         
-        // Transform normal from [0,1] to [-1,1] range (LearnOpenGL technique)
-        normal = normalize(normal * 2.0 - 1.0);
-        
-        // Try different Y-axis orientations - test without flipping first
-        // normal.y = -normal.y;
-        
-        // Calculate cursor position in UV space
-        vec2 cursorUV = u_mouse / u_resolution;
-        
-        // Fallback light position when mouse is not over the element
-        vec3 lightPos = vec3(cursorUV, 0.2);
-        if (u_mouse.x <= 0.0 && u_mouse.y <= 0.0) {
-          // Default light position (center-right)
-          lightPos = vec3(0.7, 0.3, 0.2);
-        }
-        
-        vec3 fragPos = vec3(uv, 0.0);
-        vec3 lightDir = normalize(lightPos - fragPos);
-        
-        // View direction (camera looking down at the surface)
-        vec3 viewDir = normalize(vec3(0.0, 0.0, 1.0) - fragPos);
-        
-        // Calculate distance for attenuation
-        float distance = length(lightPos - fragPos);
-        float attenuation = 1.0 / (1.0 + 0.05 * distance + 0.005 * distance * distance);
-        
-        // Enhanced diffuse lighting for better depth perception
-        float diff = max(dot(normal, lightDir), 0.0);
-        // Make the diffuse lighting much more pronounced
-        diff = pow(diff, 0.5); // More dramatic falloff
-        vec3 diffuse = diff * vec3(2.0, 1.8, 1.5) * attenuation * 3.0; // Much brighter, warmer light
-        
-        // Enhanced specular lighting for better highlights
-        vec3 halfDir = normalize(lightDir + viewDir);
-        float spec = pow(max(dot(normal, halfDir), 0.0), 16.0); // Softer specular
-        vec3 specular = spec * vec3(1.0, 0.9, 0.8) * 0.8 * attenuation;
-        
-        // Very low ambient to make lighting extremely dramatic
-        vec3 ambient = vec3(0.02, 0.02, 0.03);
-        
-        // Add rim lighting for better depth perception
-        float rim = 1.0 - max(dot(normal, viewDir), 0.0);
-        rim = pow(rim, 2.0);
-        vec3 rimLight = rim * vec3(0.3, 0.4, 0.6) * 0.5;
-        
-        // Combine lighting
-        vec3 lighting = ambient + diffuse + specular + rimLight;
-        
-        // Apply lighting to poster color
-        vec3 result = posterColor.rgb * lighting;
-        
-        gl_FragColor = vec4(result, posterColor.a);
+        // Show the poster image without any effects
+        gl_FragColor = posterColor;
       }
     `;
     
