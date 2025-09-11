@@ -203,14 +203,17 @@ class NormalMappingEffect {
       void main() {
         vec2 vUV = v_texCoord;
         
-        // Sample the poster texture for albedo
-        vec4 posterColor = texture2D(u_posterTexture, vUV);
-        vec3 vAlbedo = posterColor.rgb * posterColor.rgb; // Convert to linear
+        C_Sample materialSample;
+        
+        float fNormalScale = 10.0;
+        // Use custom normal map instead of Sobel filter
+        materialSample.vAlbedo = texture2D(u_posterTexture, vUV).rgb;
+        materialSample.vAlbedo = materialSample.vAlbedo * materialSample.vAlbedo; // Convert to linear
         
         // Sample the custom normal map with tiling
         vec2 normalUV = vUV * 2.0; // Tile the normal map 2x2 times
         vec3 vNormal = texture2D(u_normalTexture, normalUV).rgb * 2.0 - 1.0;
-        vNormal = normalize(vNormal);
+        materialSample.vNormal = normalize(vNormal);
         
         // Random Lighting...
         
@@ -226,23 +229,23 @@ class NormalMappingEffect {
         vec3 vDirToView = normalize( vViewPos - vSurfacePos );
         vec3 vDirToLight = normalize( vLightPos - vSurfacePos );
         
-        float fNDotL = clamp( dot(vNormal, vDirToLight), 0.0, 1.0);
+        float fNDotL = clamp( dot(materialSample.vNormal, vDirToLight), 0.0, 1.0);
         float fDiffuse = fNDotL;
         
         vec3 vHalf = normalize( vDirToView + vDirToLight );
-        float fNDotH = clamp( dot(vNormal, vHalf), 0.0, 1.0);
+        float fNDotH = clamp( dot(materialSample.vNormal, vHalf), 0.0, 1.0);
         float fSpec = pow(fNDotH, 10.0) * fNDotL * 0.5;
         
-        vec3 vResult = vAlbedo * fDiffuse + fSpec;
+        vec3 vResult = materialSample.vAlbedo * fDiffuse + fSpec;
         
         vResult = sqrt(vResult);
         
         #ifdef SHOW_NORMAL_MAP
-        vResult = vNormal * 0.5 + 0.5;
+        vResult = materialSample.vNormal * 0.5 + 0.5;
         #endif
         
         #ifdef SHOW_ALBEDO
-        vResult = sqrt(vAlbedo);
+        vResult = sqrt(materialSample.vAlbedo);
         #endif
         
         gl_FragColor = vec4(vResult, 1.0);
