@@ -327,7 +327,9 @@ class NormalMappingEffect {
     
     // Always create fallback normal map for now to test
     console.log('Creating fallback normal map for testing...');
+    console.log('Normal texture before fallback:', this.normalTexture);
     this.createFallbackNormalMap();
+    console.log('Normal texture after fallback:', this.normalTexture);
     
     // Try to load the actual normal map if available
     if (this.normalMapImage && this.normalMapImage.naturalWidth > 0 && this.normalMapImage.naturalHeight > 0) {
@@ -348,7 +350,15 @@ class NormalMappingEffect {
   
   createFallbackNormalMap() {
     console.log('Creating fallback normal map...');
-    // Create a 64x64 fallback normal map with some variation
+    
+    // First test with a simple 1x1 texture
+    console.log('Testing with 1x1 texture first...');
+    const testData = new Uint8Array([255, 0, 0, 255]); // Red pixel
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, testData);
+    console.log('1x1 test texture uploaded');
+    
+    // Now create the full fallback normal map
+    console.log('Creating full fallback normal map...');
     const size = 64;
     const data = new Uint8Array(size * size * 4);
     
