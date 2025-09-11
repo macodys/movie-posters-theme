@@ -1,8 +1,9 @@
 // Clean Normal Mapping Effect using WebGL
 class NormalMappingEffect {
-  constructor(container, posterImage) {
+  constructor(container, posterImage, normalMapImage) {
     this.container = container;
     this.posterImage = posterImage;
+    this.normalMapImage = normalMapImage;
     this.canvas = null;
     this.gl = null;
     this.program = null;
@@ -12,6 +13,7 @@ class NormalMappingEffect {
     
     console.log('Creating NormalMappingEffect with container:', container);
     console.log('Poster image:', posterImage);
+    console.log('Normal map image:', normalMapImage);
     
     this.init();
   }
@@ -81,6 +83,7 @@ class NormalMappingEffect {
       precision mediump float;
       
       uniform sampler2D u_posterTexture;
+      uniform sampler2D u_normalTexture;
       uniform vec2 u_resolution;
       uniform vec2 u_mouse;
       uniform float u_time;
@@ -100,17 +103,8 @@ class NormalMappingEffect {
         // Sample the poster texture
         vec4 posterColor = texture2D(u_posterTexture, uv);
         
-        // Generate normal map from poster texture (first pass)
-        vec2 offset = 1.0 / u_resolution;
-        vec3 height;
-        height.x = texture2D(u_posterTexture, uv).x;
-        height.y = texture2D(u_posterTexture, uv + vec2(offset.x, 0.0)).x;
-        height.z = texture2D(u_posterTexture, uv + vec2(0.0, offset.y)).x;
-        
-        vec3 normal;
-        normal.xy = (height.x - height.yz);
-        normal.xy /= offset;
-        normal.z = 5.0; // invNormalMapScale
+        // Sample the custom normal map
+        vec3 normal = texture2D(u_normalTexture, uv).rgb * 2.0 - 1.0;
         normal = normalize(normal);
         
         // Lighting setup
@@ -148,15 +142,7 @@ class NormalMappingEffect {
         
         // Shadow sampling loop
         for (int i = 0; i < iSampleCount; i++) {
-          vec3 tmpHeight;
-          tmpHeight.x = texture2D(u_posterTexture, uv + dir * pos).x;
-          tmpHeight.y = texture2D(u_posterTexture, uv + dir * pos + vec2(offset.x, 0.0)).x;
-          tmpHeight.z = texture2D(u_posterTexture, uv + dir * pos + vec2(0.0, offset.y)).x;
-          
-          vec3 tmpNormal;
-          tmpNormal.xy = (tmpHeight.x - tmpHeight.yz);
-          tmpNormal.xy /= offset;
-          tmpNormal.z = 5.0;
+          vec3 tmpNormal = texture2D(u_normalTexture, uv + dir * pos).rgb * 2.0 - 1.0;
           tmpNormal = normalize(tmpNormal);
           
           float tmpLighting = dot(lightdir, tmpNormal);
@@ -289,8 +275,19 @@ class NormalMappingEffect {
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.posterImage);
     console.log('Poster texture loaded');
     
-    // No normal map texture needed - generating from poster texture
-    console.log('Using poster texture for normal map generation');
+    // Create normal map texture
+    this.normalTexture = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+    
+    // Load normal map image
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
+    console.log('Normal map texture loaded');
+    console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
+    console.log('Normal map src:', this.normalMapImage.src);
   }
   
   setupEventListeners() {
@@ -345,18 +342,23 @@ class NormalMappingEffect {
       
       // Set uniforms
       const posterTextureLocation = this.gl.getUniformLocation(this.program, 'u_posterTexture');
+      const normalTextureLocation = this.gl.getUniformLocation(this.program, 'u_normalTexture');
       const resolutionLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
       const mouseLocation = this.gl.getUniformLocation(this.program, 'u_mouse');
       const timeLocation = this.gl.getUniformLocation(this.program, 'u_time');
       
       this.gl.uniform1i(posterTextureLocation, 0);
+      this.gl.uniform1i(normalTextureLocation, 1);
       this.gl.uniform2f(resolutionLocation, this.canvas.width, this.canvas.height);
       this.gl.uniform2f(mouseLocation, this.mouseX, this.mouseY);
       this.gl.uniform1f(timeLocation, Date.now() * 0.001);
       
-      // Bind poster texture
+      // Bind textures
       this.gl.activeTexture(this.gl.TEXTURE0);
       this.gl.bindTexture(this.gl.TEXTURE_2D, this.posterTexture);
+      
+      this.gl.activeTexture(this.gl.TEXTURE1);
+      this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
       
       // Draw
       this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
@@ -395,19 +397,38 @@ document.addEventListener('DOMContentLoaded', function() {
   img.style.height = '100%';
   img.style.zIndex = '1';
   
-  // Create the normal mapping effect directly (no normal map loading needed)
+  // Load custom normal map image
+  console.log('Loading custom normal map image...');
+  const normalImg = new Image();
+  normalImg.crossOrigin = 'anonymous';
+  
+  normalImg.onload = function() {
+    console.log('Custom normal map loaded successfully!');
+    console.log('Normal map dimensions:', normalImg.naturalWidth, 'x', normalImg.naturalHeight);
+    console.log('Normal map src:', normalImg.src);
+    createEffect();
+  };
+  
+  normalImg.onerror = function() {
+    console.error('Failed to load custom normal map image');
+    console.error('Tried to load:', normalImg.src);
+    // Show original image if normal map fails to load
+    img.style.display = 'block';
+  };
+  
+  console.log('Attempting to load custom normal map from:', window.normalMapUrl || 'Poster_Normal.png');
+  normalImg.src = window.normalMapUrl || 'Poster_Normal.png';
+  
   function createEffect() {
     try {
       console.log('Creating NormalMappingEffect...');
       console.log('Poster image loaded:', img.complete);
-      window.normalMappingEffect = new NormalMappingEffect(productImageMain, img);
+      console.log('Normal map image loaded:', normalImg.complete);
+      window.normalMappingEffect = new NormalMappingEffect(productImageMain, img, normalImg);
       console.log('Normal mapping effect initialized successfully');
     } catch (error) {
       console.error('Failed to create normal mapping effect:', error);
       console.error('Error stack:', error.stack);
     }
   }
-  
-  // Create effect immediately since we don't need to load a normal map
-  createEffect();
 });
