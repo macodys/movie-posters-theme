@@ -21,17 +21,36 @@ class NormalMappingEffect {
   init() {
     try {
       console.log('Initializing normal mapping effect...');
+      console.log('Container:', this.container);
+      console.log('Poster image:', this.posterImage);
+      console.log('Normal map image:', this.normalMapImage);
+      
       this.createCanvas();
+      console.log('Canvas created');
+      
       this.setupWebGL();
+      console.log('WebGL setup complete');
+      
       this.setupShaders();
+      console.log('Shaders setup complete');
+      
       this.setupBuffers();
+      console.log('Buffers setup complete');
+      
       this.setupTextures();
+      console.log('Textures setup complete');
+      
       this.setupEventListeners();
-      this.render();
+      console.log('Event listeners setup complete');
+      
       this.isInitialized = true;
       console.log('Normal mapping effect initialized successfully');
+      
+      // Start rendering loop
+      this.startRenderLoop();
     } catch (error) {
       console.error('Failed to initialize normal mapping effect:', error);
+      console.error('Error stack:', error.stack);
       throw error;
     }
   }
@@ -361,6 +380,16 @@ class NormalMappingEffect {
     return canvas;
   }
   
+  startRenderLoop() {
+    const render = () => {
+      if (this.isInitialized) {
+        this.render();
+        requestAnimationFrame(render);
+      }
+    };
+    render();
+  }
+  
   setupEventListeners() {
     this.container.addEventListener('mouseenter', () => {
       console.log('Mouse entered - enabling effect');
@@ -495,11 +524,23 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('Creating NormalMappingEffect...');
       console.log('Poster image loaded:', img.complete);
       console.log('Normal map image loaded:', normalImg.complete);
+      console.log('Poster image src:', img.src);
+      console.log('Normal map image src:', normalImg.src);
+      
+      // Check if images are actually loaded
+      if (!img.complete || !normalImg.complete) {
+        console.error('Images not fully loaded yet');
+        return;
+      }
+      
       window.normalMappingEffect = new NormalMappingEffect(productImageMain, img, normalImg);
       console.log('Normal mapping effect initialized successfully');
     } catch (error) {
       console.error('Failed to create normal mapping effect:', error);
       console.error('Error stack:', error.stack);
+      
+      // Show the original image as fallback
+      img.style.display = 'block';
     }
   }
 });
