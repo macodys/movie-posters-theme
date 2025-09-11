@@ -124,54 +124,37 @@ class NormalMappingEffect {
         float lightIntensity = 1.0 - smoothstep(0.0, 0.6, lightDist);
         lightIntensity = pow(lightIntensity, 1.2);
         
-        // Create a true radial light - illuminate from all directions
-        // Use multiple light directions to eliminate shadows
-        vec3 light1 = normalize(vec3(1.0, 0.0, 0.1));
-        vec3 light2 = normalize(vec3(-1.0, 0.0, 0.1));
-        vec3 light3 = normalize(vec3(0.0, 1.0, 0.1));
-        vec3 light4 = normalize(vec3(0.0, -1.0, 0.1));
-        vec3 light5 = normalize(vec3(0.7, 0.7, 0.1));
-        vec3 light6 = normalize(vec3(-0.7, 0.7, 0.1));
-        vec3 light7 = normalize(vec3(0.7, -0.7, 0.1));
-        vec3 light8 = normalize(vec3(-0.7, -0.7, 0.1));
+        // Calculate light direction from cursor to current pixel
+        vec2 lightDir = uv - lightPos;
+        float lightDirLength = length(lightDir);
+        if (lightDirLength > 0.0) {
+          lightDir = lightDir / lightDirLength;
+        }
         
-        // Calculate diffuse lighting from all directions
-        float diffuse1 = max(dot(normal, light1), 0.0);
-        float diffuse2 = max(dot(normal, light2), 0.0);
-        float diffuse3 = max(dot(normal, light3), 0.0);
-        float diffuse4 = max(dot(normal, light4), 0.0);
-        float diffuse5 = max(dot(normal, light5), 0.0);
-        float diffuse6 = max(dot(normal, light6), 0.0);
-        float diffuse7 = max(dot(normal, light7), 0.0);
-        float diffuse8 = max(dot(normal, light8), 0.0);
+        // Convert to 3D with slight upward bias for natural lighting
+        vec3 light3D = normalize(vec3(lightDir, 0.2));
         
-        // Average all diffuse values for even lighting
-        float diffuse = (diffuse1 + diffuse2 + diffuse3 + diffuse4 + 
-                        diffuse5 + diffuse6 + diffuse7 + diffuse8) / 8.0;
+        // Calculate diffuse lighting based on normal and light direction
+        float diffuse = max(dot(normal, light3D), 0.0);
         
         // Add ambient lighting
         float ambient = 0.4;
         
-        // Calculate final lighting with much stronger shadows
-        float lighting = ambient + (diffuse * lightIntensity * 0.6);
+        // Calculate final lighting with directional shadows from light source
+        float lighting = ambient + (diffuse * lightIntensity * 0.8);
         
         // Apply lighting to poster color
         vec3 finalColor = posterColor.rgb * lighting;
         
-        // Add very strong rim lighting for dramatic depth
-        float rim = 1.0 - max(dot(normal, vec3(0.0, 0.0, 1.0)), 0.0);
-        rim = pow(rim, 1.0);
-        finalColor += rim * 1.2 * lightIntensity;
+        // Add rim lighting for depth (based on light direction)
+        float rim = 1.0 - max(dot(normal, light3D), 0.0);
+        rim = pow(rim, 1.5);
+        finalColor += rim * 0.8 * lightIntensity;
         
-        // Add very strong shadow effect based on normal map
-        float shadow = 1.0 - (length(normal) * 0.3 + 0.7);
-        shadow = pow(shadow, 1.5);
-        finalColor *= (1.0 - shadow * 0.8 * lightIntensity);
-        
-        // Add additional depth shadows
-        float depthShadow = 1.0 - max(dot(normal, vec3(0.0, 0.0, 1.0)), 0.0);
-        depthShadow = pow(depthShadow, 2.0);
-        finalColor *= (1.0 - depthShadow * 0.3 * lightIntensity);
+        // Add shadows based on light direction and normal map
+        float shadow = 1.0 - diffuse;
+        shadow = pow(shadow, 2.0);
+        finalColor *= (1.0 - shadow * 0.6 * lightIntensity);
         
         // Add a soft glow around the mouse area
         float glow = 1.0 - smoothstep(0.0, 0.5, lightDist);
