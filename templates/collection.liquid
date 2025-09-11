@@ -11,11 +11,18 @@
     
     <div class="collection-filters">
       <div class="filter-buttons">
-        <button class="filter-btn active" data-category="all">All</button>
-        <button class="filter-btn" data-category="tv-movies">TV & Movies</button>
-        <button class="filter-btn" data-category="games">Games</button>
-        <button class="filter-btn" data-category="music">Music</button>
-        <button class="filter-btn" data-category="sports">Sports</button>
+        {% if collection.handle == 'tv-movies' %}
+          <button class="filter-btn active" data-category="all">All</button>
+          <button class="filter-btn" data-category="movies">Movies</button>
+          <button class="filter-btn" data-category="tv-shows">TV Shows</button>
+          <button class="filter-btn" data-category="anime">Anime</button>
+        {% else %}
+          <button class="filter-btn active" data-category="all">All</button>
+          <button class="filter-btn" data-category="tv-movies">TV & Movies</button>
+          <button class="filter-btn" data-category="games">Games</button>
+          <button class="filter-btn" data-category="music">Music</button>
+          <button class="filter-btn" data-category="sports">Sports</button>
+        {% endif %}
       </div>
       
       <div class="collection-actions">
@@ -115,7 +122,22 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Filter products
       productCards.forEach(card => {
-        if (category === 'all' || card.dataset.category === category) {
+        const productCategory = card.dataset.category;
+        let shouldShow = false;
+        
+        if (category === 'all') {
+          shouldShow = true;
+        } else if (category === 'movies' && (productCategory === 'movies' || productCategory === 'tv-movies')) {
+          shouldShow = true;
+        } else if (category === 'tv-shows' && (productCategory === 'tv-shows' || productCategory === 'tv-movies')) {
+          shouldShow = true;
+        } else if (category === 'anime' && (productCategory === 'anime' || productCategory === 'tv-movies')) {
+          shouldShow = true;
+        } else if (productCategory === category) {
+          shouldShow = true;
+        }
+        
+        if (shouldShow) {
           card.style.display = 'block';
           card.classList.add('fade-in');
         } else {
