@@ -1,4 +1,4 @@
-// Clean Normal Mapping Effect using WebGL
+// Advanced Normal Mapping Effect using WebGL2
 class NormalMappingEffect {
   constructor(container, posterImage, normalMapImage) {
     this.container = container;
@@ -10,8 +10,14 @@ class NormalMappingEffect {
     this.mouseX = 0.5;
     this.mouseY = 0.5;
     this.isInitialized = false;
-    this.debugMode = false;
-    this.normalMapMode = 0;
+    
+    // Lighting parameters
+    this.normalIntensity = 1.0;
+    this.specPower = 32.0;
+    this.rimPower = 2.5;
+    this.rimStrength = 0.6;
+    this.lightZ = 1.2;
+    this.lightRadius = 1.0;
     
     this.init().catch(error => {
       console.error('Failed to initialize normal mapping effect:', error);
@@ -56,7 +62,7 @@ class NormalMappingEffect {
   }
   
   setupWebGL() {
-    this.gl = this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
+    this.gl = this.canvas.getContext('webgl2') || this.canvas.getContext('webgl') || this.canvas.getContext('experimental-webgl');
     if (!this.gl) {
       throw new Error('WebGL not supported');
     }
@@ -65,78 +71,98 @@ class NormalMappingEffect {
   setupShaders() {
     const vertexShaderSource = `
       attribute vec2 a_position;
-      attribute vec2 a_texCoord;
-      
       varying vec2 v_texCoord;
       
       void main() {
         gl_Position = vec4(a_position, 0.0, 1.0);
-        v_texCoord = a_texCoord;
+        v_texCoord = (a_position + 1.0) * 0.5;
       }
     `;
     
     const fragmentShaderSource = `
-      precision mediump float;
+      precision highp float;
       
       uniform sampler2D u_posterTexture;
       uniform sampler2D u_normalTexture;
       uniform vec2 u_resolution;
       uniform vec2 u_mouse;
       uniform float u_time;
-      uniform bool u_debugMode;
-      uniform int u_normalMapMode;
+      uniform float u_normalIntensity;
+      uniform float u_specPower;
+      uniform float u_rimPower;
+      uniform float u_rimStrength;
+      uniform float u_lightZ;
+      uniform float u_lightRadius;
       
       varying vec2 v_texCoord;
+      
+      // Unpack a tangent-space normal from [0,1] texture, scale XY and renormalize
+      vec3 unpackNormal(vec3 enc, float intensity) {
+        vec3 n = enc * 2.0 - 1.0;      // to [-1,1]
+        n.xy *= intensity;             // optional exaggeration
+        n = normalize(n);
+        return n;
+      }
+      
+      // simple ACES-ish tonemap
+      vec3 tonemapACES(vec3 x) {
+        const float a = 2.51; const float b = 0.03; const float c = 2.43; const float d = 0.59; const float e = 0.14;
+        return clamp((x*(a*x+b))/(x*(c*x+d)+e), 0.0, 1.0);
+      }
       
       void main() {
         vec2 uv = v_texCoord;
         
-        // Sample the poster texture (diffuse map)
-        vec4 posterColor = texture2D(u_posterTexture, uv);
+        // Sample textures
+        vec3 albedo = texture2D(u_posterTexture, uv).rgb;
+        vec3 nTan = unpackNormal(texture2D(u_normalTexture, uv).rgb, u_normalIntensity);
         
-        // Sample the normal map
-        vec3 normal = texture2D(u_normalTexture, uv).rgb;
+        // Identity TBN for a screen-aligned quad: T=(1,0,0), B=(0,1,0), N=(0,0,1)
+        vec3 N = nTan;
         
-        // Debug mode: Show different normal map interpretations
-        if (u_debugMode) {
-          if (u_normalMapMode == 0) {
-            // Show raw normal map colors (should be blue-ish for a normal map)
-            gl_FragColor = vec4(normal, 1.0);
-          } else if (u_normalMapMode == 1) {
-            // Show transformed normal map
-            vec3 transformed = normalize(normal * 2.0 - 1.0);
-            gl_FragColor = vec4(transformed * 0.5 + 0.5, 1.0);
-          } else if (u_normalMapMode == 2) {
-            // Show flipped Y normal map
-            vec3 transformed = normalize(normal * 2.0 - 1.0);
-            transformed.y = -transformed.y;
-            gl_FragColor = vec4(transformed * 0.5 + 0.5, 1.0);
-          } else if (u_normalMapMode == 3) {
-            // Show UV coordinates to test if texture is working
-            gl_FragColor = vec4(uv, 0.0, 1.0);
-          } else if (u_normalMapMode == 4) {
-            // Show a test pattern
-            gl_FragColor = vec4(0.5, 0.5, 1.0, 1.0);
-          } else if (u_normalMapMode == 5) {
-            // Test if we can sample the poster texture instead
-            vec4 posterColor = texture2D(u_posterTexture, uv);
-            gl_FragColor = vec4(posterColor.rgb, 1.0);
-          } else if (u_normalMapMode == 6) {
-            // Test if normal map texture is completely black
-            if (normal.r == 0.0 && normal.g == 0.0 && normal.b == 0.0) {
-              gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red if completely black
-            } else {
-              gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green if has data
-            }
-          } else if (u_normalMapMode == 7) {
-            // Show the normal map texture directly without any processing
-            gl_FragColor = vec4(normal, 1.0);
-          }
-          return;
-        }
+        // Cursor-driven point light
+        vec2 m = u_mouse; // [0,1]
+        vec3 Lpos = vec3((m.x - 0.5) * 2.0, (0.5 - m.y) * 2.0, u_lightZ);
         
-        // Show the poster image without any effects
-        gl_FragColor = posterColor;
+        vec3 P = vec3(uv * 2.0 - 1.0, 0.0);  // view-space plane z=0
+        vec3 Ldir = Lpos - P;
+        float dist = length(Ldir);
+        vec3 L = Ldir / max(dist, 1e-5);
+        vec3 V = vec3(0.0, 0.0, 1.0);     // camera forward for this quad
+        vec3 H = normalize(L + V);
+        
+        float NdotL = max(dot(N, L), 0.0);
+        
+        // distance attenuation (inverse-square-ish with softening)
+        float atten = 1.0 / (1.0 + pow(dist / max(u_lightRadius, 1e-3), 2.0));
+        
+        // Soft shadowing/occlusion-ish term from normal's facing (cheap)
+        float ao = mix(0.6, 1.0, N.z * 0.5 + 0.5);
+        
+        // Diffuse + specular (Blinn-Phong), with a stylized rim
+        vec3 diffuse = albedo * NdotL * atten;
+        float spec = pow(max(dot(N, H), 0.0), u_specPower) * atten;
+        float rim = pow(1.0 - max(dot(N, V), 0.0), u_rimPower) * u_rimStrength * atten;
+        
+        // Fake colored light
+        vec3 lightColor = vec3(1.0, 0.95, 0.9);
+        vec3 specColor = vec3(1.0);
+        
+        vec3 color = vec3(0.03) * albedo     // ambient base
+                   + diffuse * lightColor
+                   + spec * specColor
+                   + rim * (0.35 + 0.65 * albedo);
+        
+        // Vignette & subtle filmic curve
+        vec2 q = uv - 0.5;
+        float vig = smoothstep(0.8, 0.1, dot(q, q));
+        color *= mix(0.6, 1.0, vig) * ao;
+        
+        // Tonemap + gamma
+        color = tonemapACES(color);
+        color = pow(color, vec3(1.0/2.2));
+        
+        gl_FragColor = vec4(color, 1.0);
       }
     `;
     
@@ -183,32 +209,18 @@ class NormalMappingEffect {
   }
   
   setupBuffers() {
-    // Position buffer (full screen quad)
+    // Full-screen triangle (more efficient than quad)
     const positions = new Float32Array([
       -1, -1,
-       1, -1,
-      -1,  1,
-       1,  1
+       3, -1,
+      -1,  3
     ]);
     
     this.positionBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, positions, this.gl.STATIC_DRAW);
-    
-    // Texture coordinate buffer
-    const texCoords = new Float32Array([
-      0, 1,
-      1, 1,
-      0, 0,
-      1, 0
-    ]);
-    
-    this.texCoordBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, texCoords, this.gl.STATIC_DRAW);
   }
   
-
   async setupTextures() {
     if (!this.posterImage) {
       throw new Error('Poster image is not defined');
@@ -223,30 +235,33 @@ class NormalMappingEffect {
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.posterTexture);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
     
     // Load poster image
+    this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.posterImage);
+    this.gl.generateMipmap(this.gl.TEXTURE_2D);
     
     // Create normal map texture
     this.normalTexture = this.gl.createTexture();
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-    
-    // Create fallback normal map
-    this.createFallbackNormalMap();
     
     // Try to load the actual normal map if available
     if (this.normalMapImage && this.normalMapImage.naturalWidth > 0 && this.normalMapImage.naturalHeight > 0) {
       try {
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
+        this.gl.generateMipmap(this.gl.TEXTURE_2D);
       } catch (error) {
         console.error('Failed to load normal map texture:', error);
+        this.createFallbackNormalMap();
       }
+    } else {
+      this.createFallbackNormalMap();
     }
   }
   
@@ -280,8 +295,8 @@ class NormalMappingEffect {
     }
     
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, size, size, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, data);
+    this.gl.generateMipmap(this.gl.TEXTURE_2D);
   }
-  
   
   startRenderLoop() {
     const render = () => {
@@ -306,10 +321,18 @@ class NormalMappingEffect {
       const rect = this.container.getBoundingClientRect();
       this.mouseX = (event.clientX - rect.left) / rect.width;
       this.mouseY = (event.clientY - rect.top) / rect.height;
-      this.mouseX = this.mouseX * this.canvas.width;
-      this.mouseY = this.mouseY * this.canvas.height;
       this.render();
     });
+    
+    this.container.addEventListener('touchmove', (event) => {
+      if (event.touches && event.touches.length) {
+        const rect = this.container.getBoundingClientRect();
+        const t = event.touches[0];
+        this.mouseX = (t.clientX - rect.left) / rect.width;
+        this.mouseY = (t.clientY - rect.top) / rect.height;
+        this.render();
+      }
+    }, {passive: true});
     
     window.addEventListener('resize', () => {
       const rect = this.container.getBoundingClientRect();
@@ -318,7 +341,6 @@ class NormalMappingEffect {
       this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     });
   }
-  
   
   render() {
     if (!this.isInitialized) return;
@@ -330,17 +352,11 @@ class NormalMappingEffect {
       
       // Set up attributes
       const positionLocation = this.gl.getAttribLocation(this.program, 'a_position');
-      const texCoordLocation = this.gl.getAttribLocation(this.program, 'a_texCoord');
       
       // Position attribute
       this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
       this.gl.enableVertexAttribArray(positionLocation);
       this.gl.vertexAttribPointer(positionLocation, 2, this.gl.FLOAT, false, 0, 0);
-      
-      // Texture coordinate attribute
-      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
-      this.gl.enableVertexAttribArray(texCoordLocation);
-      this.gl.vertexAttribPointer(texCoordLocation, 2, this.gl.FLOAT, false, 0, 0);
       
       // Set uniforms
       const posterTextureLocation = this.gl.getUniformLocation(this.program, 'u_posterTexture');
@@ -348,16 +364,24 @@ class NormalMappingEffect {
       const resolutionLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
       const mouseLocation = this.gl.getUniformLocation(this.program, 'u_mouse');
       const timeLocation = this.gl.getUniformLocation(this.program, 'u_time');
-      const debugLocation = this.gl.getUniformLocation(this.program, 'u_debugMode');
-      const normalMapModeLocation = this.gl.getUniformLocation(this.program, 'u_normalMapMode');
+      const normalIntensityLocation = this.gl.getUniformLocation(this.program, 'u_normalIntensity');
+      const specPowerLocation = this.gl.getUniformLocation(this.program, 'u_specPower');
+      const rimPowerLocation = this.gl.getUniformLocation(this.program, 'u_rimPower');
+      const rimStrengthLocation = this.gl.getUniformLocation(this.program, 'u_rimStrength');
+      const lightZLocation = this.gl.getUniformLocation(this.program, 'u_lightZ');
+      const lightRadiusLocation = this.gl.getUniformLocation(this.program, 'u_lightRadius');
       
       this.gl.uniform1i(posterTextureLocation, 0);
       this.gl.uniform1i(normalTextureLocation, 1);
       this.gl.uniform2f(resolutionLocation, this.canvas.width, this.canvas.height);
       this.gl.uniform2f(mouseLocation, this.mouseX, this.mouseY);
       this.gl.uniform1f(timeLocation, Date.now() * 0.001);
-      this.gl.uniform1i(debugLocation, this.debugMode ? 1 : 0);
-      this.gl.uniform1i(normalMapModeLocation, this.normalMapMode);
+      this.gl.uniform1f(normalIntensityLocation, this.normalIntensity);
+      this.gl.uniform1f(specPowerLocation, this.specPower);
+      this.gl.uniform1f(rimPowerLocation, this.rimPower);
+      this.gl.uniform1f(rimStrengthLocation, this.rimStrength);
+      this.gl.uniform1f(lightZLocation, this.lightZ);
+      this.gl.uniform1f(lightRadiusLocation, this.lightRadius);
       
       // Bind textures
       this.gl.activeTexture(this.gl.TEXTURE0);
@@ -366,8 +390,8 @@ class NormalMappingEffect {
       this.gl.activeTexture(this.gl.TEXTURE1);
       this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
       
-      // Draw
-      this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+      // Draw full-screen triangle
+      this.gl.drawArrays(this.gl.TRIANGLES, 0, 3);
     } catch (error) {
       console.error('Error in render:', error);
     }
