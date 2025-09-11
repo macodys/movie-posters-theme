@@ -139,8 +139,8 @@ class NormalMappingEffect {
         normal = normalize(normal);
         
         // Debug: Uncomment to see normal map as colors
-        // gl_FragColor = vec4(normal * 0.5 + 0.5, 1.0);
-        // return;
+        gl_FragColor = vec4(normal * 0.5 + 0.5, 1.0);
+        return;
         
         // Lighting setup (Image pass)
         vec3 lightposition = vec3(0.0, 0.0, 0.1);
