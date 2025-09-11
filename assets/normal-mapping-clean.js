@@ -122,30 +122,13 @@ class NormalMappingEffect {
         // Sample the poster texture
         vec4 posterColor = texture2D(u_posterTexture, uv);
         
-        // Generate normal map from Poster_Normal.png using Sobel (Buffer A pass)
-        vec2 offset = 1.0 / u_resolution;
+        // Use Poster_Normal.png directly as a normal map
+        vec3 normal = texture2D(u_normalTexture, uv).rgb;
         
-        // Sample heights using grayscale values with proper Sobel kernel
-        float h00 = texture2D(u_normalTexture, uv + vec2(-offset.x, -offset.y)).x;
-        float h01 = texture2D(u_normalTexture, uv + vec2(0.0, -offset.y)).x;
-        float h02 = texture2D(u_normalTexture, uv + vec2(offset.x, -offset.y)).x;
-        float h10 = texture2D(u_normalTexture, uv + vec2(-offset.x, 0.0)).x;
-        float h11 = texture2D(u_normalTexture, uv).x;
-        float h12 = texture2D(u_normalTexture, uv + vec2(offset.x, 0.0)).x;
-        float h20 = texture2D(u_normalTexture, uv + vec2(-offset.x, offset.y)).x;
-        float h21 = texture2D(u_normalTexture, uv + vec2(0.0, offset.y)).x;
-        float h22 = texture2D(u_normalTexture, uv + vec2(offset.x, offset.y)).x;
+        // Convert from 0-1 range to -1 to 1 range
+        normal = normal * 2.0 - 1.0;
         
-        // Calculate gradients using proper Sobel operator
-        float dx = (h02 + 2.0*h12 + h22) - (h00 + 2.0*h10 + h20);
-        float dy = (h20 + 2.0*h21 + h22) - (h00 + 2.0*h01 + h02);
-        
-        // Scale the gradients for better effect
-        dx *= 10.0;
-        dy *= 10.0;
-        
-        // Create normal vector
-        vec3 normal = vec3(dx, dy, 1.0);
+        // Ensure the normal is normalized
         normal = normalize(normal);
         
         // Debug: Uncomment to see normal map as colors
@@ -187,26 +170,10 @@ class NormalMappingEffect {
         
         // Shadow sampling loop
         for (int i = 0; i < iSampleCount; i++) {
-          // Generate normal at sample position using same improved Sobel approach
+          // Sample normal directly from texture at sample position
           vec2 sampleUV = uv + dir * pos;
-          
-          float sh00 = texture2D(u_normalTexture, sampleUV + vec2(-offset.x, -offset.y)).x;
-          float sh01 = texture2D(u_normalTexture, sampleUV + vec2(0.0, -offset.y)).x;
-          float sh02 = texture2D(u_normalTexture, sampleUV + vec2(offset.x, -offset.y)).x;
-          float sh10 = texture2D(u_normalTexture, sampleUV + vec2(-offset.x, 0.0)).x;
-          float sh11 = texture2D(u_normalTexture, sampleUV).x;
-          float sh12 = texture2D(u_normalTexture, sampleUV + vec2(offset.x, 0.0)).x;
-          float sh20 = texture2D(u_normalTexture, sampleUV + vec2(-offset.x, offset.y)).x;
-          float sh21 = texture2D(u_normalTexture, sampleUV + vec2(0.0, offset.y)).x;
-          float sh22 = texture2D(u_normalTexture, sampleUV + vec2(offset.x, offset.y)).x;
-          
-          float sdx = (sh02 + 2.0*sh12 + sh22) - (sh00 + 2.0*sh10 + sh20);
-          float sdy = (sh20 + 2.0*sh21 + sh22) - (sh00 + 2.0*sh01 + sh02);
-          
-          sdx *= 10.0;
-          sdy *= 10.0;
-          
-          vec3 tmpNormal = vec3(sdx, sdy, 1.0);
+          vec3 tmpNormal = texture2D(u_normalTexture, sampleUV).rgb;
+          tmpNormal = tmpNormal * 2.0 - 1.0;
           tmpNormal = normalize(tmpNormal);
           
           float tmpLighting = dot(lightdir, tmpNormal);
