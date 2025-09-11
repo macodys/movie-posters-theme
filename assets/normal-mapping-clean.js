@@ -19,10 +19,11 @@ class NormalMappingEffect {
     this.lightZ = 0.91;
     this.lightRadius = 0.33;
     
-    // Additional lighting parameters
-    this.ambientStrength = 0.4;
-    this.fillLightStrength = 0.3;
-    this.rimLightStrength = 0.2;
+    // Enhanced effect parameters
+    this.saturation = 1.5;
+    this.contrast = 1.2;
+    this.brightness = 0.3;
+    this.reflectionStrength = 2.0;
     
     this.init().catch(error => {
       console.error('Failed to initialize normal mapping effect:', error);
@@ -127,21 +128,27 @@ class NormalMappingEffect {
       </div>
       
       <div style="margin-bottom: 12px;">
-        <label style="display: block; margin-bottom: 4px;">Ambient Strength</label>
-        <input type="range" id="debugAmbientStrength" min="0" max="1" step="0.01" value="${this.ambientStrength}" style="width: 100%;">
-        <span id="ambientStrengthValue" style="color: #ccc; font-size: 11px;">${this.ambientStrength}</span>
+        <label style="display: block; margin-bottom: 4px;">Saturation</label>
+        <input type="range" id="debugSaturation" min="0" max="3" step="0.1" value="${this.saturation}" style="width: 100%;">
+        <span id="saturationValue" style="color: #ccc; font-size: 11px;">${this.saturation}</span>
       </div>
       
       <div style="margin-bottom: 12px;">
-        <label style="display: block; margin-bottom: 4px;">Fill Light Strength</label>
-        <input type="range" id="debugFillLightStrength" min="0" max="1" step="0.01" value="${this.fillLightStrength}" style="width: 100%;">
-        <span id="fillLightStrengthValue" style="color: #ccc; font-size: 11px;">${this.fillLightStrength}</span>
+        <label style="display: block; margin-bottom: 4px;">Contrast</label>
+        <input type="range" id="debugContrast" min="0.5" max="2" step="0.1" value="${this.contrast}" style="width: 100%;">
+        <span id="contrastValue" style="color: #ccc; font-size: 11px;">${this.contrast}</span>
       </div>
       
       <div style="margin-bottom: 12px;">
-        <label style="display: block; margin-bottom: 4px;">Rim Light Strength</label>
-        <input type="range" id="debugRimLightStrength" min="0" max="1" step="0.01" value="${this.rimLightStrength}" style="width: 100%;">
-        <span id="rimLightStrengthValue" style="color: #ccc; font-size: 11px;">${this.rimLightStrength}</span>
+        <label style="display: block; margin-bottom: 4px;">Brightness</label>
+        <input type="range" id="debugBrightness" min="-0.5" max="1" step="0.1" value="${this.brightness}" style="width: 100%;">
+        <span id="brightnessValue" style="color: #ccc; font-size: 11px;">${this.brightness}</span>
+      </div>
+      
+      <div style="margin-bottom: 12px;">
+        <label style="display: block; margin-bottom: 4px;">Reflection Strength</label>
+        <input type="range" id="debugReflectionStrength" min="0" max="5" step="0.1" value="${this.reflectionStrength}" style="width: 100%;">
+        <span id="reflectionStrengthValue" style="color: #ccc; font-size: 11px;">${this.reflectionStrength}</span>
       </div>
       
       <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
@@ -161,9 +168,10 @@ class NormalMappingEffect {
     const rimStrengthSlider = document.getElementById('debugRimStrength');
     const lightZSlider = document.getElementById('debugLightZ');
     const lightRadiusSlider = document.getElementById('debugLightRadius');
-    const ambientStrengthSlider = document.getElementById('debugAmbientStrength');
-    const fillLightStrengthSlider = document.getElementById('debugFillLightStrength');
-    const rimLightStrengthSlider = document.getElementById('debugRimLightStrength');
+    const saturationSlider = document.getElementById('debugSaturation');
+    const contrastSlider = document.getElementById('debugContrast');
+    const brightnessSlider = document.getElementById('debugBrightness');
+    const reflectionStrengthSlider = document.getElementById('debugReflectionStrength');
     const copyButton = document.getElementById('copyValues');
     
     const normalIntensityValue = document.getElementById('normalIntensityValue');
@@ -172,9 +180,10 @@ class NormalMappingEffect {
     const rimStrengthValue = document.getElementById('rimStrengthValue');
     const lightZValue = document.getElementById('lightZValue');
     const lightRadiusValue = document.getElementById('lightRadiusValue');
-    const ambientStrengthValue = document.getElementById('ambientStrengthValue');
-    const fillLightStrengthValue = document.getElementById('fillLightStrengthValue');
-    const rimLightStrengthValue = document.getElementById('rimLightStrengthValue');
+    const saturationValue = document.getElementById('saturationValue');
+    const contrastValue = document.getElementById('contrastValue');
+    const brightnessValue = document.getElementById('brightnessValue');
+    const reflectionStrengthValue = document.getElementById('reflectionStrengthValue');
     
     normalIntensitySlider.addEventListener('input', (e) => {
       this.normalIntensity = parseFloat(e.target.value);
@@ -206,19 +215,24 @@ class NormalMappingEffect {
       lightRadiusValue.textContent = this.lightRadius.toFixed(2);
     });
     
-    ambientStrengthSlider.addEventListener('input', (e) => {
-      this.ambientStrength = parseFloat(e.target.value);
-      ambientStrengthValue.textContent = this.ambientStrength.toFixed(2);
+    saturationSlider.addEventListener('input', (e) => {
+      this.saturation = parseFloat(e.target.value);
+      saturationValue.textContent = this.saturation.toFixed(1);
     });
     
-    fillLightStrengthSlider.addEventListener('input', (e) => {
-      this.fillLightStrength = parseFloat(e.target.value);
-      fillLightStrengthValue.textContent = this.fillLightStrength.toFixed(2);
+    contrastSlider.addEventListener('input', (e) => {
+      this.contrast = parseFloat(e.target.value);
+      contrastValue.textContent = this.contrast.toFixed(1);
     });
     
-    rimLightStrengthSlider.addEventListener('input', (e) => {
-      this.rimLightStrength = parseFloat(e.target.value);
-      rimLightStrengthValue.textContent = this.rimLightStrength.toFixed(2);
+    brightnessSlider.addEventListener('input', (e) => {
+      this.brightness = parseFloat(e.target.value);
+      brightnessValue.textContent = this.brightness.toFixed(1);
+    });
+    
+    reflectionStrengthSlider.addEventListener('input', (e) => {
+      this.reflectionStrength = parseFloat(e.target.value);
+      reflectionStrengthValue.textContent = this.reflectionStrength.toFixed(1);
     });
     
     copyButton.addEventListener('click', () => {
@@ -229,9 +243,10 @@ class NormalMappingEffect {
         rimStrength: this.rimStrength,
         lightZ: this.lightZ,
         lightRadius: this.lightRadius,
-        ambientStrength: this.ambientStrength,
-        fillLightStrength: this.fillLightStrength,
-        rimLightStrength: this.rimLightStrength
+        saturation: this.saturation,
+        contrast: this.contrast,
+        brightness: this.brightness,
+        reflectionStrength: this.reflectionStrength
       };
       
       const valuesText = `this.normalIntensity = ${this.normalIntensity};
@@ -240,9 +255,10 @@ this.rimPower = ${this.rimPower};
 this.rimStrength = ${this.rimStrength};
 this.lightZ = ${this.lightZ};
 this.lightRadius = ${this.lightRadius};
-this.ambientStrength = ${this.ambientStrength};
-this.fillLightStrength = ${this.fillLightStrength};
-this.rimLightStrength = ${this.rimLightStrength};`;
+this.saturation = ${this.saturation};
+this.contrast = ${this.contrast};
+this.brightness = ${this.brightness};
+this.reflectionStrength = ${this.reflectionStrength};`;
       
       navigator.clipboard.writeText(valuesText).then(() => {
         copyButton.textContent = 'Copied!';
@@ -285,9 +301,10 @@ this.rimLightStrength = ${this.rimLightStrength};`;
       uniform float u_rimStrength;
       uniform float u_lightZ;
       uniform float u_lightRadius;
-      uniform float u_ambientStrength;
-      uniform float u_fillLightStrength;
-      uniform float u_rimLightStrength;
+      uniform float u_saturation;
+      uniform float u_contrast;
+      uniform float u_brightness;
+      uniform float u_reflectionStrength;
       
       varying vec2 v_texCoord;
       
@@ -334,60 +351,37 @@ this.rimLightStrength = ${this.rimLightStrength};`;
         // Soft shadowing/occlusion-ish term from normal's facing (cheap)
         float ao = mix(0.6, 1.0, N.z * 0.5 + 0.5);
         
-        // Main cursor light (diffuse + specular)
+        // Enhanced single light with stronger reflections
         vec3 diffuse = albedo * NdotL * atten;
-        float spec = pow(max(dot(N, H), 0.0), u_specPower) * atten;
-        float rim = pow(1.0 - max(dot(N, V), 0.0), u_rimPower) * u_rimStrength * atten;
+        float spec = pow(max(dot(N, H), 0.0), u_specPower) * atten * u_reflectionStrength;
+        float rim = pow(1.0 - max(dot(N, V), 0.0), u_rimPower) * u_rimStrength * atten * u_reflectionStrength;
         
-        // Additional fill lights for brightness
-        vec3 fillLight1 = vec3(0.7, 0.3, 0.2);  // Top-left fill
-        vec3 fillLight2 = vec3(0.2, 0.3, 0.7);  // Bottom-right fill
-        vec3 fillLight3 = vec3(0.3, 0.7, 0.3);  // Center fill
+        // Stronger ambient for base brightness
+        vec3 ambient = albedo * 0.15;
         
-        vec3 fillDir1 = normalize(vec3(-0.5, -0.5, 0.3));
-        vec3 fillDir2 = normalize(vec3(0.5, 0.5, 0.3));
-        vec3 fillDir3 = normalize(vec3(0.0, 0.0, 1.0));
-        
-        float fillDot1 = max(dot(N, fillDir1), 0.0);
-        float fillDot2 = max(dot(N, fillDir2), 0.0);
-        float fillDot3 = max(dot(N, fillDir3), 0.0);
-        
-        vec3 fillDiffuse = (fillDot1 * fillLight1 + fillDot2 * fillLight2 + fillDot3 * fillLight3) * u_fillLightStrength;
-        
-        // Enhanced ambient lighting
-        vec3 ambient = albedo * u_ambientStrength;
-        
-        // Rim lighting from multiple directions
-        vec3 rimDir1 = normalize(vec3(1.0, 0.0, 0.2));
-        vec3 rimDir2 = normalize(vec3(-1.0, 0.0, 0.2));
-        vec3 rimDir3 = normalize(vec3(0.0, 1.0, 0.2));
-        vec3 rimDir4 = normalize(vec3(0.0, -1.0, 0.2));
-        
-        float rimDot1 = max(dot(N, rimDir1), 0.0);
-        float rimDot2 = max(dot(N, rimDir2), 0.0);
-        float rimDot3 = max(dot(N, rimDir3), 0.0);
-        float rimDot4 = max(dot(N, rimDir4), 0.0);
-        
-        vec3 rimLight = (rimDot1 + rimDot2 + rimDot3 + rimDot4) * u_rimLightStrength * (0.35 + 0.65 * albedo);
-        
-        // Fake colored light for main cursor light
-        vec3 lightColor = vec3(1.0, 0.95, 0.9);
-        vec3 specColor = vec3(1.0);
+        // Enhanced light colors for more dramatic effect
+        vec3 lightColor = vec3(1.2, 1.1, 1.0);
+        vec3 specColor = vec3(1.5, 1.3, 1.0);
         
         vec3 color = ambient
                    + diffuse * lightColor
                    + spec * specColor
-                   + rim * (0.35 + 0.65 * albedo)
-                   + fillDiffuse
-                   + rimLight;
+                   + rim * (0.5 + 0.8 * albedo) * u_reflectionStrength;
+        
+        // Apply brightness and contrast
+        color = (color - 0.5) * u_contrast + 0.5 + u_brightness;
+        
+        // Apply saturation
+        float luminance = dot(color, vec3(0.299, 0.587, 0.114));
+        color = mix(vec3(luminance), color, u_saturation);
         
         // Vignette & subtle filmic curve
         vec2 q = uv - 0.5;
         float vig = smoothstep(0.8, 0.1, dot(q, q));
         color *= mix(0.6, 1.0, vig) * ao;
         
-        // Tonemap + gamma
-        color = tonemapACES(color);
+        // Enhanced tonemap for more dramatic effect
+        color = tonemapACES(color * 1.2);
         color = pow(color, vec3(1.0/2.2));
         
         gl_FragColor = vec4(color, 1.0);
@@ -598,9 +592,10 @@ this.rimLightStrength = ${this.rimLightStrength};`;
       const rimStrengthLocation = this.gl.getUniformLocation(this.program, 'u_rimStrength');
       const lightZLocation = this.gl.getUniformLocation(this.program, 'u_lightZ');
       const lightRadiusLocation = this.gl.getUniformLocation(this.program, 'u_lightRadius');
-      const ambientStrengthLocation = this.gl.getUniformLocation(this.program, 'u_ambientStrength');
-      const fillLightStrengthLocation = this.gl.getUniformLocation(this.program, 'u_fillLightStrength');
-      const rimLightStrengthLocation = this.gl.getUniformLocation(this.program, 'u_rimLightStrength');
+      const saturationLocation = this.gl.getUniformLocation(this.program, 'u_saturation');
+      const contrastLocation = this.gl.getUniformLocation(this.program, 'u_contrast');
+      const brightnessLocation = this.gl.getUniformLocation(this.program, 'u_brightness');
+      const reflectionStrengthLocation = this.gl.getUniformLocation(this.program, 'u_reflectionStrength');
       
       this.gl.uniform1i(posterTextureLocation, 0);
       this.gl.uniform1i(normalTextureLocation, 1);
@@ -613,9 +608,10 @@ this.rimLightStrength = ${this.rimLightStrength};`;
       this.gl.uniform1f(rimStrengthLocation, this.rimStrength);
       this.gl.uniform1f(lightZLocation, this.lightZ);
       this.gl.uniform1f(lightRadiusLocation, this.lightRadius);
-      this.gl.uniform1f(ambientStrengthLocation, this.ambientStrength);
-      this.gl.uniform1f(fillLightStrengthLocation, this.fillLightStrength);
-      this.gl.uniform1f(rimLightStrengthLocation, this.rimLightStrength);
+      this.gl.uniform1f(saturationLocation, this.saturation);
+      this.gl.uniform1f(contrastLocation, this.contrast);
+      this.gl.uniform1f(brightnessLocation, this.brightness);
+      this.gl.uniform1f(reflectionStrengthLocation, this.reflectionStrength);
       
       // Bind textures
       this.gl.activeTexture(this.gl.TEXTURE0);
