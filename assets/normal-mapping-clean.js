@@ -366,27 +366,55 @@ document.addEventListener('DOMContentLoaded', function() {
   normalImg.crossOrigin = 'anonymous';
   
   normalImg.onload = function() {
-    console.log('Normal map loaded, creating effect...');
+    console.log('Normal map loaded successfully!');
+    console.log('Normal map dimensions:', normalImg.naturalWidth, 'x', normalImg.naturalHeight);
+    console.log('Normal map src:', normalImg.src);
     createEffect();
   };
   
   normalImg.onerror = function() {
     console.error('Failed to load normal map image');
+    console.error('Tried to load:', normalImg.src);
+    console.error('window.normalMapUrl:', window.normalMapUrl);
     // Show original image if normal map fails to load
     img.style.display = 'block';
   };
   
+  console.log('Attempting to load normal map from:', window.normalMapUrl || 'paper-normal.jpg');
   normalImg.src = window.normalMapUrl || 'paper-normal.jpg';
   
   function createEffect() {
     // Create the normal mapping effect with custom normal map
     try {
       console.log('Creating NormalMappingEffect...');
+      console.log('Poster image loaded:', img.complete);
+      console.log('Normal map image loaded:', normalImg.complete);
       window.normalMappingEffect = new NormalMappingEffect(productImageMain, img, normalImg);
       console.log('Normal mapping effect initialized successfully');
     } catch (error) {
       console.error('Failed to create normal mapping effect:', error);
       console.error('Error stack:', error.stack);
+      
+      // Fallback: try to create effect without normal map
+      console.log('Attempting fallback without normal map...');
+      try {
+        // Create a dummy normal map (flat surface)
+        const dummyNormalMap = new Image();
+        dummyNormalMap.width = 1;
+        dummyNormalMap.height = 1;
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgb(128, 128, 255)'; // Normal pointing up
+        ctx.fillRect(0, 0, 1, 1);
+        dummyNormalMap.src = canvas.toDataURL();
+        
+        window.normalMappingEffect = new NormalMappingEffect(productImageMain, img, dummyNormalMap);
+        console.log('Fallback effect created successfully');
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+      }
     }
   }
 });
