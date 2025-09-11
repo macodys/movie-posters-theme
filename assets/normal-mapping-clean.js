@@ -127,7 +127,7 @@ class NormalMappingEffect {
         
         // Debug different aspects of the texture
         // Show UV coordinates as colors (red = u, green = v)
-        // gl_FragColor = vec4(uv, 0.0, 1.0);
+        gl_FragColor = vec4(uv, 0.0, 1.0);
         
         // Show texture sample with different scaling
         // gl_FragColor = vec4(normalSample.rgb * 2.0, 1.0);
@@ -136,7 +136,7 @@ class NormalMappingEffect {
         // gl_FragColor = vec4(normalSample.r, normalSample.r, normalSample.r, 1.0);
         
         // Show the raw texture data
-        gl_FragColor = vec4(normalSample.rgb, 1.0);
+        // gl_FragColor = vec4(normalSample.rgb, 1.0);
       }
     `;
     
