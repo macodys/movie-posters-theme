@@ -152,16 +152,20 @@ class NormalMappingEffect {
         // Add ambient lighting
         float ambient = 0.4;
         
-        // Calculate final lighting with radial intensity
-        float lighting = ambient + (diffuse * lightIntensity * 0.6);
+        // Calculate final lighting with radial intensity and stronger normal map effect
+        float lighting = ambient + (diffuse * lightIntensity * 1.2);
         
         // Apply lighting to poster color
         vec3 finalColor = posterColor.rgb * lighting;
         
-        // Add rim lighting for depth
+        // Add stronger rim lighting for depth
         float rim = 1.0 - max(dot(normal, vec3(0.0, 0.0, 1.0)), 0.0);
-        rim = pow(rim, 2.0);
-        finalColor += rim * 0.15 * lightIntensity;
+        rim = pow(rim, 1.5);
+        finalColor += rim * 0.4 * lightIntensity;
+        
+        // Add normal map detail enhancement
+        vec3 normalEnhancement = normal * 0.3 * lightIntensity;
+        finalColor += normalEnhancement;
         
         // Add a soft glow around the mouse area
         float glow = 1.0 - smoothstep(0.0, 0.5, lightDist);
