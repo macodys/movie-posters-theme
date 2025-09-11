@@ -124,6 +124,9 @@ class NormalMappingEffect {
         // Transform normal from [0,1] to [-1,1] range (LearnOpenGL technique)
         normal = normalize(normal * 2.0 - 1.0);
         
+        // Flip Y component for correct orientation (common issue with normal maps)
+        normal.y = -normal.y;
+        
         // Debug mode: Show normal map as colors
         if (u_debugMode) {
           gl_FragColor = vec4(normal * 0.5 + 0.5, 1.0);
@@ -152,17 +155,17 @@ class NormalMappingEffect {
         
         // Enhanced diffuse lighting for better depth perception
         float diff = max(dot(normal, lightDir), 0.0);
-        // Make the diffuse lighting more pronounced
-        diff = pow(diff, 0.8); // Soften the falloff
-        vec3 diffuse = diff * vec3(1.2, 1.0, 0.9) * attenuation * 1.5; // Brighter, warmer light
+        // Make the diffuse lighting much more pronounced
+        diff = pow(diff, 0.5); // More dramatic falloff
+        vec3 diffuse = diff * vec3(2.0, 1.8, 1.5) * attenuation * 3.0; // Much brighter, warmer light
         
         // Enhanced specular lighting for better highlights
         vec3 halfDir = normalize(lightDir + viewDir);
         float spec = pow(max(dot(normal, halfDir), 0.0), 16.0); // Softer specular
         vec3 specular = spec * vec3(1.0, 0.9, 0.8) * 0.8 * attenuation;
         
-        // Reduced ambient to make lighting more dramatic
-        vec3 ambient = vec3(0.05, 0.05, 0.08);
+        // Very low ambient to make lighting extremely dramatic
+        vec3 ambient = vec3(0.02, 0.02, 0.03);
         
         // Add rim lighting for better depth perception
         float rim = 1.0 - max(dot(normal, viewDir), 0.0);
@@ -359,6 +362,10 @@ class NormalMappingEffect {
     console.log('Debug mode:', this.debugMode ? 'ON' : 'OFF');
     if (this.debugMode) {
       console.log('Normal map visualization enabled - you should see colored normal vectors');
+      console.log('If you see a blue-ish image, the normal map is working correctly');
+      console.log('If you see a flat color, there might be an issue with the normal map');
+    } else {
+      console.log('Normal mapping effect enabled - move your mouse to see lighting');
     }
   }
   
