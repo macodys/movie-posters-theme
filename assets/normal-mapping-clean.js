@@ -98,11 +98,18 @@ class NormalMappingEffect {
         // Sample the normal map with tiling
         vec2 normalUV = uv * 2.0; // Tile the normal map 2x2 times
         vec3 normal = texture2D(u_normalTexture, normalUV).rgb * 2.0 - 1.0;
-        normal = normalize(normal);
         
-        // Lighting setup
-        float lightHeight = 0.2;
-        float viewHeight = 2.0;
+        // Debug: Show normal map as color (uncomment to debug)
+        // gl_FragColor = vec4(normal * 0.5 + 0.5, 1.0);
+        // return;
+        
+        // Convert from tangent space to world space
+        // For a flat surface, we need to transform the normal properly
+        vec3 worldNormal = normalize(vec3(normal.xy, normal.z));
+        
+        // Lighting setup - make it more dynamic
+        float lightHeight = 0.3;
+        float viewHeight = 1.0;
         
         vec3 surfacePos = vec3(uv, 0.0);
         vec3 viewPos = vec3(0.5, 0.5, viewHeight);
@@ -111,19 +118,24 @@ class NormalMappingEffect {
         vec3 viewDir = normalize(viewPos - surfacePos);
         vec3 lightDir = normalize(lightPos - surfacePos);
         
-        // Calculate lighting
-        float NdotL = max(dot(normal, lightDir), 0.0);
-        float diffuse = NdotL;
+        // Calculate lighting with enhanced normal map effect
+        float NdotL = max(dot(worldNormal, lightDir), 0.0);
+        float diffuse = NdotL * 1.5; // Enhance diffuse lighting
         
         vec3 halfDir = normalize(viewDir + lightDir);
-        float NdotH = max(dot(normal, halfDir), 0.0);
-        float specular = pow(NdotH, 32.0) * NdotL * 0.5;
+        float NdotH = max(dot(worldNormal, halfDir), 0.0);
+        float specular = pow(NdotH, 16.0) * NdotL * 0.8; // Enhanced specular
         
         // Add ambient lighting
-        float ambient = 0.3;
+        float ambient = 0.4;
+        
+        // Add rim lighting for extra depth
+        float rim = 1.0 - max(dot(worldNormal, viewDir), 0.0);
+        rim = pow(rim, 2.0);
+        float rimLight = rim * 0.3;
         
         // Apply lighting to poster color
-        vec3 result = posterColor.rgb * (diffuse + ambient) + specular;
+        vec3 result = posterColor.rgb * (diffuse + ambient) + specular + rimLight;
         
         gl_FragColor = vec4(result, posterColor.a);
       }
@@ -239,6 +251,8 @@ class NormalMappingEffect {
     // Load normal map image
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
     console.log('Normal map texture loaded');
+    console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
+    console.log('Normal map src:', this.normalMapImage.src);
   }
   
   setupEventListeners() {
