@@ -283,13 +283,77 @@ class NormalMappingEffect {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
     
-    // Load custom normal map image directly
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
-    console.log('Custom normal map texture loaded');
+    // Convert and load custom normal map image
+    const processedNormalMap = this.convertToNormalMap(this.normalMapImage);
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, processedNormalMap);
+    console.log('Custom normal map converted and loaded');
     console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
     console.log('Normal map src:', this.normalMapImage.src);
   }
   
+  convertToNormalMap(normalMapImage) {
+    console.log('Converting image to proper normal map format...');
+    
+    // Create a canvas to process the normal map
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size to match the normal map image
+    canvas.width = normalMapImage.naturalWidth;
+    canvas.height = normalMapImage.naturalHeight;
+    
+    // Draw the normal map image
+    ctx.drawImage(normalMapImage, 0, 0);
+    
+    // Get image data
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    // Convert each pixel to proper normal map format
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];     // Red channel
+      const g = data[i + 1]; // Green channel
+      const b = data[i + 2]; // Blue channel
+      const a = data[i + 3]; // Alpha channel
+      
+      // Convert from 0-255 range to -1 to 1 range for normal vectors
+      // Normal maps typically store:
+      // R = X component (left-right)
+      // G = Y component (up-down) 
+      // B = Z component (depth)
+      
+      // Convert to normal vector components
+      const normalX = (r / 255.0) * 2.0 - 1.0; // -1 to 1
+      const normalY = (g / 255.0) * 2.0 - 1.0; // -1 to 1
+      const normalZ = (b / 255.0) * 2.0 - 1.0; // -1 to 1
+      
+      // Normalize the vector
+      const length = Math.sqrt(normalX * normalX + normalY * normalY + normalZ * normalZ);
+      if (length > 0) {
+        const normalizedX = normalX / length;
+        const normalizedY = normalY / length;
+        const normalizedZ = normalZ / length;
+        
+        // Convert back to 0-255 range for texture storage
+        data[i] = Math.round((normalizedX + 1.0) * 0.5 * 255);     // X component
+        data[i + 1] = Math.round((normalizedY + 1.0) * 0.5 * 255); // Y component
+        data[i + 2] = Math.round((normalizedZ + 1.0) * 0.5 * 255); // Z component
+        data[i + 3] = 255; // Alpha
+      } else {
+        // Default normal pointing up if length is 0
+        data[i] = 128;     // X = 0
+        data[i + 1] = 128; // Y = 0
+        data[i + 2] = 255; // Z = 1 (pointing up)
+        data[i + 3] = 255; // Alpha
+      }
+    }
+    
+    // Put the processed data back
+    ctx.putImageData(imageData, 0, 0);
+    
+    console.log('Normal map conversion completed');
+    return canvas;
+  }
   
   setupEventListeners() {
     this.container.addEventListener('mouseenter', () => {
