@@ -347,6 +347,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   console.log('Found product image, loading normal map...');
+  console.log('Normal map URL:', window.normalMapUrl || 'poster-normal.png');
   
   // Load normal map image
   const normalImg = new Image();
@@ -374,5 +375,5 @@ document.addEventListener('DOMContentLoaded', function() {
     img.style.display = 'block';
   };
   
-  normalImg.src = 'poster-normal.png';
+  normalImg.src = window.normalMapUrl || 'poster-normal.png';
 });
