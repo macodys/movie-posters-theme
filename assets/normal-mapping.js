@@ -100,6 +100,7 @@ class NormalMappingEffect {
       precision mediump float;
       
       uniform sampler2D u_posterTexture;
+      uniform sampler2D u_normalTexture;
       uniform vec2 u_resolution;
       uniform vec2 u_mouse;
       uniform float u_time;
@@ -202,10 +203,11 @@ class NormalMappingEffect {
       void main() {
         vec2 uv = v_texCoord;
         
-        C_Sample materialSample;
+        // Sample the poster texture
+        vec4 posterColor = texture2D(u_posterTexture, uv);
         
-        float fNormalScale = 10.0;
-        materialSample = SampleMaterial(uv, u_posterTexture, u_resolution, fNormalScale);
+        // Sample the custom normal map
+        vec3 normal = texture2D(u_normalTexture, uv).rgb * 2.0 - 1.0;
         
         // Lighting setup
         float fLightHeight = 0.2;
@@ -220,18 +222,18 @@ class NormalMappingEffect {
         vec3 vDirToView = normalize(vViewPos - vSurfacePos);
         vec3 vDirToLight = normalize(vLightPos - vSurfacePos);
         
-        float fNDotL = clamp(dot(materialSample.vNormal, vDirToLight), 0.0, 1.0);
+        float fNDotL = clamp(dot(normal, vDirToLight), 0.0, 1.0);
         float fDiffuse = fNDotL;
         
         vec3 vHalf = normalize(vDirToView + vDirToLight);
-        float fNDotH = clamp(dot(materialSample.vNormal, vHalf), 0.0, 1.0);
+        float fNDotH = clamp(dot(normal, vHalf), 0.0, 1.0);
         float fSpec = pow(fNDotH, 10.0) * fNDotL * 0.5;
         
-        vec3 vResult = materialSample.vAlbedo * fDiffuse + fSpec;
+        vec3 vResult = posterColor.rgb * fDiffuse + fSpec;
         
         vResult = sqrt(vResult);
         
-        gl_FragColor = vec4(vResult, 1.0);
+        gl_FragColor = vec4(vResult, posterColor.a);
       }
     `;
     
@@ -312,6 +314,7 @@ class NormalMappingEffect {
   setupTextures() {
     console.log('Setting up textures...');
     console.log('Poster image dimensions:', this.posterImage.width, 'x', this.posterImage.height);
+    console.log('Normal map image dimensions:', this.normalMapImage.width, 'x', this.normalMapImage.height);
     
     // Create poster texture
     this.posterTexture = this.gl.createTexture();
@@ -324,6 +327,18 @@ class NormalMappingEffect {
     // Load poster image
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.posterImage);
     console.log('Poster texture loaded');
+    
+    // Create normal map texture
+    this.normalTexture = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+    
+    // Load normal map image
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
+    console.log('Normal map texture loaded');
   }
   
   setupEventListeners() {
@@ -386,18 +401,22 @@ class NormalMappingEffect {
     
     // Set uniforms
     const posterTextureLocation = this.gl.getUniformLocation(this.program, 'u_posterTexture');
+    const normalTextureLocation = this.gl.getUniformLocation(this.program, 'u_normalTexture');
     const resolutionLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
     const mouseLocation = this.gl.getUniformLocation(this.program, 'u_mouse');
     const timeLocation = this.gl.getUniformLocation(this.program, 'u_time');
     
     this.gl.uniform1i(posterTextureLocation, 0);
+    this.gl.uniform1i(normalTextureLocation, 1);
     this.gl.uniform2f(resolutionLocation, this.canvas.width, this.canvas.height);
     this.gl.uniform2f(mouseLocation, this.mouseX, this.mouseY);
     this.gl.uniform1f(timeLocation, Date.now() * 0.001);
     
-    // Bind texture
+    // Bind textures
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.posterTexture);
+    this.gl.activeTexture(this.gl.TEXTURE1);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
     
     // Draw
     this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
@@ -426,20 +445,37 @@ document.addEventListener('DOMContentLoaded', function() {
     return;
   }
   
-  console.log('Found product image, initializing Sobel normal mapping effect...');
+  console.log('Found product image, loading custom normal map...');
+  console.log('Normal map URL:', window.normalMapUrl || 'poster-normal.png');
   
-  // Keep the original image visible as background
-  img.style.position = 'absolute';
-  img.style.top = '0';
-  img.style.left = '0';
-  img.style.width = '100%';
-  img.style.height = '100%';
-  img.style.zIndex = '1';
+  // Load normal map image
+  const normalImg = new Image();
+  normalImg.crossOrigin = 'anonymous';
   
-  // Create the normal mapping effect (no normal map image needed)
-  try {
-    window.normalMappingEffect = new NormalMappingEffect(productImageMain, img, null);
-  } catch (error) {
-    console.error('Failed to create normal mapping effect:', error);
-  }
+  normalImg.onload = function() {
+    console.log('Normal map loaded, initializing effect...');
+    
+    // Keep the original image visible as background
+    img.style.position = 'absolute';
+    img.style.top = '0';
+    img.style.left = '0';
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.zIndex = '1';
+    
+    // Create the normal mapping effect
+    try {
+      window.normalMappingEffect = new NormalMappingEffect(productImageMain, img, normalImg);
+    } catch (error) {
+      console.error('Failed to create normal mapping effect:', error);
+    }
+  };
+  
+  normalImg.onerror = function() {
+    console.error('Failed to load normal map image');
+    // Show original image if normal map fails to load
+    img.style.display = 'block';
+  };
+  
+  normalImg.src = window.normalMapUrl || 'poster-normal.png';
 });
