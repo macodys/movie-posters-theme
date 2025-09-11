@@ -124,18 +124,75 @@ class NormalMappingEffect {
         // Sample the poster texture
         vec4 posterColor = texture2D(u_posterTexture, uv);
         
-        // Debug: Show the converted normal map
-        vec4 normalSample = texture2D(u_normalTexture, uv);
+        // Normal Mapping Shadow (NMS) - Exact Shadertoy implementation
+        vec3 lightposition = vec3(0.0, 0.0, 0.1);
+        vec3 planeposition = vec3(uv, 0.0);
         
-        // Show different aspects for debugging
-        // Show raw texture data
-        gl_FragColor = vec4(normalSample.rgb, 1.0);
+        vec2 cursorposition = u_mouse;
+        lightposition.xy = cursorposition;
+        if (u_mouse.x <= 0.0 && u_mouse.y <= 0.0) {
+          lightposition.x = (sin(u_time * 1.0) + 1.0) * 0.5;
+          lightposition.y = (cos(u_time * 2.5) + 1.0) * 0.5;
+        }
         
-        // Show with brightness boost
-        // gl_FragColor = vec4(normalSample.rgb * 2.0, 1.0);
+        float samplecount = 15.0;
+        float invsamplecount = 1.0 / samplecount;
+        float hardness = 1.5 * 2.0; // HeightScale * ShadowHardness
+        float shadowLength = 0.05;
         
-        // Show just red channel
-        // gl_FragColor = vec4(normalSample.r, normalSample.r, normalSample.r, 1.0);
+        vec3 lightdir = lightposition - planeposition;
+        vec2 dir = lightdir.xy * 1.5; // HeightScale
+        lightdir = normalize(lightdir.xyz);
+        
+        vec3 normal = texture2D(u_normalTexture, uv).xyz;
+        normal = normal * 2.0 - 1.0;
+        
+        // Lighting with flat normals
+        float lighting = clamp(dot(lightdir, normal), 0.0, 1.0);
+        
+        float step = invsamplecount * shadowLength;
+        
+        // Randomization
+        vec2 noise = fract(uv * 0.5);
+        noise.x = (noise.x * 0.5 + noise.y) * (1.0/1.5 - 0.25);
+        float pos = step * noise.x;
+        
+        float slope = -lighting;
+        float maxslope = 0.0;
+        float shadow = 0.0;
+        
+        for (int i = 0; i < 15; i++) {
+          vec3 tmpNormal = texture2D(u_normalTexture, uv + dir * pos).xyz;
+          tmpNormal = tmpNormal * 2.0 - 1.0;
+          
+          float tmpLighting = dot(lightdir, tmpNormal);
+          float shadowed = -tmpLighting;
+          
+          slope += shadowed;
+          
+          if (slope > maxslope) {
+            shadow += hardness * (1.0 - pos);
+          }
+          maxslope = max(maxslope, slope);
+          
+          pos += step;
+        }
+        
+        shadow = clamp(1.0 - shadow * invsamplecount, 0.0, 1.0);
+        
+        // Coloring
+        vec3 ambientcolor = vec3(0.15, 0.4, 0.6) * 0.7;
+        vec3 lightcolor = vec3(1.0, 0.7, 0.3) * 1.2;
+        float ao = clamp(normal.z, 0.0, 1.0);
+        
+        vec3 result = shadow * lighting * lightcolor;
+        result += ambientcolor;
+        result *= (clamp(normal.z, 0.0, 1.0) * 0.5 + 0.5);
+        
+        // Apply to poster color
+        result *= posterColor.rgb;
+        
+        gl_FragColor = vec4(result, posterColor.a);
       }
     `;
     
@@ -211,92 +268,6 @@ class NormalMappingEffect {
     console.log('Buffers created successfully');
   }
   
-  convertToNormalMap(image) {
-    console.log('Converting image to normal map...');
-    console.log('Image dimensions:', image.naturalWidth, 'x', image.naturalHeight);
-    
-    // Create canvas to process the image
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = image.naturalWidth;
-    canvas.height = image.naturalHeight;
-    
-    // Draw the image
-    ctx.drawImage(image, 0, 0);
-    
-    // Get image data
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-    const width = canvas.width;
-    const height = canvas.height;
-    
-    console.log('Image data length:', data.length);
-    console.log('First few pixels:', Array.from(data.slice(0, 20)));
-    
-    // Create new image data for normal map
-    const normalData = new Uint8ClampedArray(data.length);
-    
-    // Convert to grayscale and apply Sobel operator
-    for (let y = 1; y < height - 1; y++) {
-      for (let x = 1; x < width - 1; x++) {
-        const idx = (y * width + x) * 4;
-        
-        // Sample 3x3 grid for Sobel operator
-        const getGray = (px, py) => {
-          const i = (py * width + px) * 4;
-          return (data[i] + data[i + 1] + data[i + 2]) / 3;
-        };
-        
-        const g00 = getGray(x - 1, y - 1);
-        const g01 = getGray(x, y - 1);
-        const g02 = getGray(x + 1, y - 1);
-        const g10 = getGray(x - 1, y);
-        const g11 = getGray(x, y);
-        const g12 = getGray(x + 1, y);
-        const g20 = getGray(x - 1, y + 1);
-        const g21 = getGray(x, y + 1);
-        const g22 = getGray(x + 1, y + 1);
-        
-        // Sobel operator
-        const dx = (g02 + 2 * g12 + g22) - (g00 + 2 * g10 + g20);
-        const dy = (g20 + 2 * g21 + g22) - (g00 + 2 * g01 + g02);
-        
-        // Create normal vector
-        const normalX = dx * 0.1;
-        const normalY = dy * 0.1;
-        const normalZ = 1.0;
-        
-        // Normalize
-        const length = Math.sqrt(normalX * normalX + normalY * normalY + normalZ * normalZ);
-        const nx = normalX / length;
-        const ny = normalY / length;
-        const nz = normalZ / length;
-        
-        // Convert to 0-255 range
-        normalData[idx] = (nx + 1) * 127.5;     // R
-        normalData[idx + 1] = (ny + 1) * 127.5; // G
-        normalData[idx + 2] = (nz + 1) * 127.5; // B
-        normalData[idx + 3] = 255;              // A
-      }
-    }
-    
-    // Create new image data
-    const normalImageData = new ImageData(normalData, width, height);
-    ctx.putImageData(normalImageData, 0, 0);
-    
-    console.log('Normal map conversion completed');
-    console.log('First few normal pixels:', Array.from(normalData.slice(0, 20)));
-    
-    // Convert canvas to image
-    return new Promise((resolve) => {
-      const normalImage = new Image();
-      normalImage.onload = () => {
-        console.log('Converted normal map image loaded');
-        resolve(normalImage);
-      };
-      normalImage.src = canvas.toDataURL();
-    });
-  }
 
   async setupTextures() {
     console.log('Setting up textures...');
@@ -333,15 +304,11 @@ class NormalMappingEffect {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
     
-    // Convert the original image to a normal map
+    // Use the normal map directly (no conversion needed)
     if (this.normalMapImage) {
-      console.log('Converting original image to normal map...');
-      const convertedNormalMap = await this.convertToNormalMap(this.normalMapImage);
-      console.log('Normal map conversion completed');
-      
-      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, convertedNormalMap);
-      console.log('Converted normal map loaded as RGBA');
-      console.log('Normal map dimensions:', convertedNormalMap.naturalWidth, 'x', convertedNormalMap.naturalHeight);
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
+      console.log('Normal map loaded directly as RGBA');
+      console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
     } else {
       console.error('Normal map image is not available!');
       // Create a fallback normal map (pointing up)
