@@ -129,7 +129,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // 3D Normal Mapping Effect for Main Product Image
+  // 3D Normal Mapping Shadow Effect for Main Product Image
   const mainImage = document.getElementById('main-product-image');
   const productImageMain = document.querySelector('.product-image-main');
   
@@ -141,19 +141,25 @@ document.addEventListener('DOMContentLoaded', function() {
       const centerX = rect.width / 2;
       const centerY = rect.height / 2;
       
-      // Calculate relative position as percentage
+      // Calculate relative position as percentage for light source
       const relativeX = (x / rect.width) * 100;
       const relativeY = (y / rect.height) * 100;
       
-      // Calculate 3D tilt based on mouse position
-      const rotateX = (y - centerY) / 20;
-      const rotateY = (centerX - x) / 20;
+      // Calculate 3D tilt based on mouse position (reduced for subtlety)
+      const rotateX = (y - centerY) / 25;
+      const rotateY = (centerX - x) / 25;
+      
+      // Calculate light direction for shadow effects
+      const lightAngleX = (relativeX - 50) / 50; // -1 to 1
+      const lightAngleY = (relativeY - 50) / 50; // -1 to 1
       
       // Update CSS variables for light source and 3D effect
       productImageMain.style.setProperty('--mouse-x', `${relativeX}%`);
       productImageMain.style.setProperty('--mouse-y', `${relativeY}%`);
       productImageMain.style.setProperty('--rotate-x', `${rotateX}deg`);
       productImageMain.style.setProperty('--rotate-y', `${rotateY}deg`);
+      productImageMain.style.setProperty('--light-angle-x', lightAngleX);
+      productImageMain.style.setProperty('--light-angle-y', lightAngleY);
       
       // Apply 3D transform to the image
       mainImage.style.transform = `scale(1.02) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
@@ -164,6 +170,8 @@ document.addEventListener('DOMContentLoaded', function() {
       productImageMain.style.setProperty('--mouse-y', '50%');
       productImageMain.style.setProperty('--rotate-x', '0deg');
       productImageMain.style.setProperty('--rotate-y', '0deg');
+      productImageMain.style.setProperty('--light-angle-x', '0');
+      productImageMain.style.setProperty('--light-angle-y', '0');
       
       // Reset image transform
       mainImage.style.transform = 'scale(1.02) rotateX(0deg) rotateY(0deg)';
