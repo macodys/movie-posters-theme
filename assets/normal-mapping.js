@@ -1,8 +1,9 @@
 // Normal Mapping Effect using WebGL
 class NormalMappingEffect {
-  constructor(container, posterImage) {
+  constructor(container, posterImage, normalMapImage) {
     this.container = container;
     this.posterImage = posterImage;
+    this.normalMapImage = normalMapImage;
     this.canvas = null;
     this.gl = null;
     this.program = null;
@@ -12,6 +13,7 @@ class NormalMappingEffect {
     
     console.log('Creating NormalMappingEffect with container:', container);
     console.log('Poster image:', posterImage);
+    console.log('Normal map image:', normalMapImage);
     
     this.init();
   }
@@ -98,6 +100,7 @@ class NormalMappingEffect {
       precision mediump float;
       
       uniform sampler2D u_posterTexture;
+      uniform sampler2D u_normalTexture;
       uniform vec2 u_resolution;
       uniform vec2 u_mouse;
       uniform float u_time;
@@ -200,10 +203,14 @@ class NormalMappingEffect {
       void main() {
         vec2 vUV = v_texCoord;
         
-        C_Sample materialSample;
+        // Sample the poster texture for albedo
+        vec4 posterColor = texture2D(u_posterTexture, vUV);
+        vec3 vAlbedo = posterColor.rgb * posterColor.rgb; // Convert to linear
         
-        float fNormalScale = 10.0;
-        materialSample = SampleMaterial( vUV, u_posterTexture, u_resolution, fNormalScale );
+        // Sample the custom normal map with tiling
+        vec2 normalUV = vUV * 2.0; // Tile the normal map 2x2 times
+        vec3 vNormal = texture2D(u_normalTexture, normalUV).rgb * 2.0 - 1.0;
+        vNormal = normalize(vNormal);
         
         // Random Lighting...
         
@@ -219,23 +226,23 @@ class NormalMappingEffect {
         vec3 vDirToView = normalize( vViewPos - vSurfacePos );
         vec3 vDirToLight = normalize( vLightPos - vSurfacePos );
         
-        float fNDotL = clamp( dot(materialSample.vNormal, vDirToLight), 0.0, 1.0);
+        float fNDotL = clamp( dot(vNormal, vDirToLight), 0.0, 1.0);
         float fDiffuse = fNDotL;
         
         vec3 vHalf = normalize( vDirToView + vDirToLight );
-        float fNDotH = clamp( dot(materialSample.vNormal, vHalf), 0.0, 1.0);
+        float fNDotH = clamp( dot(vNormal, vHalf), 0.0, 1.0);
         float fSpec = pow(fNDotH, 10.0) * fNDotL * 0.5;
         
-        vec3 vResult = materialSample.vAlbedo * fDiffuse + fSpec;
+        vec3 vResult = vAlbedo * fDiffuse + fSpec;
         
         vResult = sqrt(vResult);
         
         #ifdef SHOW_NORMAL_MAP
-        vResult = materialSample.vNormal * 0.5 + 0.5;
+        vResult = vNormal * 0.5 + 0.5;
         #endif
         
         #ifdef SHOW_ALBEDO
-        vResult = sqrt(materialSample.vAlbedo);
+        vResult = sqrt(vAlbedo);
         #endif
         
         gl_FragColor = vec4(vResult, 1.0);
@@ -343,7 +350,17 @@ class NormalMappingEffect {
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.posterImage);
     console.log('Poster texture loaded');
     
-    // No normal map texture needed - using Sobel filter
+    // Create normal map texture
+    this.normalTexture = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+    
+    // Load normal map image
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
+    console.log('Normal map texture loaded');
   }
   
   setupEventListeners() {
@@ -406,18 +423,23 @@ class NormalMappingEffect {
     
     // Set uniforms
     const posterTextureLocation = this.gl.getUniformLocation(this.program, 'u_posterTexture');
+    const normalTextureLocation = this.gl.getUniformLocation(this.program, 'u_normalTexture');
     const resolutionLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
     const mouseLocation = this.gl.getUniformLocation(this.program, 'u_mouse');
     const timeLocation = this.gl.getUniformLocation(this.program, 'u_time');
     
     this.gl.uniform1i(posterTextureLocation, 0);
+    this.gl.uniform1i(normalTextureLocation, 1);
     this.gl.uniform2f(resolutionLocation, this.canvas.width, this.canvas.height);
     this.gl.uniform2f(mouseLocation, this.mouseX, this.mouseY);
     this.gl.uniform1f(timeLocation, Date.now() * 0.001);
     
-    // Bind poster texture
+    // Bind textures
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.posterTexture);
+    
+    this.gl.activeTexture(this.gl.TEXTURE1);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
     
     // Draw
     this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
@@ -459,23 +481,30 @@ document.addEventListener('DOMContentLoaded', function() {
   img.style.height = '100%';
   img.style.zIndex = '1';
   
-  // Wait for image to load if it's not already loaded
-  if (img.complete) {
+  // Load normal map image
+  console.log('Loading normal map image...');
+  const normalImg = new Image();
+  normalImg.crossOrigin = 'anonymous';
+  
+  normalImg.onload = function() {
+    console.log('Normal map loaded, creating effect...');
     createEffect();
-  } else {
-    console.log('Waiting for image to load...');
-    img.onload = createEffect;
-    img.onerror = function() {
-      console.error('Failed to load product image');
-    };
-  }
+  };
+  
+  normalImg.onerror = function() {
+    console.error('Failed to load normal map image');
+    // Show original image if normal map fails to load
+    img.style.display = 'block';
+  };
+  
+  normalImg.src = window.normalMapUrl || 'paper-normal.jpg';
   
   function createEffect() {
-    // Create the normal mapping effect with Sobel filter
+    // Create the normal mapping effect with custom normal map
     try {
       console.log('Creating NormalMappingEffect...');
-      window.normalMappingEffect = new NormalMappingEffect(productImageMain, img);
-      console.log('Sobel filter effect initialized successfully');
+      window.normalMappingEffect = new NormalMappingEffect(productImageMain, img, normalImg);
+      console.log('Normal mapping effect initialized successfully');
     } catch (error) {
       console.error('Failed to create normal mapping effect:', error);
       console.error('Error stack:', error.stack);
