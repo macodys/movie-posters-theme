@@ -124,25 +124,36 @@ class NormalMappingEffect {
         float lightIntensity = 1.0 - smoothstep(0.0, 0.6, lightDist);
         lightIntensity = pow(lightIntensity, 1.2);
         
-        // Create multiple light directions for radial effect
-        // Calculate light direction from mouse to current pixel
-        vec2 lightDir = uv - lightPos;
-        float lightDirLength = length(lightDir);
-        if (lightDirLength > 0.0) {
-          lightDir = lightDir / lightDirLength;
-        }
+        // Create a true radial light - illuminate from all directions
+        // Use multiple light directions to eliminate shadows
+        vec3 light1 = normalize(vec3(1.0, 0.0, 0.1));
+        vec3 light2 = normalize(vec3(-1.0, 0.0, 0.1));
+        vec3 light3 = normalize(vec3(0.0, 1.0, 0.1));
+        vec3 light4 = normalize(vec3(0.0, -1.0, 0.1));
+        vec3 light5 = normalize(vec3(0.7, 0.7, 0.1));
+        vec3 light6 = normalize(vec3(-0.7, 0.7, 0.1));
+        vec3 light7 = normalize(vec3(0.7, -0.7, 0.1));
+        vec3 light8 = normalize(vec3(-0.7, -0.7, 0.1));
         
-        // Convert to 3D with slight upward bias
-        vec3 light3D = normalize(vec3(lightDir, 0.1));
+        // Calculate diffuse lighting from all directions
+        float diffuse1 = max(dot(normal, light1), 0.0);
+        float diffuse2 = max(dot(normal, light2), 0.0);
+        float diffuse3 = max(dot(normal, light3), 0.0);
+        float diffuse4 = max(dot(normal, light4), 0.0);
+        float diffuse5 = max(dot(normal, light5), 0.0);
+        float diffuse6 = max(dot(normal, light6), 0.0);
+        float diffuse7 = max(dot(normal, light7), 0.0);
+        float diffuse8 = max(dot(normal, light8), 0.0);
         
-        // Calculate diffuse lighting based on normal and light direction
-        float diffuse = max(dot(normal, light3D), 0.0);
+        // Average all diffuse values for even lighting
+        float diffuse = (diffuse1 + diffuse2 + diffuse3 + diffuse4 + 
+                        diffuse5 + diffuse6 + diffuse7 + diffuse8) / 8.0;
         
         // Add ambient lighting
-        float ambient = 0.3;
+        float ambient = 0.4;
         
         // Calculate final lighting with radial intensity
-        float lighting = ambient + (diffuse * lightIntensity * 0.7);
+        float lighting = ambient + (diffuse * lightIntensity * 0.6);
         
         // Apply lighting to poster color
         vec3 finalColor = posterColor.rgb * lighting;
