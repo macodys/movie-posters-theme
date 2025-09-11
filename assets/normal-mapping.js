@@ -47,7 +47,9 @@ class NormalMappingEffect {
     this.canvas.style.width = '100%';
     this.canvas.style.height = '100%';
     this.canvas.style.pointerEvents = 'none';
-    this.canvas.style.zIndex = '2';
+    this.canvas.style.zIndex = '3';
+    this.canvas.style.opacity = '0';
+    this.canvas.style.transition = 'opacity 0.3s ease';
     
     this.container.style.position = 'relative';
     this.container.appendChild(this.canvas);
@@ -114,31 +116,42 @@ class NormalMappingEffect {
         // Sample the normal map
         vec3 normal = texture2D(u_normalTexture, uv).rgb * 2.0 - 1.0;
         
-        // Calculate light direction from mouse position
+        // Calculate distance from mouse position
         vec2 lightPos = u_mouse;
+        float lightDist = distance(uv, lightPos);
+        
+        // Create a soft light around the mouse (inverse distance)
+        float lightIntensity = 1.0 - smoothstep(0.0, 0.4, lightDist);
+        lightIntensity = pow(lightIntensity, 2.0);
+        
+        // Calculate light direction from mouse position
         vec2 lightDir = lightPos - uv;
-        float lightDist = length(lightDir);
         lightDir = normalize(lightDir);
         
         // Convert 2D light direction to 3D
-        vec3 light3D = normalize(vec3(lightDir, 0.3));
+        vec3 light3D = normalize(vec3(lightDir, 0.2));
         
-        // Calculate diffuse lighting
+        // Calculate diffuse lighting based on normal and light direction
         float diffuse = max(dot(normal, light3D), 0.0);
         
-        // Add some ambient lighting
-        float ambient = 0.3;
+        // Add ambient lighting
+        float ambient = 0.4;
         
-        // Calculate final lighting
-        float lighting = ambient + diffuse * 0.7;
+        // Calculate final lighting with mouse-based intensity
+        float lighting = ambient + (diffuse * lightIntensity * 0.8);
         
         // Apply lighting to poster color
         vec3 finalColor = posterColor.rgb * lighting;
         
-        // Add some rim lighting for depth
+        // Add rim lighting for depth
         float rim = 1.0 - max(dot(normal, vec3(0.0, 0.0, 1.0)), 0.0);
-        rim = pow(rim, 2.0);
-        finalColor += rim * 0.2;
+        rim = pow(rim, 1.5);
+        finalColor += rim * 0.15 * lightIntensity;
+        
+        // Add a subtle glow around the mouse area
+        float glow = 1.0 - smoothstep(0.0, 0.3, lightDist);
+        glow = pow(glow, 3.0);
+        finalColor += glow * 0.1;
         
         gl_FragColor = vec4(finalColor, posterColor.a);
       }
@@ -249,6 +262,11 @@ class NormalMappingEffect {
   }
   
   setupEventListeners() {
+    this.container.addEventListener('mouseenter', () => {
+      console.log('Mouse entered - enabling effect');
+      this.canvas.style.opacity = '1';
+    });
+    
     this.container.addEventListener('mousemove', (e) => {
       const rect = this.container.getBoundingClientRect();
       this.mouseX = (e.clientX - rect.left) / rect.width;
@@ -257,9 +275,10 @@ class NormalMappingEffect {
     });
     
     this.container.addEventListener('mouseleave', () => {
+      console.log('Mouse left - disabling effect');
       this.mouseX = 0.5;
       this.mouseY = 0.5;
-      this.render();
+      this.canvas.style.opacity = '0';
     });
     
     // Handle window resize
@@ -356,16 +375,19 @@ document.addEventListener('DOMContentLoaded', function() {
   normalImg.onload = function() {
     console.log('Normal map loaded, initializing effect...');
     
-    // Hide the original image
-    img.style.display = 'none';
+    // Keep the original image visible as background
+    img.style.position = 'absolute';
+    img.style.top = '0';
+    img.style.left = '0';
+    img.style.width = '100%';
+    img.style.height = '100%';
+    img.style.zIndex = '1';
     
     // Create the normal mapping effect
     try {
       window.normalMappingEffect = new NormalMappingEffect(productImageMain, img, normalImg);
     } catch (error) {
       console.error('Failed to create normal mapping effect:', error);
-      // Show original image if effect fails
-      img.style.display = 'block';
     }
   };
   
