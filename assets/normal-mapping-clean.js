@@ -322,22 +322,24 @@ class NormalMappingEffect {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
     
-    // Use the normal map directly (no conversion needed)
+    // Always create fallback normal map for now to test
+    console.log('Creating fallback normal map for testing...');
+    this.createFallbackNormalMap();
+    
+    // Try to load the actual normal map if available
     if (this.normalMapImage && this.normalMapImage.naturalWidth > 0 && this.normalMapImage.naturalHeight > 0) {
-      console.log('Loading normal map image:', this.normalMapImage.src);
+      console.log('Also loading actual normal map image:', this.normalMapImage.src);
       console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
-      console.log('Normal map complete:', this.normalMapImage.complete);
       
       try {
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
-        console.log('Normal map texture loaded successfully');
+        console.log('Actual normal map texture loaded successfully');
       } catch (error) {
-        console.error('Failed to load normal map texture:', error);
-        this.createFallbackNormalMap();
+        console.error('Failed to load actual normal map texture:', error);
+        console.log('Using fallback normal map instead');
       }
     } else {
-      console.log('Normal map image not available or failed to load, using fallback');
-      this.createFallbackNormalMap();
+      console.log('No actual normal map image available, using fallback only');
     }
   }
   
@@ -357,16 +359,28 @@ class NormalMappingEffect {
         const distance = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
         const normalizedDistance = distance / (size / 2);
         
-        // Create normal vectors pointing outward from center
-        const normalX = (x - centerX) / (size / 2);
-        const normalY = (y - centerY) / (size / 2);
-        const normalZ = Math.sqrt(1.0 - Math.min(normalX * normalX + normalY * normalY, 1.0));
+        // Create a simple test pattern that's easy to see
+        const normalizedX = x / size;
+        const normalizedY = y / size;
         
-        // Convert to [0,1] range
-        data[index] = Math.floor((normalX * 0.5 + 0.5) * 255); // R
-        data[index + 1] = Math.floor((normalY * 0.5 + 0.5) * 255); // G
-        data[index + 2] = Math.floor((normalZ * 0.5 + 0.5) * 255); // B
-        data[index + 3] = 255; // A
+        // Create a checkerboard pattern with different colors
+        const checkerX = Math.floor(normalizedX * 8);
+        const checkerY = Math.floor(normalizedY * 8);
+        const isChecker = (checkerX + checkerY) % 2;
+        
+        if (isChecker) {
+          // Blue areas (pointing up)
+          data[index] = 128; // R = 0.5
+          data[index + 1] = 128; // G = 0.5
+          data[index + 2] = 255; // B = 1.0
+          data[index + 3] = 255; // A = 1.0
+        } else {
+          // Red areas (pointing right)
+          data[index] = 255; // R = 1.0
+          data[index + 1] = 128; // G = 0.5
+          data[index + 2] = 128; // B = 0.5
+          data[index + 3] = 255; // A = 1.0
+        }
       }
     }
     
