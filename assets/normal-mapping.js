@@ -120,31 +120,42 @@ class NormalMappingEffect {
         vec2 lightPos = u_mouse;
         float lightDist = distance(uv, lightPos);
         
-        // Create a soft radial light around the mouse (no directional bias)
+        // Create a soft radial light around the mouse
         float lightIntensity = 1.0 - smoothstep(0.0, 0.6, lightDist);
         lightIntensity = pow(lightIntensity, 1.2);
         
-        // Create a radial light that illuminates evenly in all directions
-        // Use the normal map to add surface detail without directional shadows
-        float normalDetail = length(normal) * 0.3 + 0.7; // Use normal length for surface variation
+        // Create multiple light directions for radial effect
+        // Calculate light direction from mouse to current pixel
+        vec2 lightDir = uv - lightPos;
+        float lightDirLength = length(lightDir);
+        if (lightDirLength > 0.0) {
+          lightDir = lightDir / lightDirLength;
+        }
+        
+        // Convert to 3D with slight upward bias
+        vec3 light3D = normalize(vec3(lightDir, 0.1));
+        
+        // Calculate diffuse lighting based on normal and light direction
+        float diffuse = max(dot(normal, light3D), 0.0);
         
         // Add ambient lighting
-        float ambient = 0.4;
+        float ambient = 0.3;
         
-        // Calculate final lighting - purely radial with normal map detail
-        float lighting = ambient + (lightIntensity * normalDetail * 0.6);
+        // Calculate final lighting with radial intensity
+        float lighting = ambient + (diffuse * lightIntensity * 0.7);
         
         // Apply lighting to poster color
         vec3 finalColor = posterColor.rgb * lighting;
+        
+        // Add rim lighting for depth
+        float rim = 1.0 - max(dot(normal, vec3(0.0, 0.0, 1.0)), 0.0);
+        rim = pow(rim, 2.0);
+        finalColor += rim * 0.15 * lightIntensity;
         
         // Add a soft glow around the mouse area
         float glow = 1.0 - smoothstep(0.0, 0.5, lightDist);
         glow = pow(glow, 2.0);
         finalColor += glow * 0.2;
-        
-        // Add subtle normal map detail without directional lighting
-        vec3 normalColor = normal * 0.1 + 0.9;
-        finalColor *= normalColor;
         
         gl_FragColor = vec4(finalColor, posterColor.a);
       }
