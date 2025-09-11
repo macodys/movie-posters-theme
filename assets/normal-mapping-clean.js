@@ -144,6 +144,17 @@ class NormalMappingEffect {
           } else if (u_normalMapMode == 4) {
             // Show a test pattern
             gl_FragColor = vec4(0.5, 0.5, 1.0, 1.0);
+          } else if (u_normalMapMode == 5) {
+            // Test if we can sample the poster texture instead
+            vec4 posterColor = texture2D(u_posterTexture, uv);
+            gl_FragColor = vec4(posterColor.rgb, 1.0);
+          } else if (u_normalMapMode == 6) {
+            // Test if normal map texture is completely black
+            if (normal.r == 0.0 && normal.g == 0.0 && normal.b == 0.0) {
+              gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red if completely black
+            } else {
+              gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green if has data
+            }
           }
           return;
         }
@@ -361,6 +372,7 @@ class NormalMappingEffect {
     
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, size, size, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, data);
     console.log('Fallback normal map created successfully');
+    console.log('Fallback data sample:', data.slice(0, 16)); // Show first 16 bytes
   }
   
   
@@ -404,7 +416,7 @@ class NormalMappingEffect {
     // Add keyboard handler for normal map mode cycling
     document.addEventListener('keydown', (event) => {
       if (this.debugMode) {
-        if (event.key >= '1' && event.key <= '5') {
+        if (event.key >= '1' && event.key <= '7') {
           this.normalMapMode = parseInt(event.key) - 1;
           console.log('Normal map mode set to:', this.normalMapMode);
           this.render();
@@ -441,7 +453,7 @@ class NormalMappingEffect {
   }
   
   cycleNormalMapMode() {
-    this.normalMapMode = (this.normalMapMode + 1) % 5;
+    this.normalMapMode = (this.normalMapMode + 1) % 7;
     console.log('Normal map mode:', this.normalMapMode);
     if (this.normalMapMode === 0) {
       console.log('Mode 0: Raw normal map colors');
@@ -453,6 +465,10 @@ class NormalMappingEffect {
       console.log('Mode 3: UV coordinates (should show gradient)');
     } else if (this.normalMapMode === 4) {
       console.log('Mode 4: Test pattern (should show blue)');
+    } else if (this.normalMapMode === 5) {
+      console.log('Mode 5: Poster texture (should show poster image)');
+    } else if (this.normalMapMode === 6) {
+      console.log('Mode 6: Normal map test (red=black, green=data)');
     }
   }
   
