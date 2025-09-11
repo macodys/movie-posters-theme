@@ -10,6 +10,7 @@ class NormalMappingEffect {
     this.mouseX = 0.5;
     this.mouseY = 0.5;
     this.isInitialized = false;
+    this.debugMode = false; // Set to true to see normal map directly
     
     console.log('Creating NormalMappingEffect with container:', container);
     console.log('Poster image:', posterImage);
@@ -108,6 +109,7 @@ class NormalMappingEffect {
       uniform vec2 u_resolution;
       uniform vec2 u_mouse;
       uniform float u_time;
+      uniform bool u_debugMode;
       
       varying vec2 v_texCoord;
       
@@ -121,6 +123,12 @@ class NormalMappingEffect {
         vec3 normal = texture2D(u_normalTexture, uv).rgb;
         // Transform normal from [0,1] to [-1,1] range (LearnOpenGL technique)
         normal = normalize(normal * 2.0 - 1.0);
+        
+        // Debug mode: Show normal map as colors
+        if (u_debugMode) {
+          gl_FragColor = vec4(normal * 0.5 + 0.5, 1.0);
+          return;
+        }
         
         // Calculate cursor position in UV space
         vec2 cursorUV = u_mouse / u_resolution;
@@ -140,22 +148,29 @@ class NormalMappingEffect {
         
         // Calculate distance for attenuation
         float distance = length(lightPos - fragPos);
-        float attenuation = 1.0 / (1.0 + 0.1 * distance + 0.01 * distance * distance);
+        float attenuation = 1.0 / (1.0 + 0.05 * distance + 0.005 * distance * distance);
         
-        // Diffuse lighting (Lambertian reflection)
+        // Enhanced diffuse lighting for better depth perception
         float diff = max(dot(normal, lightDir), 0.0);
-        vec3 diffuse = diff * vec3(1.0, 0.9, 0.8) * attenuation; // Warm light color
+        // Make the diffuse lighting more pronounced
+        diff = pow(diff, 0.8); // Soften the falloff
+        vec3 diffuse = diff * vec3(1.2, 1.0, 0.9) * attenuation * 1.5; // Brighter, warmer light
         
-        // Specular lighting (Blinn-Phong)
+        // Enhanced specular lighting for better highlights
         vec3 halfDir = normalize(lightDir + viewDir);
-        float spec = pow(max(dot(normal, halfDir), 0.0), 32.0);
-        vec3 specular = spec * vec3(1.0, 0.9, 0.8) * 0.5 * attenuation;
+        float spec = pow(max(dot(normal, halfDir), 0.0), 16.0); // Softer specular
+        vec3 specular = spec * vec3(1.0, 0.9, 0.8) * 0.8 * attenuation;
         
-        // Ambient lighting
-        vec3 ambient = vec3(0.1, 0.1, 0.15);
+        // Reduced ambient to make lighting more dramatic
+        vec3 ambient = vec3(0.05, 0.05, 0.08);
+        
+        // Add rim lighting for better depth perception
+        float rim = 1.0 - max(dot(normal, viewDir), 0.0);
+        rim = pow(rim, 2.0);
+        vec3 rimLight = rim * vec3(0.3, 0.4, 0.6) * 0.5;
         
         // Combine lighting
-        vec3 lighting = ambient + diffuse + specular;
+        vec3 lighting = ambient + diffuse + specular + rimLight;
         
         // Apply lighting to poster color
         vec3 result = posterColor.rgb * lighting;
@@ -274,8 +289,12 @@ class NormalMappingEffect {
     
     // Use the normal map directly (no conversion needed)
     if (this.normalMapImage) {
+      console.log('Loading normal map image:', this.normalMapImage.src);
+      console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
       this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
+      console.log('Normal map texture loaded successfully');
     } else {
+      console.log('No normal map image available, using fallback');
       // Create a fallback normal map (pointing up)
       const fallbackData = new Uint8Array(4);
       fallbackData[0] = 128; // R = 0.5 (neutral X)
@@ -319,6 +338,12 @@ class NormalMappingEffect {
       this.render();
     });
     
+    // Add click handler to toggle debug mode
+    this.container.addEventListener('click', (event) => {
+      this.toggleDebugMode();
+      this.render();
+    });
+    
     window.addEventListener('resize', () => {
       const rect = this.container.getBoundingClientRect();
       this.canvas.width = rect.width;
@@ -327,6 +352,14 @@ class NormalMappingEffect {
     });
     
     console.log('Event listeners set up');
+  }
+  
+  toggleDebugMode() {
+    this.debugMode = !this.debugMode;
+    console.log('Debug mode:', this.debugMode ? 'ON' : 'OFF');
+    if (this.debugMode) {
+      console.log('Normal map visualization enabled - you should see colored normal vectors');
+    }
   }
   
   render() {
@@ -357,12 +390,14 @@ class NormalMappingEffect {
       const resolutionLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
       const mouseLocation = this.gl.getUniformLocation(this.program, 'u_mouse');
       const timeLocation = this.gl.getUniformLocation(this.program, 'u_time');
+      const debugLocation = this.gl.getUniformLocation(this.program, 'u_debugMode');
       
       this.gl.uniform1i(posterTextureLocation, 0);
       this.gl.uniform1i(normalTextureLocation, 1);
       this.gl.uniform2f(resolutionLocation, this.canvas.width, this.canvas.height);
       this.gl.uniform2f(mouseLocation, this.mouseX, this.mouseY);
       this.gl.uniform1f(timeLocation, Date.now() * 0.001);
+      this.gl.uniform1i(debugLocation, this.debugMode ? 1 : 0);
       
       // Bind textures
       this.gl.activeTexture(this.gl.TEXTURE0);
