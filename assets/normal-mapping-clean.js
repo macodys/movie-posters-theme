@@ -124,75 +124,8 @@ class NormalMappingEffect {
         // Sample the poster texture
         vec4 posterColor = texture2D(u_posterTexture, uv);
         
-        // Normal Mapping Shadow (NMS) - Exact Shadertoy implementation
-        vec3 lightposition = vec3(0.0, 0.0, 0.1);
-        vec3 planeposition = vec3(uv, 0.0);
-        
-        vec2 cursorposition = u_mouse;
-        lightposition.xy = cursorposition;
-        if (u_mouse.x <= 0.0 && u_mouse.y <= 0.0) {
-          lightposition.x = (sin(u_time * 1.0) + 1.0) * 0.5;
-          lightposition.y = (cos(u_time * 2.5) + 1.0) * 0.5;
-        }
-        
-        float samplecount = 15.0;
-        float invsamplecount = 1.0 / samplecount;
-        float hardness = 1.5 * 2.0; // HeightScale * ShadowHardness
-        float shadowLength = 0.05;
-        
-        vec3 lightdir = lightposition - planeposition;
-        vec2 dir = lightdir.xy * 1.5; // HeightScale
-        lightdir = normalize(lightdir.xyz);
-        
-        vec3 normal = texture2D(u_normalTexture, uv).xyz;
-        normal = normal * 2.0 - 1.0;
-        
-        // Lighting with flat normals
-        float lighting = clamp(dot(lightdir, normal), 0.0, 1.0);
-        
-        float step = invsamplecount * shadowLength;
-        
-        // Randomization
-        vec2 noise = fract(uv * 0.5);
-        noise.x = (noise.x * 0.5 + noise.y) * (1.0/1.5 - 0.25);
-        float pos = step * noise.x;
-        
-        float slope = -lighting;
-        float maxslope = 0.0;
-        float shadow = 0.0;
-        
-        for (int i = 0; i < 15; i++) {
-          vec3 tmpNormal = texture2D(u_normalTexture, uv + dir * pos).xyz;
-          tmpNormal = tmpNormal * 2.0 - 1.0;
-          
-          float tmpLighting = dot(lightdir, tmpNormal);
-          float shadowed = -tmpLighting;
-          
-          slope += shadowed;
-          
-          if (slope > maxslope) {
-            shadow += hardness * (1.0 - pos);
-          }
-          maxslope = max(maxslope, slope);
-          
-          pos += step;
-        }
-        
-        shadow = clamp(1.0 - shadow * invsamplecount, 0.0, 1.0);
-        
-        // Coloring
-        vec3 ambientcolor = vec3(0.15, 0.4, 0.6) * 0.7;
-        vec3 lightcolor = vec3(1.0, 0.7, 0.3) * 1.2;
-        float ao = clamp(normal.z, 0.0, 1.0);
-        
-        vec3 result = shadow * lighting * lightcolor;
-        result += ambientcolor;
-        result *= (clamp(normal.z, 0.0, 1.0) * 0.5 + 0.5);
-        
-        // Apply to poster color
-        result *= posterColor.rgb;
-        
-        gl_FragColor = vec4(result, posterColor.a);
+        // Show the poster image without any effects
+        gl_FragColor = posterColor;
       }
     `;
     
@@ -307,10 +240,7 @@ class NormalMappingEffect {
     // Use the normal map directly (no conversion needed)
     if (this.normalMapImage) {
       this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
-      console.log('Normal map loaded directly as RGBA');
-      console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
     } else {
-      console.error('Normal map image is not available!');
       // Create a fallback normal map (pointing up)
       const fallbackData = new Uint8Array(4);
       fallbackData[0] = 128; // R = 0.5 (neutral X)
@@ -319,7 +249,6 @@ class NormalMappingEffect {
       fallbackData[3] = 255; // A = 1.0
       
       this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, fallbackData);
-      console.log('Using fallback normal map');
     }
   }
   
@@ -404,12 +333,6 @@ class NormalMappingEffect {
       this.gl.activeTexture(this.gl.TEXTURE1);
       this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
       
-      // Debug: Check if normal texture is valid
-      if (!this.normalTexture) {
-        console.error('Normal texture is null!');
-      } else {
-        console.log('Normal texture bound successfully');
-      }
       
       // Draw
       this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
