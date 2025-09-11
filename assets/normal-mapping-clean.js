@@ -124,20 +124,18 @@ class NormalMappingEffect {
         // Sample the poster texture
         vec4 posterColor = texture2D(u_posterTexture, uv);
         
-        // Debug: Let's see what's actually in the normal texture
+        // Debug: Show the converted normal map
         vec4 normalSample = texture2D(u_normalTexture, uv);
         
-        // Use the converted normal map
-        vec3 normal = texture2D(u_normalTexture, uv).rgb;
-        normal = normal * 2.0 - 1.0; // Convert from 0-1 to -1 to 1
-        normal = normalize(normal);
+        // Show different aspects for debugging
+        // Show raw texture data
+        gl_FragColor = vec4(normalSample.rgb, 1.0);
         
-        // Simple lighting test
-        vec3 lightDir = normalize(vec3(uv - 0.5, 0.1));
-        float lighting = max(dot(normal, lightDir), 0.0);
+        // Show with brightness boost
+        // gl_FragColor = vec4(normalSample.rgb * 2.0, 1.0);
         
-        // Show the normal map with lighting
-        gl_FragColor = vec4(normal * 0.5 + 0.5, 1.0);
+        // Show just red channel
+        // gl_FragColor = vec4(normalSample.r, normalSample.r, normalSample.r, 1.0);
       }
     `;
     
@@ -215,6 +213,7 @@ class NormalMappingEffect {
   
   convertToNormalMap(image) {
     console.log('Converting image to normal map...');
+    console.log('Image dimensions:', image.naturalWidth, 'x', image.naturalHeight);
     
     // Create canvas to process the image
     const canvas = document.createElement('canvas');
@@ -230,6 +229,9 @@ class NormalMappingEffect {
     const data = imageData.data;
     const width = canvas.width;
     const height = canvas.height;
+    
+    console.log('Image data length:', data.length);
+    console.log('First few pixels:', Array.from(data.slice(0, 20)));
     
     // Create new image data for normal map
     const normalData = new Uint8ClampedArray(data.length);
@@ -282,10 +284,16 @@ class NormalMappingEffect {
     const normalImageData = new ImageData(normalData, width, height);
     ctx.putImageData(normalImageData, 0, 0);
     
+    console.log('Normal map conversion completed');
+    console.log('First few normal pixels:', Array.from(normalData.slice(0, 20)));
+    
     // Convert canvas to image
     return new Promise((resolve) => {
       const normalImage = new Image();
-      normalImage.onload = () => resolve(normalImage);
+      normalImage.onload = () => {
+        console.log('Converted normal map image loaded');
+        resolve(normalImage);
+      };
       normalImage.src = canvas.toDataURL();
     });
   }
