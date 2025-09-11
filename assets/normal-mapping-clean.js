@@ -428,8 +428,8 @@ document.addEventListener('DOMContentLoaded', function() {
     img.style.display = 'block';
   };
   
-  console.log('Attempting to load custom normal map from:', window.normalMapUrl || 'Poster_Normal.png');
-  normalImg.src = window.normalMapUrl || 'Poster_Normal.png';
+  console.log('Attempting to load custom normal map from:', window.normalMapUrl || 'Poster_NRML.png');
+  normalImg.src = window.normalMapUrl || 'Poster_NRML.png';
   
   function createEffect() {
     try {
