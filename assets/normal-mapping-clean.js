@@ -1,9 +1,8 @@
 // Clean Normal Mapping Effect using WebGL
 class NormalMappingEffect {
-  constructor(container, posterImage, normalMapImage) {
+  constructor(container, posterImage) {
     this.container = container;
     this.posterImage = posterImage;
-    this.normalMapImage = normalMapImage;
     this.canvas = null;
     this.gl = null;
     this.program = null;
@@ -13,7 +12,6 @@ class NormalMappingEffect {
     
     console.log('Creating NormalMappingEffect with container:', container);
     console.log('Poster image:', posterImage);
-    console.log('Normal map image:', normalMapImage);
     
     this.init();
   }
@@ -83,11 +81,18 @@ class NormalMappingEffect {
       precision mediump float;
       
       uniform sampler2D u_posterTexture;
-      uniform sampler2D u_normalTexture;
       uniform vec2 u_resolution;
       uniform vec2 u_mouse;
+      uniform float u_time;
       
       varying vec2 v_texCoord;
+      
+      // Normal Mapping Shadow (NMS) based on Shadertoy
+      #define iSampleCount 15
+      #define SampleCount float(iSampleCount)
+      #define HeightScale 1.5
+      #define ShadowHardness 2.0
+      #define ShadowLength 0.05
       
       void main() {
         vec2 uv = v_texCoord;
@@ -95,56 +100,91 @@ class NormalMappingEffect {
         // Sample the poster texture
         vec4 posterColor = texture2D(u_posterTexture, uv);
         
-        // Sample the normal map with tiling
-        vec2 normalUV = uv * 2.0; // Tile the normal map 2x2 times
-        vec3 normal = texture2D(u_normalTexture, normalUV).rgb * 2.0 - 1.0;
+        // Generate normal map from poster texture (first pass)
+        vec2 offset = 1.0 / u_resolution;
+        vec3 height;
+        height.x = texture2D(u_posterTexture, uv).x;
+        height.y = texture2D(u_posterTexture, uv + vec2(offset.x, 0.0)).x;
+        height.z = texture2D(u_posterTexture, uv + vec2(0.0, offset.y)).x;
         
-        // Debug: Show normal map as color (uncomment to debug)
-        // gl_FragColor = vec4(normal * 0.5 + 0.5, 1.0);
-        // return;
-        
-        // Enhance normal map strength for more dramatic effect
-        normal.xy *= 3.0; // Increase normal map strength significantly
+        vec3 normal;
+        normal.xy = (height.x - height.yz);
+        normal.xy /= offset;
+        normal.z = 5.0; // invNormalMapScale
         normal = normalize(normal);
         
-        // Convert from tangent space to world space
-        // For a flat surface, we need to transform the normal properly
-        vec3 worldNormal = normalize(vec3(normal.xy, normal.z));
+        // Lighting setup
+        vec3 lightposition = vec3(0.0, 0.0, 0.1);
+        vec3 planeposition = vec3(uv, 0.0);
         
-        // Lighting setup - make it more dynamic
-        float lightHeight = 0.3;
-        float viewHeight = 1.0;
+        vec2 cursorposition = u_mouse;
+        lightposition.xy = cursorposition;
+        if (u_mouse.x <= 0.0 && u_mouse.y <= 0.0) {
+          lightposition.x = (sin(u_time * 1.0) + 1.0) * 0.5;
+          lightposition.y = (cos(u_time * 2.5) + 1.0) * 0.5;
+        }
         
-        vec3 surfacePos = vec3(uv, 0.0);
-        vec3 viewPos = vec3(0.5, 0.5, viewHeight);
-        vec3 lightPos = vec3(u_mouse, lightHeight);
+        float samplecount = SampleCount;
+        float invsamplecount = 1.0 / samplecount;
+        float hardness = HeightScale * ShadowHardness;
         
-        vec3 viewDir = normalize(viewPos - surfacePos);
-        vec3 lightDir = normalize(lightPos - surfacePos);
+        vec3 lightdir = lightposition - planeposition;
+        vec2 dir = lightdir.xy * HeightScale;
+        lightdir = normalize(lightdir.xyz);
         
-        // Calculate lighting with enhanced normal map effect
-        float NdotL = max(dot(worldNormal, lightDir), 0.0);
-        float diffuse = NdotL * 2.5; // Much stronger diffuse lighting
+        // Lighting with flat normals
+        float lighting = clamp(dot(lightdir, normal), 0.0, 1.0);
         
-        vec3 halfDir = normalize(viewDir + lightDir);
-        float NdotH = max(dot(worldNormal, halfDir), 0.0);
-        float specular = pow(NdotH, 8.0) * NdotL * 1.2; // Stronger specular
+        float step = invsamplecount * ShadowLength;
         
-        // Add ambient lighting
-        float ambient = 0.2; // Lower ambient for more contrast
+        // Randomization
+        vec2 noise = fract(uv * 100.0);
+        noise.x = (noise.x * 0.5 + noise.y) * (1.0/1.5 - 0.25);
+        float pos = step * noise.x;
         
-        // Add rim lighting for extra depth
-        float rim = 1.0 - max(dot(worldNormal, viewDir), 0.0);
-        rim = pow(rim, 1.5);
-        float rimLight = rim * 0.5;
+        float slope = -lighting;
+        float maxslope = 0.0;
+        float shadow = 0.0;
         
-        // Add shadow calculation for more dramatic effect
-        float shadow = 1.0 - NdotL;
-        shadow = pow(shadow, 2.0);
-        shadow *= 0.6;
+        // Shadow sampling loop
+        for (int i = 0; i < iSampleCount; i++) {
+          vec3 tmpHeight;
+          tmpHeight.x = texture2D(u_posterTexture, uv + dir * pos).x;
+          tmpHeight.y = texture2D(u_posterTexture, uv + dir * pos + vec2(offset.x, 0.0)).x;
+          tmpHeight.z = texture2D(u_posterTexture, uv + dir * pos + vec2(0.0, offset.y)).x;
+          
+          vec3 tmpNormal;
+          tmpNormal.xy = (tmpHeight.x - tmpHeight.yz);
+          tmpNormal.xy /= offset;
+          tmpNormal.z = 5.0;
+          tmpNormal = normalize(tmpNormal);
+          
+          float tmpLighting = dot(lightdir, tmpNormal);
+          float shadowed = -tmpLighting;
+          
+          slope += shadowed;
+          
+          if (slope > maxslope) {
+            shadow += hardness * (1.0 - pos);
+          }
+          maxslope = max(maxslope, slope);
+          
+          pos += step;
+        }
         
-        // Apply lighting to poster color with enhanced contrast
-        vec3 result = posterColor.rgb * (diffuse + ambient - shadow) + specular + rimLight;
+        shadow = clamp(1.0 - shadow * invsamplecount, 0.0, 1.0);
+        
+        // Coloring
+        vec3 ambientcolor = vec3(0.15, 0.4, 0.6) * 0.7;
+        vec3 lightcolor = vec3(1.0, 0.7, 0.3) * 1.2;
+        float ao = clamp(normal.z, 0.0, 1.0);
+        
+        vec3 result = shadow * lighting * lightcolor;
+        result += ambientcolor;
+        result *= (clamp(normal.z, 0.0, 1.0) * 0.5 + 0.5);
+        
+        // Apply to poster color
+        result *= posterColor.rgb;
         
         gl_FragColor = vec4(result, posterColor.a);
       }
@@ -249,19 +289,8 @@ class NormalMappingEffect {
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.posterImage);
     console.log('Poster texture loaded');
     
-    // Create normal map texture
-    this.normalTexture = this.gl.createTexture();
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
-    
-    // Load normal map image
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
-    console.log('Normal map texture loaded');
-    console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
-    console.log('Normal map src:', this.normalMapImage.src);
+    // No normal map texture needed - generating from poster texture
+    console.log('Using poster texture for normal map generation');
   }
   
   setupEventListeners() {
@@ -316,21 +345,18 @@ class NormalMappingEffect {
       
       // Set uniforms
       const posterTextureLocation = this.gl.getUniformLocation(this.program, 'u_posterTexture');
-      const normalTextureLocation = this.gl.getUniformLocation(this.program, 'u_normalTexture');
       const resolutionLocation = this.gl.getUniformLocation(this.program, 'u_resolution');
       const mouseLocation = this.gl.getUniformLocation(this.program, 'u_mouse');
+      const timeLocation = this.gl.getUniformLocation(this.program, 'u_time');
       
       this.gl.uniform1i(posterTextureLocation, 0);
-      this.gl.uniform1i(normalTextureLocation, 1);
       this.gl.uniform2f(resolutionLocation, this.canvas.width, this.canvas.height);
       this.gl.uniform2f(mouseLocation, this.mouseX, this.mouseY);
+      this.gl.uniform1f(timeLocation, Date.now() * 0.001);
       
-      // Bind textures
+      // Bind poster texture
       this.gl.activeTexture(this.gl.TEXTURE0);
       this.gl.bindTexture(this.gl.TEXTURE_2D, this.posterTexture);
-      
-      this.gl.activeTexture(this.gl.TEXTURE1);
-      this.gl.bindTexture(this.gl.TEXTURE_2D, this.normalTexture);
       
       // Draw
       this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
@@ -369,61 +395,19 @@ document.addEventListener('DOMContentLoaded', function() {
   img.style.height = '100%';
   img.style.zIndex = '1';
   
-  // Load normal map image
-  console.log('Loading normal map image...');
-  const normalImg = new Image();
-  normalImg.crossOrigin = 'anonymous';
-  
-  normalImg.onload = function() {
-    console.log('Normal map loaded successfully!');
-    console.log('Normal map dimensions:', normalImg.naturalWidth, 'x', normalImg.naturalHeight);
-    console.log('Normal map src:', normalImg.src);
-    createEffect();
-  };
-  
-  normalImg.onerror = function() {
-    console.error('Failed to load normal map image');
-    console.error('Tried to load:', normalImg.src);
-    console.error('window.normalMapUrl:', window.normalMapUrl);
-    // Show original image if normal map fails to load
-    img.style.display = 'block';
-  };
-  
-  console.log('Attempting to load normal map from:', window.normalMapUrl || 'paper-normal.jpg');
-  normalImg.src = window.normalMapUrl || 'paper-normal.jpg';
-  
+  // Create the normal mapping effect directly (no normal map loading needed)
   function createEffect() {
-    // Create the normal mapping effect with custom normal map
     try {
       console.log('Creating NormalMappingEffect...');
       console.log('Poster image loaded:', img.complete);
-      console.log('Normal map image loaded:', normalImg.complete);
-      window.normalMappingEffect = new NormalMappingEffect(productImageMain, img, normalImg);
+      window.normalMappingEffect = new NormalMappingEffect(productImageMain, img);
       console.log('Normal mapping effect initialized successfully');
     } catch (error) {
       console.error('Failed to create normal mapping effect:', error);
       console.error('Error stack:', error.stack);
-      
-      // Fallback: try to create effect without normal map
-      console.log('Attempting fallback without normal map...');
-      try {
-        // Create a dummy normal map (flat surface)
-        const dummyNormalMap = new Image();
-        dummyNormalMap.width = 1;
-        dummyNormalMap.height = 1;
-        const canvas = document.createElement('canvas');
-        canvas.width = 1;
-        canvas.height = 1;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'rgb(128, 128, 255)'; // Normal pointing up
-        ctx.fillRect(0, 0, 1, 1);
-        dummyNormalMap.src = canvas.toDataURL();
-        
-        window.normalMappingEffect = new NormalMappingEffect(productImageMain, img, dummyNormalMap);
-        console.log('Fallback effect created successfully');
-      } catch (fallbackError) {
-        console.error('Fallback also failed:', fallbackError);
-      }
     }
   }
+  
+  // Create effect immediately since we don't need to load a normal map
+  createEffect();
 });
