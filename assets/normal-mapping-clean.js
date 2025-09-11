@@ -122,17 +122,11 @@ class NormalMappingEffect {
         // Sample the poster texture
         vec4 posterColor = texture2D(u_posterTexture, uv);
         
-        // Use Poster_Normal.png directly as a normal map
-        vec3 normal = texture2D(u_normalTexture, uv).rgb;
+        // Debug: Let's see what's actually in the normal texture
+        vec4 normalSample = texture2D(u_normalTexture, uv);
         
-        // Convert from 0-1 range to -1 to 1 range
-        normal = normal * 2.0 - 1.0;
-        
-        // Ensure the normal is normalized
-        normal = normalize(normal);
-        
-        // Debug: Uncomment to see normal map as colors
-        gl_FragColor = vec4(normal * 0.5 + 0.5, 1.0);
+        // Show the raw texture data
+        gl_FragColor = vec4(normalSample.rgb, 1.0);
         return;
         
         // Lighting setup (Image pass)
