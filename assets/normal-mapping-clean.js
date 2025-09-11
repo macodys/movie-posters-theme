@@ -16,8 +16,8 @@ class NormalMappingEffect {
     this.specPower = 32.0;
     this.rimPower = 2.5;
     this.rimStrength = 0.6;
-    this.lightZ = 1.2;
-    this.lightRadius = 1.0;
+    this.lightZ = 0.3;
+    this.lightRadius = 0.3;
     
     this.init().catch(error => {
       console.error('Failed to initialize normal mapping effect:', error);
