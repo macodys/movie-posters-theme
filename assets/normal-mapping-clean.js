@@ -283,11 +283,162 @@ class NormalMappingEffect {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
     
-    // Load normal map image
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
-    console.log('Normal map texture loaded');
+    // Process and load normal map image
+    const processedNormalMap = this.processNormalMap(this.normalMapImage);
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, processedNormalMap);
+    console.log('Processed normal map texture loaded');
     console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
     console.log('Normal map src:', this.normalMapImage.src);
+  }
+  
+  processNormalMap(normalMapImage) {
+    // Check cache first
+    const cacheKey = `normalMap_${normalMapImage.src}_${normalMapImage.naturalWidth}x${normalMapImage.naturalHeight}`;
+    const cachedCanvas = this.getCachedNormalMap(cacheKey);
+    
+    if (cachedCanvas) {
+      console.log('Using cached processed normal map');
+      return cachedCanvas;
+    }
+    
+    console.log('Processing normal map for the first time...');
+    
+    // Create a canvas to process the normal map
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // Set canvas size to match the normal map image
+    canvas.width = normalMapImage.naturalWidth;
+    canvas.height = normalMapImage.naturalHeight;
+    
+    // Draw the normal map image
+    ctx.drawImage(normalMapImage, 0, 0);
+    
+    // Get image data
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    
+    // Process each pixel to ensure proper normal map format
+    for (let i = 0; i < data.length; i += 4) {
+      // Normal maps should have:
+      // R = X component (red channel)
+      // G = Y component (green channel) 
+      // B = Z component (blue channel)
+      // A = Alpha (usually 255)
+      
+      const r = data[i];     // X component
+      const g = data[i + 1]; // Y component
+      const b = data[i + 2]; // Z component
+      const a = data[i + 3]; // Alpha
+      
+      // Ensure the normal map is in the correct format
+      // If it's a height map, convert to normal map
+      if (this.isHeightMap(data, i)) {
+        // Convert height map to normal map using Sobel operator
+        const normal = this.heightToNormal(data, i, canvas.width, canvas.height);
+        data[i] = normal.r;     // X component
+        data[i + 1] = normal.g; // Y component  
+        data[i + 2] = normal.b; // Z component
+        data[i + 3] = 255;      // Alpha
+      } else {
+        // Ensure proper normal map format
+        data[i] = r;     // X component
+        data[i + 1] = g; // Y component
+        data[i + 2] = Math.max(b, 128); // Ensure Z component is at least 128 (pointing up)
+        data[i + 3] = 255; // Alpha
+      }
+    }
+    
+    // Put the processed data back
+    ctx.putImageData(imageData, 0, 0);
+    
+    // Cache the processed normal map
+    this.cacheNormalMap(cacheKey, canvas);
+    
+    console.log('Normal map processed and cached');
+    return canvas;
+  }
+  
+  getCachedNormalMap(cacheKey) {
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        // Synchronous approach for immediate use
+        img.src = cached;
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        console.log('Using cached processed normal map');
+        return canvas;
+      }
+    } catch (error) {
+      console.warn('Could not retrieve cached normal map:', error);
+    }
+    return null;
+  }
+  
+  cacheNormalMap(cacheKey, canvas) {
+    try {
+      const dataURL = canvas.toDataURL('image/png');
+      localStorage.setItem(cacheKey, dataURL);
+      console.log('Normal map cached for faster loading');
+    } catch (error) {
+      console.warn('Could not cache normal map:', error);
+    }
+  }
+  
+  isHeightMap(data, index) {
+    // Simple heuristic: if R, G, B are similar, it's likely a height map
+    const r = data[index];
+    const g = data[index + 1];
+    const b = data[index + 2];
+    const variance = Math.abs(r - g) + Math.abs(g - b) + Math.abs(r - b);
+    return variance < 30; // Low variance suggests height map
+  }
+  
+  heightToNormal(data, index, width, height) {
+    // Convert height map to normal map using Sobel operator
+    const x = (index / 4) % width;
+    const y = Math.floor((index / 4) / width);
+    
+    // Get surrounding heights
+    const getHeight = (px, py) => {
+      const clampedX = Math.max(0, Math.min(width - 1, px));
+      const clampedY = Math.max(0, Math.min(height - 1, py));
+      const idx = (clampedY * width + clampedX) * 4;
+      return (data[idx] + data[idx + 1] + data[idx + 2]) / 3; // Average RGB for height
+    };
+    
+    // Sobel operator
+    const h1 = getHeight(x - 1, y - 1);
+    const h2 = getHeight(x, y - 1);
+    const h3 = getHeight(x + 1, y - 1);
+    const h4 = getHeight(x - 1, y);
+    const h6 = getHeight(x + 1, y);
+    const h7 = getHeight(x - 1, y + 1);
+    const h8 = getHeight(x, y + 1);
+    const h9 = getHeight(x + 1, y + 1);
+    
+    // Calculate gradients
+    const dx = (h3 + 2 * h6 + h9) - (h1 + 2 * h4 + h7);
+    const dy = (h7 + 2 * h8 + h9) - (h1 + 2 * h2 + h3);
+    
+    // Normalize
+    const length = Math.sqrt(dx * dx + dy * dy + 1);
+    const normalX = (dx / length + 1) * 127.5; // Convert to 0-255 range
+    const normalY = (dy / length + 1) * 127.5;
+    const normalZ = (1 / length + 1) * 127.5;
+    
+    return {
+      r: Math.max(0, Math.min(255, normalX)),
+      g: Math.max(0, Math.min(255, normalY)),
+      b: Math.max(0, Math.min(255, normalZ))
+    };
   }
   
   setupEventListeners() {
