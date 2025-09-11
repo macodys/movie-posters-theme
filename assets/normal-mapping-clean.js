@@ -109,7 +109,7 @@ class NormalMappingEffect {
       
       varying vec2 v_texCoord;
       
-      // Normal Mapping Shadow (NMS) based on Shadertoy
+      // Normal Mapping Shadow (NMS) - Exact Shadertoy implementation
       #define iSampleCount 15
       #define SampleCount float(iSampleCount)
       #define HeightScale 1.5
@@ -122,11 +122,24 @@ class NormalMappingEffect {
         // Sample the poster texture
         vec4 posterColor = texture2D(u_posterTexture, uv);
         
-        // Sample the custom normal map (instead of generating from poster)
-        vec3 normal = texture2D(u_normalTexture, uv).rgb * 2.0 - 1.0;
-        normal = normalize(normal);
+        // Generate normal map from Poster_Normal.png using Sobel (Buffer A pass)
+        vec2 offset = 1.0 / u_resolution;
+        vec3 height;
+        height.x = texture2D(u_normalTexture, uv).x;
+        height.y = texture2D(u_normalTexture, uv + vec2(offset.x, 0.0)).x;
+        height.z = texture2D(u_normalTexture, uv + vec2(0.0, offset.y)).x;
         
-        // Lighting setup
+        vec3 normal;
+        normal.xy = (height.x - height.yz);
+        normal.xy /= offset;
+        normal.z = 5.0; // invNormalMapScale
+        normal = normalize(normal);
+        normal = normal * 0.5 + 0.5; // Convert to 0-1 range
+        
+        // Convert back to -1 to 1 range for lighting
+        normal = normal * 2.0 - 1.0;
+        
+        // Lighting setup (Image pass)
         vec3 lightposition = vec3(0.0, 0.0, 0.1);
         vec3 planeposition = vec3(uv, 0.0);
         
@@ -151,7 +164,7 @@ class NormalMappingEffect {
         float step = invsamplecount * ShadowLength;
         
         // Randomization
-        vec2 noise = fract(uv * 100.0);
+        vec2 noise = fract(uv * 0.5);
         noise.x = (noise.x * 0.5 + noise.y) * (1.0/1.5 - 0.25);
         float pos = step * noise.x;
         
@@ -161,8 +174,19 @@ class NormalMappingEffect {
         
         // Shadow sampling loop
         for (int i = 0; i < iSampleCount; i++) {
-          vec3 tmpNormal = texture2D(u_normalTexture, uv + dir * pos).rgb * 2.0 - 1.0;
+          // Generate normal at sample position
+          vec3 tmpHeight;
+          tmpHeight.x = texture2D(u_normalTexture, uv + dir * pos).x;
+          tmpHeight.y = texture2D(u_normalTexture, uv + dir * pos + vec2(offset.x, 0.0)).x;
+          tmpHeight.z = texture2D(u_normalTexture, uv + dir * pos + vec2(0.0, offset.y)).x;
+          
+          vec3 tmpNormal;
+          tmpNormal.xy = (tmpHeight.x - tmpHeight.yz);
+          tmpNormal.xy /= offset;
+          tmpNormal.z = 5.0;
           tmpNormal = normalize(tmpNormal);
+          tmpNormal = tmpNormal * 0.5 + 0.5;
+          tmpNormal = tmpNormal * 2.0 - 1.0;
           
           float tmpLighting = dot(lightdir, tmpNormal);
           float shadowed = -tmpLighting;
@@ -179,7 +203,7 @@ class NormalMappingEffect {
         
         shadow = clamp(1.0 - shadow * invsamplecount, 0.0, 1.0);
         
-        // Coloring
+        // Coloring (exact Shadertoy)
         vec3 ambientcolor = vec3(0.15, 0.4, 0.6) * 0.7;
         vec3 lightcolor = vec3(1.0, 0.7, 0.3) * 1.2;
         float ao = clamp(normal.z, 0.0, 1.0);
@@ -302,83 +326,13 @@ class NormalMappingEffect {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
     
-    // Convert and load custom normal map image
-    const processedNormalMap = this.convertToNormalMap(this.normalMapImage);
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, processedNormalMap);
-    console.log('Custom normal map converted and loaded');
+    // Load custom normal map image directly (conversion happens in shader)
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
+    console.log('Custom normal map loaded for shader processing');
     console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
     console.log('Normal map src:', this.normalMapImage.src);
   }
   
-  convertToNormalMap(normalMapImage) {
-    console.log('Converting Poster_Normal.png to normal map format using Sobel operator...');
-    
-    // Create a canvas to process the normal map
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    // Set canvas size to match the normal map image
-    canvas.width = normalMapImage.naturalWidth;
-    canvas.height = normalMapImage.naturalHeight;
-    
-    // Draw the normal map image
-    ctx.drawImage(normalMapImage, 0, 0);
-    
-    // Get image data
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-    
-    // Convert using Sobel operator (same as Shadertoy)
-    for (let i = 0; i < data.length; i += 4) {
-      const x = (i / 4) % canvas.width;
-      const y = Math.floor((i / 4) / canvas.width);
-      
-      // Get surrounding heights (using grayscale values)
-      const getHeight = (px, py) => {
-        const clampedX = Math.max(0, Math.min(canvas.width - 1, px));
-        const clampedY = Math.max(0, Math.min(canvas.height - 1, py));
-        const idx = (clampedY * canvas.width + clampedX) * 4;
-        return (data[idx] + data[idx + 1] + data[idx + 2]) / 3; // Average RGB for height
-      };
-      
-      // Sobel operator (same as Shadertoy)
-      const h1 = getHeight(x - 1, y - 1);
-      const h2 = getHeight(x, y - 1);
-      const h3 = getHeight(x + 1, y - 1);
-      const h4 = getHeight(x - 1, y);
-      const h6 = getHeight(x + 1, y);
-      const h7 = getHeight(x - 1, y + 1);
-      const h8 = getHeight(x, y + 1);
-      const h9 = getHeight(x + 1, y + 1);
-      
-      // Calculate gradients
-      const dx = (h3 + 2 * h6 + h9) - (h1 + 2 * h4 + h7);
-      const dy = (h7 + 2 * h8 + h9) - (h1 + 2 * h2 + h3);
-      
-      // Create normal vector
-      const normalX = dx;
-      const normalY = dy;
-      const normalZ = 5.0; // invNormalMapScale (same as Shadertoy)
-      
-      // Normalize
-      const length = Math.sqrt(normalX * normalX + normalY * normalY + normalZ * normalZ);
-      const normalizedX = normalX / length;
-      const normalizedY = normalY / length;
-      const normalizedZ = normalZ / length;
-      
-      // Convert to 0-255 range for texture storage
-      data[i] = Math.round((normalizedX + 1.0) * 0.5 * 255);     // X component
-      data[i + 1] = Math.round((normalizedY + 1.0) * 0.5 * 255); // Y component
-      data[i + 2] = Math.round((normalizedZ + 1.0) * 0.5 * 255); // Z component
-      data[i + 3] = 255; // Alpha
-    }
-    
-    // Put the processed data back
-    ctx.putImageData(imageData, 0, 0);
-    
-    console.log('Normal map conversion completed using Sobel operator');
-    return canvas;
-  }
   
   startRenderLoop() {
     const render = () => {
