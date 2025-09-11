@@ -11,6 +11,7 @@ class NormalMappingEffect {
     this.mouseY = 0.5;
     this.isInitialized = false;
     this.debugMode = false; // Set to true to see normal map directly
+    this.normalMapMode = 0; // 0=raw, 1=transformed, 2=flipped Y
     
     console.log('Creating NormalMappingEffect with container:', container);
     console.log('Poster image:', posterImage);
@@ -110,6 +111,7 @@ class NormalMappingEffect {
       uniform vec2 u_mouse;
       uniform float u_time;
       uniform bool u_debugMode;
+      uniform int u_normalMapMode;
       
       varying vec2 v_texCoord;
       
@@ -121,17 +123,30 @@ class NormalMappingEffect {
         
         // Sample the normal map
         vec3 normal = texture2D(u_normalTexture, uv).rgb;
+        
+        // Debug mode: Show different normal map interpretations
+        if (u_debugMode) {
+          if (u_normalMapMode == 0) {
+            // Show raw normal map colors (should be blue-ish for a normal map)
+            gl_FragColor = vec4(normal, 1.0);
+          } else if (u_normalMapMode == 1) {
+            // Show transformed normal map
+            vec3 transformed = normalize(normal * 2.0 - 1.0);
+            gl_FragColor = vec4(transformed * 0.5 + 0.5, 1.0);
+          } else if (u_normalMapMode == 2) {
+            // Show flipped Y normal map
+            vec3 transformed = normalize(normal * 2.0 - 1.0);
+            transformed.y = -transformed.y;
+            gl_FragColor = vec4(transformed * 0.5 + 0.5, 1.0);
+          }
+          return;
+        }
+        
         // Transform normal from [0,1] to [-1,1] range (LearnOpenGL technique)
         normal = normalize(normal * 2.0 - 1.0);
         
-        // Flip Y component for correct orientation (common issue with normal maps)
-        normal.y = -normal.y;
-        
-        // Debug mode: Show normal map as colors
-        if (u_debugMode) {
-          gl_FragColor = vec4(normal * 0.5 + 0.5, 1.0);
-          return;
-        }
+        // Try different Y-axis orientations - test without flipping first
+        // normal.y = -normal.y;
         
         // Calculate cursor position in UV space
         vec2 cursorUV = u_mouse / u_resolution;
@@ -347,6 +362,20 @@ class NormalMappingEffect {
       this.render();
     });
     
+    // Add keyboard handler for normal map mode cycling
+    document.addEventListener('keydown', (event) => {
+      if (this.debugMode) {
+        if (event.key === '1' || event.key === '2' || event.key === '3') {
+          this.normalMapMode = parseInt(event.key) - 1;
+          console.log('Normal map mode set to:', this.normalMapMode);
+          this.render();
+        } else if (event.key === ' ') {
+          this.cycleNormalMapMode();
+          this.render();
+        }
+      }
+    });
+    
     window.addEventListener('resize', () => {
       const rect = this.container.getBoundingClientRect();
       this.canvas.width = rect.width;
@@ -362,10 +391,25 @@ class NormalMappingEffect {
     console.log('Debug mode:', this.debugMode ? 'ON' : 'OFF');
     if (this.debugMode) {
       console.log('Normal map visualization enabled - you should see colored normal vectors');
-      console.log('If you see a blue-ish image, the normal map is working correctly');
-      console.log('If you see a flat color, there might be an issue with the normal map');
+      console.log('Press 1, 2, or 3 to cycle through different normal map views:');
+      console.log('1 = Raw normal map colors');
+      console.log('2 = Transformed normal vectors');
+      console.log('3 = Flipped Y normal vectors');
+      console.log('Current mode:', this.normalMapMode);
     } else {
       console.log('Normal mapping effect enabled - move your mouse to see lighting');
+    }
+  }
+  
+  cycleNormalMapMode() {
+    this.normalMapMode = (this.normalMapMode + 1) % 3;
+    console.log('Normal map mode:', this.normalMapMode);
+    if (this.normalMapMode === 0) {
+      console.log('Mode 0: Raw normal map colors');
+    } else if (this.normalMapMode === 1) {
+      console.log('Mode 1: Transformed normal vectors');
+    } else if (this.normalMapMode === 2) {
+      console.log('Mode 2: Flipped Y normal vectors');
     }
   }
   
@@ -398,6 +442,7 @@ class NormalMappingEffect {
       const mouseLocation = this.gl.getUniformLocation(this.program, 'u_mouse');
       const timeLocation = this.gl.getUniformLocation(this.program, 'u_time');
       const debugLocation = this.gl.getUniformLocation(this.program, 'u_debugMode');
+      const normalMapModeLocation = this.gl.getUniformLocation(this.program, 'u_normalMapMode');
       
       this.gl.uniform1i(posterTextureLocation, 0);
       this.gl.uniform1i(normalTextureLocation, 1);
@@ -405,6 +450,7 @@ class NormalMappingEffect {
       this.gl.uniform2f(mouseLocation, this.mouseX, this.mouseY);
       this.gl.uniform1f(timeLocation, Date.now() * 0.001);
       this.gl.uniform1i(debugLocation, this.debugMode ? 1 : 0);
+      this.gl.uniform1i(normalMapModeLocation, this.normalMapMode);
       
       // Bind textures
       this.gl.activeTexture(this.gl.TEXTURE0);
