@@ -213,6 +213,9 @@ class NormalMappingEffect {
         // Sample the custom normal map with tiling
         vec2 normalUV = vUV * 2.0; // Tile the normal map 2x2 times
         vec3 vNormal = texture2D(u_normalTexture, normalUV).rgb * 2.0 - 1.0;
+        // Reduce normal map strength and fix orientation
+        vNormal.xy *= 0.5; // Reduce strength
+        vNormal.y = -vNormal.y; // Fix orientation
         materialSample.vNormal = normalize(vNormal);
         
         // Random Lighting...
@@ -236,7 +239,10 @@ class NormalMappingEffect {
         float fNDotH = clamp( dot(materialSample.vNormal, vHalf), 0.0, 1.0);
         float fSpec = pow(fNDotH, 10.0) * fNDotL * 0.5;
         
-        vec3 vResult = materialSample.vAlbedo * fDiffuse + fSpec;
+        // Add ambient lighting to reduce harsh shadows
+        float fAmbient = 0.4;
+        
+        vec3 vResult = materialSample.vAlbedo * (fDiffuse + fAmbient) + fSpec;
         
         vResult = sqrt(vResult);
         
