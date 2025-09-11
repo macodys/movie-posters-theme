@@ -15,10 +15,12 @@ class NormalMappingEffect {
     console.log('Poster image:', posterImage);
     console.log('Normal map image:', normalMapImage);
     
-    this.init();
+    this.init().catch(error => {
+      console.error('Failed to initialize normal mapping effect:', error);
+    });
   }
   
-  init() {
+  async init() {
     try {
       console.log('Initializing normal mapping effect...');
       console.log('Container:', this.container);
@@ -37,7 +39,7 @@ class NormalMappingEffect {
       this.setupBuffers();
       console.log('Buffers setup complete');
       
-      this.setupTextures();
+      await this.setupTextures();
       console.log('Textures setup complete');
       
       this.setupEventListeners();
@@ -125,18 +127,17 @@ class NormalMappingEffect {
         // Debug: Let's see what's actually in the normal texture
         vec4 normalSample = texture2D(u_normalTexture, uv);
         
-        // Debug different aspects of the texture
-        // Show UV coordinates as colors (red = u, green = v)
-        gl_FragColor = vec4(uv, 0.0, 1.0);
+        // Use the converted normal map
+        vec3 normal = texture2D(u_normalTexture, uv).rgb;
+        normal = normal * 2.0 - 1.0; // Convert from 0-1 to -1 to 1
+        normal = normalize(normal);
         
-        // Show texture sample with different scaling
-        // gl_FragColor = vec4(normalSample.rgb * 2.0, 1.0);
+        // Simple lighting test
+        vec3 lightDir = normalize(vec3(uv - 0.5, 0.1));
+        float lighting = max(dot(normal, lightDir), 0.0);
         
-        // Show just the red channel
-        // gl_FragColor = vec4(normalSample.r, normalSample.r, normalSample.r, 1.0);
-        
-        // Show the raw texture data
-        // gl_FragColor = vec4(normalSample.rgb, 1.0);
+        // Show the normal map with lighting
+        gl_FragColor = vec4(normal * 0.5 + 0.5, 1.0);
       }
     `;
     
@@ -212,7 +213,84 @@ class NormalMappingEffect {
     console.log('Buffers created successfully');
   }
   
-  setupTextures() {
+  convertToNormalMap(image) {
+    console.log('Converting image to normal map...');
+    
+    // Create canvas to process the image
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    
+    // Draw the image
+    ctx.drawImage(image, 0, 0);
+    
+    // Get image data
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    // Create new image data for normal map
+    const normalData = new Uint8ClampedArray(data.length);
+    
+    // Convert to grayscale and apply Sobel operator
+    for (let y = 1; y < height - 1; y++) {
+      for (let x = 1; x < width - 1; x++) {
+        const idx = (y * width + x) * 4;
+        
+        // Sample 3x3 grid for Sobel operator
+        const getGray = (px, py) => {
+          const i = (py * width + px) * 4;
+          return (data[i] + data[i + 1] + data[i + 2]) / 3;
+        };
+        
+        const g00 = getGray(x - 1, y - 1);
+        const g01 = getGray(x, y - 1);
+        const g02 = getGray(x + 1, y - 1);
+        const g10 = getGray(x - 1, y);
+        const g11 = getGray(x, y);
+        const g12 = getGray(x + 1, y);
+        const g20 = getGray(x - 1, y + 1);
+        const g21 = getGray(x, y + 1);
+        const g22 = getGray(x + 1, y + 1);
+        
+        // Sobel operator
+        const dx = (g02 + 2 * g12 + g22) - (g00 + 2 * g10 + g20);
+        const dy = (g20 + 2 * g21 + g22) - (g00 + 2 * g01 + g02);
+        
+        // Create normal vector
+        const normalX = dx * 0.1;
+        const normalY = dy * 0.1;
+        const normalZ = 1.0;
+        
+        // Normalize
+        const length = Math.sqrt(normalX * normalX + normalY * normalY + normalZ * normalZ);
+        const nx = normalX / length;
+        const ny = normalY / length;
+        const nz = normalZ / length;
+        
+        // Convert to 0-255 range
+        normalData[idx] = (nx + 1) * 127.5;     // R
+        normalData[idx + 1] = (ny + 1) * 127.5; // G
+        normalData[idx + 2] = (nz + 1) * 127.5; // B
+        normalData[idx + 3] = 255;              // A
+      }
+    }
+    
+    // Create new image data
+    const normalImageData = new ImageData(normalData, width, height);
+    ctx.putImageData(normalImageData, 0, 0);
+    
+    // Convert canvas to image
+    return new Promise((resolve) => {
+      const normalImage = new Image();
+      normalImage.onload = () => resolve(normalImage);
+      normalImage.src = canvas.toDataURL();
+    });
+  }
+
+  async setupTextures() {
     console.log('Setting up textures...');
     console.log('Poster image:', this.posterImage);
     
@@ -247,26 +325,15 @@ class NormalMappingEffect {
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
     
-    // Load custom normal map image directly (conversion happens in shader)
+    // Convert the original image to a normal map
     if (this.normalMapImage) {
-      // Try different formats to see what works
-      try {
-        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
-        console.log('Custom normal map loaded as RGBA');
-      } catch (e) {
-        console.log('RGBA failed, trying RGB:', e);
-        try {
-          this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGB, this.gl.RGB, this.gl.UNSIGNED_BYTE, this.normalMapImage);
-          console.log('Custom normal map loaded as RGB');
-        } catch (e2) {
-          console.log('RGB failed, trying LUMINANCE:', e2);
-          this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.LUMINANCE, this.gl.LUMINANCE, this.gl.UNSIGNED_BYTE, this.normalMapImage);
-          console.log('Custom normal map loaded as LUMINANCE');
-        }
-      }
+      console.log('Converting original image to normal map...');
+      const convertedNormalMap = await this.convertToNormalMap(this.normalMapImage);
+      console.log('Normal map conversion completed');
       
-      console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
-      console.log('Normal map src:', this.normalMapImage.src);
+      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, convertedNormalMap);
+      console.log('Converted normal map loaded as RGBA');
+      console.log('Normal map dimensions:', convertedNormalMap.naturalWidth, 'x', convertedNormalMap.naturalHeight);
     } else {
       console.error('Normal map image is not available!');
       // Create a fallback normal map (pointing up)
