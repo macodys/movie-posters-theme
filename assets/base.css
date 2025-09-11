@@ -620,29 +620,77 @@ main#MainContent {
   color: var(--muted);
 }
 
-.product-info {
-  padding: 20px;
+/* Price overlay - bottom left corner */
+.product-price-overlay {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  padding: 8px 12px;
+  border-radius: 20px;
+  z-index: 2;
+  transition: all 0.3s ease;
 }
 
-.product-title {
-  margin: 0 0 12px 0;
+.product-price-overlay .price {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 0;
+}
+
+.product-card:hover .product-price-overlay {
+  background: rgba(0, 212, 170, 0.9);
+  transform: scale(1.05);
+}
+
+.product-card:hover .product-price-overlay .price {
+  color: white;
+}
+
+/* Title overlay - only visible on hover */
+.product-title-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.4) 50%,
+    transparent 100%
+  );
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.product-card:hover .product-title-overlay {
+  opacity: 1;
+}
+
+.product-title-overlay .product-title {
+  margin: 0;
   font-size: 18px;
   font-weight: 600;
+  text-align: center;
+  line-height: 1.3;
 }
 
-.product-title a {
-  color: var(--text);
+.product-title-overlay .product-title a {
+  color: white;
   text-decoration: none;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
   transition: color 0.3s ease;
 }
 
-.product-title a:hover {
-  color: var(--accent);
-}
-
-.product-price {
-  font-size: 16px;
-  font-weight: 600;
+.product-title-overlay .product-title a:hover {
   color: var(--accent);
 }
 
@@ -677,18 +725,36 @@ main#MainContent {
   margin-right: 20px;
 }
 
-.products-grid.list-view .product-info {
-  flex: 1;
+.products-grid.list-view .product-title-overlay {
+  position: static;
+  background: transparent;
+  opacity: 1;
   padding: 0;
+  align-items: center;
+  justify-content: flex-start;
 }
 
-.products-grid.list-view .product-title {
+.products-grid.list-view .product-title-overlay .product-title {
   font-size: 20px;
   margin-bottom: 8px;
+  text-align: left;
 }
 
-.products-grid.list-view .product-price {
+.products-grid.list-view .product-title-overlay .product-title a {
+  color: var(--text);
+  text-shadow: none;
+}
+
+.products-grid.list-view .product-price-overlay {
+  position: static;
+  background: transparent;
+  padding: 0;
+  margin-top: 8px;
+}
+
+.products-grid.list-view .product-price-overlay .price {
   font-size: 18px;
+  color: var(--accent);
 }
 
 /* Responsive */

@@ -82,13 +82,13 @@
               </div>
             {% endif %}
           </a>
-        </div>
-        <div class="product-info">
-          <h3 class="product-title">
-            <a href="{{ product.url }}">{{ product.title }}</a>
-          </h3>
-          <div class="product-price">
+          <div class="product-price-overlay">
             <span class="price">{{ product.price | money }}</span>
+          </div>
+          <div class="product-title-overlay">
+            <h3 class="product-title">
+              <a href="{{ product.url }}">{{ product.title }}</a>
+            </h3>
           </div>
         </div>
       </div>
