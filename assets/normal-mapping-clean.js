@@ -125,6 +125,16 @@ class NormalMappingEffect {
         // Debug: Let's see what's actually in the normal texture
         vec4 normalSample = texture2D(u_normalTexture, uv);
         
+        // Debug different aspects of the texture
+        // Show UV coordinates as colors (red = u, green = v)
+        // gl_FragColor = vec4(uv, 0.0, 1.0);
+        
+        // Show texture sample with different scaling
+        // gl_FragColor = vec4(normalSample.rgb * 2.0, 1.0);
+        
+        // Show just the red channel
+        // gl_FragColor = vec4(normalSample.r, normalSample.r, normalSample.r, 1.0);
+        
         // Show the raw texture data
         gl_FragColor = vec4(normalSample.rgb, 1.0);
       }
@@ -239,8 +249,22 @@ class NormalMappingEffect {
     
     // Load custom normal map image directly (conversion happens in shader)
     if (this.normalMapImage) {
-      this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
-      console.log('Custom normal map loaded for shader processing');
+      // Try different formats to see what works
+      try {
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, this.normalMapImage);
+        console.log('Custom normal map loaded as RGBA');
+      } catch (e) {
+        console.log('RGBA failed, trying RGB:', e);
+        try {
+          this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGB, this.gl.RGB, this.gl.UNSIGNED_BYTE, this.normalMapImage);
+          console.log('Custom normal map loaded as RGB');
+        } catch (e2) {
+          console.log('RGB failed, trying LUMINANCE:', e2);
+          this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.LUMINANCE, this.gl.LUMINANCE, this.gl.UNSIGNED_BYTE, this.normalMapImage);
+          console.log('Custom normal map loaded as LUMINANCE');
+        }
+      }
+      
       console.log('Normal map dimensions:', this.normalMapImage.naturalWidth, 'x', this.normalMapImage.naturalHeight);
       console.log('Normal map src:', this.normalMapImage.src);
     } else {
