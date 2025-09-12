@@ -147,14 +147,45 @@ class CountrySelector {
   
   async fetchMarketAwareProducts() {
     try {
-      // Use the current path (preserves /markets/<code>/ prefix), append ?view=market-products-json
-      const url = new URL(window.location.href);
-      url.searchParams.set('view', 'market-products-json');
-      const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
-      if (!res.ok) return null;
-      // Some themes return text for json views, parse safely
-      const text = await res.text();
-      try { return JSON.parse(text); } catch { return null; }
+      const currentMarket = this.getCurrentMarket();
+      const currentUrl = new URL(window.location.href);
+      const path = currentUrl.pathname;
+      const collectionMatch = path.match(/\/collections\/([^\/]+)/);
+      const marketPrefix = currentMarket ? `/markets/${currentMarket}` : '';
+      
+      const candidates = [];
+      
+      // 1) Current URL with view override (works on index and collection because we created those views)
+      const url1 = new URL(currentUrl.toString());
+      url1.searchParams.set('view', 'market-products-json');
+      candidates.push(url1.toString());
+      
+      // 2) Explicit collection view if on a collection page
+      if (collectionMatch) {
+        candidates.push(`${marketPrefix}/collections/${collectionMatch[1]}?view=market-products-json`);
+      }
+      
+      // 3) All collection scoped to current market
+      candidates.push(`${marketPrefix}/collections/all?view=market-products-json`);
+      
+      // 4) Root index view (falls back to all collection inside template)
+      candidates.push(`${marketPrefix || ''}/?view=market-products-json`);
+      
+      for (const endpoint of candidates) {
+        try {
+          const res = await fetch(endpoint, { headers: { 'Accept': 'application/json' } });
+          if (!res.ok) continue;
+          const text = await res.text();
+          const data = JSON.parse(text);
+          if (data && Array.isArray(data.products)) {
+            console.log(`Market JSON success from ${endpoint} with ${data.products.length} products`);
+            return data;
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+      return null;
     } catch (e) {
       console.warn('fetchMarketAwareProducts failed:', e);
       return null;
