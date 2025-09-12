@@ -96,6 +96,12 @@ class CountrySelector {
       this.filterExistingProducts(storedRegion);
     }
     
+    // Apply stored country pricing
+    const storedCountry = this.getStoredCountry();
+    if (storedCountry) {
+      this.updatePricingForCountry(storedCountry);
+    }
+    
     // Load product regions from your existing catalog
     this.loadProductRegionsFromCatalog();
   }
@@ -115,6 +121,12 @@ class CountrySelector {
           this.updateProductCardRegion(product.handle, region);
         }
       });
+      
+      // Re-apply current region filter after loading product data
+      const currentRegion = localStorage.getItem('selectedRegion');
+      if (currentRegion) {
+        this.filterExistingProducts(currentRegion);
+      }
     } catch (error) {
       console.warn('Could not load product regions from catalog:', error);
     }
@@ -446,6 +458,9 @@ class CountrySelector {
     // Filter products by region
     this.filterProductsByRegion(countryCode);
     
+    // Update pricing and currency
+    this.updatePricingForCountry(countryCode);
+    
     // Redirect to appropriate market
     this.redirectToMarket(countryCode);
     
@@ -506,6 +521,115 @@ class CountrySelector {
     return this.countries
       .filter(c => c.market)
       .map(c => ({ code: c.market, name: c.name, country: c.code, currency: c.currency }));
+  }
+  
+  updatePricingForCountry(countryCode) {
+    const country = this.countries.find(c => c.code === countryCode);
+    if (!country) return;
+    
+    console.log('Updating pricing for country:', countryCode, 'Currency:', country.currency);
+    
+    // Update currency symbols and formatting
+    this.updateCurrencyDisplay(country.currency);
+    
+    // Update product prices if they exist
+    this.updateProductPrices(country.currency);
+    
+    // Update cart pricing
+    this.updateCartPricing(country.currency);
+  }
+  
+  updateCurrencyDisplay(currency) {
+    // Update currency display in header
+    if (this.selectedCurrency) {
+      this.selectedCurrency.textContent = currency;
+    }
+    
+    // Update currency symbols throughout the page
+    const currencyElements = document.querySelectorAll('.currency-symbol, .price-currency');
+    currencyElements.forEach(element => {
+      element.textContent = this.getCurrencySymbol(currency);
+    });
+  }
+  
+  getCurrencySymbol(currency) {
+    const symbols = {
+      'USD': '$',
+      'EUR': '€',
+      'GBP': '£',
+      'CAD': 'C$',
+      'AUD': 'A$',
+      'JPY': '¥',
+      'BRL': 'R$',
+      'MXN': '$',
+      'INR': '₹',
+      'SEK': 'kr',
+      'NOK': 'kr',
+      'DKK': 'kr',
+      'CHF': 'CHF',
+      'PLN': 'zł',
+      'CZK': 'Kč',
+      'HUF': 'Ft',
+      'RUB': '₽',
+      'CNY': '¥',
+      'KRW': '₩',
+      'THB': '฿',
+      'SGD': 'S$',
+      'MYR': 'RM',
+      'IDR': 'Rp',
+      'PHP': '₱',
+      'VND': '₫',
+      'ZAR': 'R',
+      'EGP': 'E£',
+      'NGN': '₦',
+      'KES': 'KSh',
+      'ARS': '$',
+      'CLP': '$',
+      'COP': '$',
+      'PEN': 'S/',
+      'VES': 'Bs',
+      'UYU': '$U',
+      'PYG': '₲',
+      'BOB': 'Bs',
+      'GTQ': 'Q',
+      'CUP': '$',
+      'DOP': 'RD$',
+      'HTG': 'G',
+      'JMD': 'J$',
+      'TTD': 'TT$',
+      'BBD': 'Bds$',
+      'BSD': 'B$',
+      'BZD': 'BZ$',
+      'CRC': '₡',
+      'PAB': 'B/.',
+      'HNL': 'L',
+      'NIO': 'C$',
+      'USD': '$'
+    };
+    
+    return symbols[currency] || currency;
+  }
+  
+  updateProductPrices(currency) {
+    // This would typically fetch updated prices from your backend
+    // For now, we'll just update the currency display
+    const priceElements = document.querySelectorAll('.price, .product-price, .money');
+    priceElements.forEach(element => {
+      // Add currency symbol if not present
+      if (!element.textContent.includes(this.getCurrencySymbol(currency))) {
+        const price = element.textContent.replace(/[^\d.,]/g, '');
+        element.textContent = this.getCurrencySymbol(currency) + price;
+      }
+    });
+  }
+  
+  updateCartPricing(currency) {
+    // Update cart total display
+    const cartTotal = document.getElementById('cart-total');
+    if (cartTotal) {
+      const total = cartTotal.textContent.replace(/[^\d.,]/g, '');
+      cartTotal.textContent = this.getCurrencySymbol(currency) + total;
+    }
   }
   
   // Filter products by region
@@ -614,21 +738,33 @@ class CountrySelector {
   }
   
   filterExistingProducts(region) {
+    console.log('Filtering products for region:', region);
+    
     // Filter product cards based on region
     const productCards = document.querySelectorAll('.product-card, .poster-card, [data-product-region]');
+    console.log('Found product cards:', productCards.length);
+    
+    let visibleCount = 0;
+    let hiddenCount = 0;
     
     productCards.forEach(card => {
       const productRegion = card.dataset.productRegion;
       const isVisible = this.isProductVisibleInRegion(productRegion, region);
       
+      console.log(`Product region: "${productRegion}", Selected region: "${region}", Visible: ${isVisible}`);
+      
       if (isVisible) {
         card.style.display = 'block';
         card.classList.remove('region-hidden');
+        visibleCount++;
       } else {
         card.style.display = 'none';
         card.classList.add('region-hidden');
+        hiddenCount++;
       }
     });
+    
+    console.log(`Filtered: ${visibleCount} visible, ${hiddenCount} hidden`);
     
     // Update collection counts
     this.updateCollectionCounts();
@@ -636,23 +772,24 @@ class CountrySelector {
   
   isProductVisibleInRegion(productRegion, selectedRegion) {
     // If no product region is set, show globally
-    if (!productRegion) return true;
+    if (!productRegion || productRegion === '') return true;
     
     // If product is marked as global, show everywhere
     if (productRegion === 'global' || productRegion === 'all') return true;
     
-    // Check if product region matches selected region
+    // Check if product region matches selected region exactly
     if (productRegion === selectedRegion) return true;
     
     // Check if product region is a comma-separated list of regions
     if (productRegion.includes(',')) {
-      const regions = productRegion.split(',').map(r => r.trim());
-      return regions.includes(selectedRegion);
+      const regions = productRegion.split(',').map(r => r.trim().toLowerCase());
+      return regions.includes(selectedRegion.toLowerCase());
     }
     
     // Check if product region contains the selected region (for partial matches)
     if (productRegion.toLowerCase().includes(selectedRegion.toLowerCase())) return true;
     
+    // If product has a specific region and it doesn't match, hide it
     return false;
   }
   
