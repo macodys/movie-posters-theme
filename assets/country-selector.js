@@ -147,18 +147,10 @@ class CountrySelector {
   
   async fetchMarketAwareProducts() {
     try {
-      // Prefer collection context if present
+      // Use the current path (preserves /markets/<code>/ prefix), append ?view=market-products-json
       const url = new URL(window.location.href);
-      const path = url.pathname;
-      let viewUrl = null;
-      const collectionMatch = path.match(/\/collections\/([^\/]+)/);
-      if (collectionMatch) {
-        viewUrl = `/collections/${collectionMatch[1]}?view=market-products-json`;
-      } else {
-        // Home or other pages – use index view that falls back to 'all' collection
-        viewUrl = `/?view=market-products-json`;
-      }
-      const res = await fetch(viewUrl, { headers: { 'Accept': 'application/json' } });
+      url.searchParams.set('view', 'market-products-json');
+      const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
       if (!res.ok) return null;
       // Some themes return text for json views, parse safely
       const text = await res.text();
