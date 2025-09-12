@@ -114,7 +114,9 @@ class CountrySelector {
       // Fetch products from the specific market's catalog
       const catalogResponse = await fetch(`/collections/all/products.json?market=${currentMarket}&limit=250`);
       if (!catalogResponse.ok) {
-        console.warn('Could not fetch products for market:', currentMarket);
+        console.warn('Could not fetch products for market:', currentMarket, 'Status:', catalogResponse.status);
+        // If market doesn't exist or has no products, hide all products
+        this.hideAllProducts();
         return;
       }
       
@@ -124,29 +126,86 @@ class CountrySelector {
       // Get all product handles that should be visible in this market
       const visibleProductHandles = new Set(catalogData.products.map(product => product.handle));
       
-      // Update all product cards on the page
-      const productCards = document.querySelectorAll('.product-card, .poster-card, [data-product-region]');
-      productCards.forEach(card => {
+      // Find all possible product card selectors
+      const productCardSelectors = [
+        '.product-card',
+        '.poster-card', 
+        '[data-product-region]',
+        '.product-item',
+        '.collection-item',
+        '.grid-item',
+        'article',
+        '.card'
+      ];
+      
+      let allProductCards = [];
+      productCardSelectors.forEach(selector => {
+        const cards = document.querySelectorAll(selector);
+        allProductCards = allProductCards.concat(Array.from(cards));
+      });
+      
+      // Remove duplicates
+      allProductCards = [...new Set(allProductCards)];
+      
+      console.log(`Found ${allProductCards.length} total product cards on page`);
+      
+      let visibleCount = 0;
+      let hiddenCount = 0;
+      
+      allProductCards.forEach(card => {
         const productHandle = this.getProductHandleFromCard(card);
-        if (productHandle) {
-          const isVisible = visibleProductHandles.has(productHandle);
-          card.dataset.productRegion = currentMarket; // Set market for filtering
-          
-          if (isVisible) {
-            card.style.display = 'block';
-            card.classList.remove('region-hidden');
-          } else {
-            card.style.display = 'none';
-            card.classList.add('region-hidden');
-          }
+        const isVisible = productHandle ? visibleProductHandles.has(productHandle) : false;
+        
+        card.dataset.productRegion = currentMarket; // Set market for filtering
+        
+        if (isVisible) {
+          card.style.display = 'block';
+          card.classList.remove('region-hidden');
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+          card.classList.add('region-hidden');
+          hiddenCount++;
         }
       });
       
-      console.log(`Updated ${productCards.length} product cards for market: ${currentMarket}`);
+      console.log(`Market ${currentMarket}: ${visibleCount} visible, ${hiddenCount} hidden products`);
       
     } catch (error) {
       console.warn('Could not load product regions from catalog:', error);
+      // On error, hide all products to be safe
+      this.hideAllProducts();
     }
+  }
+  
+  hideAllProducts() {
+    console.log('Hiding all products - no products found for this market');
+    
+    const productCardSelectors = [
+      '.product-card',
+      '.poster-card', 
+      '[data-product-region]',
+      '.product-item',
+      '.collection-item',
+      '.grid-item',
+      'article',
+      '.card'
+    ];
+    
+    let allProductCards = [];
+    productCardSelectors.forEach(selector => {
+      const cards = document.querySelectorAll(selector);
+      allProductCards = allProductCards.concat(Array.from(cards));
+    });
+    
+    allProductCards = [...new Set(allProductCards)];
+    
+    allProductCards.forEach(card => {
+      card.style.display = 'none';
+      card.classList.add('region-hidden');
+    });
+    
+    console.log(`Hidden ${allProductCards.length} product cards`);
   }
   
   getProductHandleFromCard(card) {
@@ -158,7 +217,24 @@ class CountrySelector {
     }
     
     // Try data attributes
-    return card.dataset.productHandle || card.dataset.handle;
+    if (card.dataset.productHandle) return card.dataset.productHandle;
+    if (card.dataset.handle) return card.dataset.handle;
+    
+    // Try to find product handle in nested elements
+    const productLink = card.querySelector('a[href*="/products/"]');
+    if (productLink) {
+      const match = productLink.href.match(/\/products\/([^\/\?]+)/);
+      if (match) return match[1];
+    }
+    
+    // Try to get from any link in the card
+    const allLinks = card.querySelectorAll('a');
+    for (const link of allLinks) {
+      const match = link.href.match(/\/products\/([^\/\?]+)/);
+      if (match) return match[1];
+    }
+    
+    return null;
   }
 
   getProductRegionFromCatalog(product) {
