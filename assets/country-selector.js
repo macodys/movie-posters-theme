@@ -1041,44 +1041,64 @@ class CountrySelector {
     const country = this.countries.find(c => c.code === countryCode);
     if (!country || !country.market) return;
     
-    const currentUrl = new URL(window.location.href);
-    const currentPath = currentUrl.pathname;
+    // Use Shopify's built-in market switching mechanism
+    // This creates a form and submits it to change the market
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/localization';
     
-    // Check if we're already on the correct market
-    if (currentPath.startsWith(`/markets/${country.market}`)) {
-      return; // Already on the correct market
+    // Add the market parameter
+    const marketInput = document.createElement('input');
+    marketInput.type = 'hidden';
+    marketInput.name = 'market';
+    marketInput.value = country.market;
+    form.appendChild(marketInput);
+    
+    // Add the return URL (current page)
+    const returnInput = document.createElement('input');
+    returnInput.type = 'hidden';
+    returnInput.name = 'return_to';
+    returnInput.value = window.location.pathname + window.location.search;
+    form.appendChild(returnInput);
+    
+    // Add CSRF token if available
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    if (csrfToken) {
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'authenticity_token';
+      csrfInput.value = csrfToken.getAttribute('content');
+      form.appendChild(csrfInput);
     }
     
-    // Build the new URL with the market prefix
-    let newPath = currentPath;
-    if (currentPath.startsWith('/markets/')) {
-      // Replace existing market
-      newPath = currentPath.replace(/^\/markets\/[^\/]+/, '');
-    }
-    if (!newPath.startsWith('/')) {
-      newPath = '/' + newPath;
-    }
-    
-    const newUrl = `/markets/${country.market}${newPath}`;
-    
-    // Add query parameters if they exist
-    if (currentUrl.search) {
-      const newUrlObj = new URL(newUrl, window.location.origin);
-      currentUrl.searchParams.forEach((value, key) => {
-        newUrlObj.searchParams.set(key, value);
-      });
-      window.location.href = newUrlObj.toString();
-    } else {
-      window.location.href = newUrl;
-    }
+    // Submit the form
+    document.body.appendChild(form);
+    form.submit();
   }
 
   getCurrentMarket() {
-    // Extract market from current URL
+    // Try to get market from Shopify's localization object
+    if (window.Shopify && window.Shopify.locale) {
+      // Extract market from locale (e.g., 'en-us' -> 'us')
+      const locale = window.Shopify.locale;
+      const marketMatch = locale.match(/-([a-z]{2})$/);
+      if (marketMatch) {
+        return marketMatch[1];
+      }
+    }
+    
+    // Try to get from URL path
     const currentUrl = new URL(window.location.href);
     const pathMatch = currentUrl.pathname.match(/^\/markets\/([^\/]+)/);
     if (pathMatch) {
       return pathMatch[1];
+    }
+    
+    // Try to get from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const marketParam = urlParams.get('market');
+    if (marketParam) {
+      return marketParam;
     }
     
     // Fallback to stored market
