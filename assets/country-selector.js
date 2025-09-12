@@ -159,16 +159,11 @@ class CountrySelector {
         candidates.push(`/collections/${collectionMatch[1]}?view=market-products-json`);
       }
       
-      // 2) Section endpoint on collection (works even if no view is installed)
-      if (collectionMatch) {
-        candidates.push(`/collections/${collectionMatch[1]}?section_id=market-products-json`);
-      }
+      // 3) All collection via view
+      candidates.push(`/collections/all?view=market-products-json`);
       
-      // 3) All collection via section endpoint
-      candidates.push(`/collections/all?section_id=market-products-json`);
-      
-      // 4) Index via section endpoint
-      candidates.push(`/?section_id=market-products-json`);
+      // 4) Index via view
+      candidates.push(`/?view=market-products-json`);
       
       for (const endpoint of candidates) {
         try {
