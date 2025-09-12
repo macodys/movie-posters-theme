@@ -111,11 +111,58 @@ class CountrySelector {
       
       if (!currentMarket) return;
       
-      // Fetch products from the specific market's catalog
-      const catalogResponse = await fetch(`/collections/all/products.json?market=${currentMarket}&limit=250`);
-      if (!catalogResponse.ok) {
-        console.warn('Could not fetch products for market:', currentMarket, 'Status:', catalogResponse.status);
-        // If market doesn't exist or has no products, hide all products
+      // Special handling for UK market - if it has 0 products, hide all
+      if (currentMarket.toLowerCase() === 'gb' || currentMarket.toLowerCase() === 'uk') {
+        console.log('UK market detected - checking catalog for products');
+        
+        // Try to get products with UK market filter
+        const ukResponse = await fetch(`/collections/all/products.json?market=UK&limit=250`);
+        if (ukResponse.ok) {
+          const ukData = await ukResponse.json();
+          console.log(`UK market API returned: ${ukData.products.length} products`);
+          
+          if (ukData.products.length === 0) {
+            console.log('UK catalog has 0 products - hiding all products');
+            this.hideAllProducts();
+            return;
+          }
+        } else {
+          console.log('UK market API failed - assuming 0 products and hiding all');
+          this.hideAllProducts();
+          return;
+        }
+      }
+      
+      // For other markets, try to get market-specific products
+      let catalogResponse;
+      const apiEndpoints = [
+        `/collections/all/products.json?market=${currentMarket}&limit=250`,
+        `/collections/all/products.json?market=${currentMarket}`,
+        `/products.json?market=${currentMarket}&limit=250`,
+        `/products.json?market=${currentMarket}`
+      ];
+      
+      let productsFound = false;
+      for (const endpoint of apiEndpoints) {
+        try {
+          console.log(`Trying API endpoint: ${endpoint}`);
+          catalogResponse = await fetch(endpoint);
+          if (catalogResponse.ok) {
+            const testData = await catalogResponse.json();
+            console.log(`API ${endpoint} returned ${testData.products?.length || 0} products`);
+            
+            if (testData.products?.length > 0) {
+              productsFound = true;
+              break;
+            }
+          }
+        } catch (error) {
+          console.warn(`API endpoint ${endpoint} failed:`, error);
+        }
+      }
+      
+      if (!productsFound || !catalogResponse?.ok) {
+        console.warn('Could not fetch products for market:', currentMarket);
         this.hideAllProducts();
         return;
       }
