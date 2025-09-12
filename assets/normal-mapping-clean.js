@@ -22,9 +22,9 @@ class NormalMappingEffect {
     // Enhanced effect parameters
     this.saturation = 1.3;
     this.contrast = 1.0;
-    this.exposure = 0.0;
+    this.exposure = -0.8;
     this.reflectionStrength = 2.0;
-    this.hue = 0.0;
+    this.hue = -12.0;
     
     this.init().catch(error => {
       console.error('Failed to initialize normal mapping effect:', error);
