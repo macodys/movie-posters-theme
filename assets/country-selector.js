@@ -215,76 +215,41 @@ class CountrySelector {
       }
       
       // For markets with products, we need to determine which products to show
-      // Since we can't rely on the API filtering, we'll use a different strategy
+      // We'll try to get the actual market-specific products using different API approaches
       let visibleProductHandles;
       
-      if (currentMarket.toLowerCase() === 'gb') {
-        // For UK market, we know it should have 1 product
-        // We'll need to identify which product is assigned to UK
-        // For now, let's show all products but limit to the configured count
-        console.log(`UK market: showing first ${marketConfig.productCount} products`);
-        visibleProductHandles = new Set(catalogData.products.slice(0, marketConfig.productCount).map(product => product.handle));
-      } else if (currentMarket.toLowerCase() === 'us') {
-        // For US market, show all products (or limit to configured count)
-        console.log(`US market: showing all ${catalogData.products.length} products`);
-        visibleProductHandles = new Set(catalogData.products.map(product => product.handle));
-      } else {
-        // For other markets, use the configured count
-        const maxProducts = marketConfig?.productCount || 0;
-        if (maxProducts > 0) {
-          console.log(`Market ${currentMarket}: showing first ${maxProducts} products`);
-          visibleProductHandles = new Set(catalogData.products.slice(0, maxProducts).map(product => product.handle));
+      // Try to get market-specific products using the market parameter
+      try {
+        console.log(`Attempting to get market-specific products for ${currentMarket}`);
+        const marketResponse = await fetch(`/collections/all/products.json?market=${currentMarket}&limit=250`);
+        
+        if (marketResponse.ok) {
+          const marketData = await marketResponse.json();
+          console.log(`Market-specific API returned ${marketData.products.length} products for ${currentMarket}`);
+          
+          // If the market API returns fewer products than the general API, use those
+          if (marketData.products.length < catalogData.products.length) {
+            console.log(`Using market-specific products (${marketData.products.length} vs ${catalogData.products.length})`);
+            visibleProductHandles = new Set(marketData.products.map(product => product.handle));
+          } else {
+            // If market API returns same or more products, it's not filtering properly
+            console.log(`Market API not filtering properly, using configuration-based approach`);
+            this.useConfigurationBasedFiltering(currentMarket, catalogData, marketConfig);
+            return;
+          }
         } else {
-          console.log(`Market ${currentMarket}: no products configured`);
-          this.hideAllProducts();
+          console.log(`Market-specific API failed, using configuration-based approach`);
+          this.useConfigurationBasedFiltering(currentMarket, catalogData, marketConfig);
           return;
         }
+      } catch (error) {
+        console.log(`Market-specific API error, using configuration-based approach:`, error);
+        this.useConfigurationBasedFiltering(currentMarket, catalogData, marketConfig);
+        return;
       }
       
-      // Find all possible product card selectors
-      const productCardSelectors = [
-        '.product-card',
-        '.poster-card', 
-        '[data-product-region]',
-        '.product-item',
-        '.collection-item',
-        '.grid-item',
-        'article',
-        '.card'
-      ];
-      
-      let allProductCards = [];
-      productCardSelectors.forEach(selector => {
-        const cards = document.querySelectorAll(selector);
-        allProductCards = allProductCards.concat(Array.from(cards));
-      });
-      
-      // Remove duplicates
-      allProductCards = [...new Set(allProductCards)];
-      
-      console.log(`Found ${allProductCards.length} total product cards on page`);
-      
-      let visibleCount = 0;
-      let hiddenCount = 0;
-      
-      allProductCards.forEach(card => {
-        const productHandle = this.getProductHandleFromCard(card);
-        const isVisible = productHandle ? visibleProductHandles.has(productHandle) : false;
-        
-        card.dataset.productRegion = currentMarket; // Set market for filtering
-        
-        if (isVisible) {
-          card.style.display = 'block';
-          card.classList.remove('region-hidden');
-          visibleCount++;
-        } else {
-          card.style.display = 'none';
-          card.classList.add('region-hidden');
-          hiddenCount++;
-        }
-      });
-      
-      console.log(`Market ${currentMarket}: ${visibleCount} visible, ${hiddenCount} hidden products`);
+      // Apply the filtering
+      this.applyProductFiltering(visibleProductHandles, currentMarket);
       
     } catch (error) {
       console.warn('Could not load product regions from catalog:', error);
@@ -293,6 +258,85 @@ class CountrySelector {
     }
   }
   
+  useConfigurationBasedFiltering(currentMarket, catalogData, marketConfig) {
+    console.log(`Using configuration-based filtering for market: ${currentMarket}`);
+    
+    let visibleProductHandles;
+    
+    if (currentMarket.toLowerCase() === 'gb') {
+      // For UK market, we know it should have 1 product
+      // We'll need to identify which product is assigned to UK
+      // For now, let's show all products but limit to the configured count
+      console.log(`UK market: showing first ${marketConfig.productCount} products`);
+      visibleProductHandles = new Set(catalogData.products.slice(0, marketConfig.productCount).map(product => product.handle));
+    } else if (currentMarket.toLowerCase() === 'us') {
+      // For US market, show all products (or limit to configured count)
+      console.log(`US market: showing all ${catalogData.products.length} products`);
+      visibleProductHandles = new Set(catalogData.products.map(product => product.handle));
+    } else {
+      // For other markets, use the configured count
+      const maxProducts = marketConfig?.productCount || 0;
+      if (maxProducts > 0) {
+        console.log(`Market ${currentMarket}: showing first ${maxProducts} products`);
+        visibleProductHandles = new Set(catalogData.products.slice(0, maxProducts).map(product => product.handle));
+      } else {
+        console.log(`Market ${currentMarket}: no products configured`);
+        this.hideAllProducts();
+        return;
+      }
+    }
+    
+    // Apply the filtering
+    this.applyProductFiltering(visibleProductHandles, currentMarket);
+  }
+  
+  applyProductFiltering(visibleProductHandles, currentMarket) {
+    // Find all possible product card selectors
+    const productCardSelectors = [
+      '.product-card',
+      '.poster-card', 
+      '[data-product-region]',
+      '.product-item',
+      '.collection-item',
+      '.grid-item',
+      'article',
+      '.card'
+    ];
+    
+    let allProductCards = [];
+    productCardSelectors.forEach(selector => {
+      const cards = document.querySelectorAll(selector);
+      allProductCards = allProductCards.concat(Array.from(cards));
+    });
+    
+    // Remove duplicates
+    allProductCards = [...new Set(allProductCards)];
+    
+    console.log(`Found ${allProductCards.length} total product cards on page`);
+    
+    let visibleCount = 0;
+    let hiddenCount = 0;
+    
+    allProductCards.forEach(card => {
+      const productHandle = this.getProductHandleFromCard(card);
+      const isVisible = productHandle ? visibleProductHandles.has(productHandle) : false;
+      
+      card.dataset.productRegion = currentMarket; // Set market for filtering
+      
+      if (isVisible) {
+        card.style.display = 'block';
+        card.classList.remove('region-hidden');
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+        card.classList.add('region-hidden');
+        hiddenCount++;
+      }
+    });
+    
+    console.log(`Market ${currentMarket}: ${visibleCount} visible, ${hiddenCount} hidden products`);
+  }
+
   hideAllProducts() {
     console.log('Hiding all products - no products found for this market');
     
