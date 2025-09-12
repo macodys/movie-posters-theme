@@ -92,46 +92,75 @@ class CountrySelector {
   
   applyStoredRegionFilter() {
     const storedMarket = localStorage.getItem('selectedMarket') || localStorage.getItem('selectedRegion');
-    if (storedMarket) {
-      this.filterExistingProducts(storedMarket);
-    }
+    const storedCountry = this.getStoredCountry();
     
     // Apply stored country pricing
-    const storedCountry = this.getStoredCountry();
     if (storedCountry) {
       this.updatePricingForCountry(storedCountry);
     }
     
-    // Load product markets from your existing catalog
+    // Load product markets from your existing catalog (this will handle filtering)
     this.loadProductRegionsFromCatalog();
   }
   
   async loadProductRegionsFromCatalog() {
     try {
-      // Fetch product data from your Shopify catalog
-      const response = await fetch('/collections/all/products.json?limit=250');
-      if (!response.ok) return;
-      
-      const data = await response.json();
-      
       // Get current market from URL or stored preference
       const currentMarket = this.getCurrentMarket();
       console.log('Current market:', currentMarket);
       
-      // Update product cards with market data
-      data.products.forEach(product => {
-        this.updateProductCardRegion(product.handle, currentMarket);
+      if (!currentMarket) return;
+      
+      // Fetch products from the specific market's catalog
+      const catalogResponse = await fetch(`/collections/all/products.json?market=${currentMarket}&limit=250`);
+      if (!catalogResponse.ok) {
+        console.warn('Could not fetch products for market:', currentMarket);
+        return;
+      }
+      
+      const catalogData = await catalogResponse.json();
+      console.log(`Found ${catalogData.products.length} products for market: ${currentMarket}`);
+      
+      // Get all product handles that should be visible in this market
+      const visibleProductHandles = new Set(catalogData.products.map(product => product.handle));
+      
+      // Update all product cards on the page
+      const productCards = document.querySelectorAll('.product-card, .poster-card, [data-product-region]');
+      productCards.forEach(card => {
+        const productHandle = this.getProductHandleFromCard(card);
+        if (productHandle) {
+          const isVisible = visibleProductHandles.has(productHandle);
+          card.dataset.productRegion = currentMarket; // Set market for filtering
+          
+          if (isVisible) {
+            card.style.display = 'block';
+            card.classList.remove('region-hidden');
+          } else {
+            card.style.display = 'none';
+            card.classList.add('region-hidden');
+          }
+        }
       });
       
-      // Re-apply current market filter after loading product data
-      if (currentMarket) {
-        this.filterExistingProducts(currentMarket);
-      }
+      console.log(`Updated ${productCards.length} product cards for market: ${currentMarket}`);
+      
     } catch (error) {
       console.warn('Could not load product regions from catalog:', error);
     }
   }
   
+  getProductHandleFromCard(card) {
+    // Try to get product handle from various attributes
+    const href = card.querySelector('a')?.href;
+    if (href) {
+      const match = href.match(/\/products\/([^\/\?]+)/);
+      if (match) return match[1];
+    }
+    
+    // Try data attributes
+    return card.dataset.productHandle || card.dataset.handle;
+  }
+
   getProductRegionFromCatalog(product) {
     // Check for region in product tags
     if (product.tags) {
@@ -651,8 +680,8 @@ class CountrySelector {
     // Update collection URLs with market parameter
     this.updateCollectionUrls(market);
     
-    // Filter existing products on the page
-    this.filterExistingProducts(market);
+    // Load and filter products from the specific market's catalog
+    this.loadProductRegionsFromCatalog();
     
     // Show market notification
     this.showRegionNotification(country);
