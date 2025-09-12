@@ -169,14 +169,13 @@ main#MainContent {
 .site-header { position: sticky; top: 0; z-index: 50; background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
 .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
 .logo-text { font-weight: 700; letter-spacing: 1px; font-size: 16px; }
-/* Spotlight Navigation */
+/* Spotlight Navigation - Exact CodePen Implementation */
 .spotlight-nav {
   height: 44px;
   border-radius: 100px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in hsl, canvasText, #0000 75%);
   position: relative;
-  background: rgba(255, 255, 255, 0.02);
-  overflow: hidden;
+  background: color-mix(in hsl, canvas, canvasText 10%);
 }
 
 .spotlight-nav::before,
@@ -185,19 +184,19 @@ main#MainContent {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 100px;
-  z-index: 2;
-}
-
-.spotlight-nav::after {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid color-mix(in hsl, canvasText, #0000);
   z-index: -1;
+  border-radius: 100px;
   opacity: 0.15;
 }
 
 .spotlight-nav::before {
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid color-mix(in hsl, canvasText, #0000);
+  z-index: 2;
+  border-radius: 100px;
 }
 
 .spotlight-nav ul {
@@ -208,22 +207,14 @@ main#MainContent {
   list-style-type: none;
   height: 100%;
   font-size: 0.875rem;
-  position: relative;
 }
 
 .spotlight-nav ul.lit {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
   pointer-events: none;
   filter: url('#spotlight');
-  display: flex;
-  align-items: center;
-}
-
-.spotlight-nav ul.content {
-  position: relative;
-  z-index: 10;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
 }
 
 .spotlight-nav ul.content::after {
@@ -234,29 +225,16 @@ main#MainContent {
   pointer-events: none;
   border: 1px solid white;
   filter: url('#ambience') brightness(2);
-  z-index: 2;
-}
-
-/* Remove filters from text elements */
-.spotlight-nav a,
-.spotlight-nav a span {
-  filter: none !important;
-  -webkit-filter: none !important;
 }
 
 .spotlight-nav ul.lit li {
   padding: 0.5rem 1.25rem;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .spotlight-nav li {
   height: 100%;
   display: grid;
   place-items: center;
-  position: relative;
 }
 
 .spotlight-nav a {
@@ -265,15 +243,11 @@ main#MainContent {
   height: 100%;
   padding: 0.5rem 1.25rem;
   text-decoration: none;
-  color: var(--text);
+  color: inherit;
   opacity: 0.4;
   transition: opacity 0.25s ease-out;
   font-weight: 500;
   font-size: 15px;
-  position: relative;
-  z-index: 20;
-  filter: none !important;
-  -webkit-filter: none !important;
 }
 
 .spotlight-nav a:is(:hover, :focus-visible) {
@@ -285,61 +259,9 @@ main#MainContent {
 }
 
 .spotlight-nav [data-active='true'] {
-  opacity: 1;
-  color: var(--accent);
-  font-weight: 600;
+  opacity: 0.8;
 }
 
-/* Fallback spotlight effect */
-.spotlight-nav.fallback-spotlight {
-  background: linear-gradient(90deg, 
-    rgba(0, 212, 170, 0.05) 0%, 
-    rgba(0, 212, 170, 0.15) 50%, 
-    rgba(0, 212, 170, 0.05) 100%
-  );
-  background-size: 200% 100%;
-  animation: spotlightSweep 3s ease-in-out infinite;
-}
-
-.spotlight-nav.fallback-spotlight::before {
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.1) 50%, 
-    transparent 100%
-  );
-  animation: spotlightGlow 2s ease-in-out infinite;
-  z-index: 1;
-}
-
-@keyframes spotlightSweep {
-  0%, 100% {
-    background-position: -200% 0;
-  }
-  50% {
-    background-position: 200% 0;
-  }
-}
-
-@keyframes spotlightGlow {
-  0%, 100% {
-    opacity: 0.3;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-/* Hover spotlight effect */
-.spotlight-nav.hovering::before {
-  background: radial-gradient(
-    circle at var(--hover-x, 50%) 50%,
-    rgba(0, 212, 170, 0.2) 0%,
-    rgba(0, 212, 170, 0.05) 30%,
-    transparent 70%
-  );
-  transition: all 0.3s ease;
-  z-index: 1;
-}
 
 /* Screen reader only utility */
 .sr-only {
