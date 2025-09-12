@@ -237,6 +237,13 @@ main#MainContent {
   z-index: 2;
 }
 
+/* Remove filters from text elements */
+.spotlight-nav a,
+.spotlight-nav a span {
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+
 .spotlight-nav ul.lit li {
   padding: 0.5rem 1.25rem;
   height: 100%;
@@ -265,7 +272,8 @@ main#MainContent {
   font-size: 15px;
   position: relative;
   z-index: 20;
-  text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+  filter: none !important;
+  -webkit-filter: none !important;
 }
 
 .spotlight-nav a:is(:hover, :focus-visible) {
@@ -277,7 +285,9 @@ main#MainContent {
 }
 
 .spotlight-nav [data-active='true'] {
-  opacity: 0.8;
+  opacity: 1;
+  color: var(--accent);
+  font-weight: 600;
 }
 
 /* Fallback spotlight effect */
