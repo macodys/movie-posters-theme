@@ -172,7 +172,10 @@ class CountrySelector {
       
       for (const endpoint of candidates) {
         try {
-          const res = await fetch(endpoint, { headers: { 'Accept': 'application/json' } });
+          const res = await fetch(endpoint, { 
+            headers: { 'Accept': 'application/json' },
+            credentials: 'same-origin'
+          });
           if (!res.ok) continue;
           const text = await res.text();
           const data = JSON.parse(text);
@@ -490,6 +493,7 @@ class CountrySelector {
           headers: {
             'Accept': 'application/json',
           },
+          credentials: 'same-origin',
           timeout: 5000
         });
         
