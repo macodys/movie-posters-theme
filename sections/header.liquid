@@ -3,13 +3,26 @@
     <a href="/" class="logo">
       <span class="logo-text">PICTURE PERFECT POSTER</span>
     </a>
-    <nav class="nav" aria-label="Main">
-      <ul>
-        <li><a href="/collections/tv-movies" class="nav-link">TV & Movies</a></li>
-        <li><a href="/collections/soccer" class="nav-link">Soccer</a></li>
-        <li><a href="/collections/music" class="nav-link">Music</a></li>
-        <li><a href="/collections/new-arrivals" class="nav-link">New Arrivals</a></li>
-        <li><a href="/collections/sale" class="nav-link">Sale</a></li>
+    <nav class="spotlight-nav" aria-label="Main">
+      <ul aria-hidden="true" class="lit">
+        <li>TV & Movies</li>
+        <li>Games</li>
+        <li>Music</li>
+        <li>Sports</li>
+      </ul>
+      <ul class="content">
+        <li>
+          <a data-active="true" href="/collections/tv-movies"><span>TV & Movies</span></a>
+        </li>
+        <li>
+          <a href="/collections/games"><span>Games</span></a>
+        </li>
+        <li>
+          <a href="/collections/music"><span>Music</span></a>
+        </li>
+        <li>
+          <a href="/collections/sports"><span>Sports</span></a>
+        </li>
       </ul>
     </nav>
     <div class="header-actions">
@@ -44,10 +57,9 @@
   <div id="mobile-menu" class="mobile-menu" hidden>
     <ul>
       <li><a href="/collections/tv-movies">TV & Movies</a></li>
-      <li><a href="/collections/soccer">Soccer</a></li>
+      <li><a href="/collections/games">Games</a></li>
       <li><a href="/collections/music">Music</a></li>
-      <li><a href="/collections/new-arrivals">New Arrivals</a></li>
-      <li><a href="/collections/sale">Sale</a></li>
+      <li><a href="/collections/sports">Sports</a></li>
     </ul>
   </div>
   
@@ -79,6 +91,76 @@
       </div>
     </div>
   </div>
+  
+  <!-- Spotlight Filters -->
+  <svg class="sr-only">
+    <filter id="spotlight">
+      <feGaussianBlur
+        in="SourceAlpha"
+        stdDeviation="3"
+        result="blur"
+      ></feGaussianBlur>
+      <feSpecularLighting
+        result="lighting"
+        in="blur"
+        surfaceScale="5"
+        specularConstant="0.5"
+        specularExponent="120"
+        lighting-color="#ffffff"
+      >
+        <fePointLight x="50" y="50" z="300"></fePointLight>
+      </feSpecularLighting>
+      <feComposite
+        in="lighting"
+        in2="SourceAlpha"
+        operator="in"
+        result="composite"
+      ></feComposite>
+      <feComposite
+        in="merged"
+        in2="composite"
+        operator="arithmetic"
+        k1="0"
+        k2="1"
+        k3="1"
+        k4="0"
+        result="litPaint"
+      ></feComposite>
+    </filter>
+    <filter id="ambience">
+      <feGaussianBlur
+        in="SourceAlpha"
+        stdDeviation="3"
+        result="blur"
+      ></feGaussianBlur>
+      <feSpecularLighting
+        result="lighting"
+        in="blur"
+        surfaceScale="5"
+        specularConstant="0.5"
+        specularExponent="120"
+        lighting-color="#ffffff"
+      >
+        <fePointLight x="50" y="50" z="300"></fePointLight>
+      </feSpecularLighting>
+      <feComposite
+        in="lighting"
+        in2="SourceAlpha"
+        operator="in"
+        result="composite"
+      ></feComposite>
+      <feComposite
+        in="merged"
+        in2="composite"
+        operator="arithmetic"
+        k1="0"
+        k2="1"
+        k3="1"
+        k4="0"
+        result="litPaint"
+      ></feComposite>
+    </filter>
+  </svg>
 </section>
 {% schema %}
 {
