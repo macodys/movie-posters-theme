@@ -169,136 +169,36 @@ main#MainContent {
 .site-header { position: sticky; top: 0; z-index: 50; background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
 .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
 .logo-text { font-weight: 700; letter-spacing: 1px; font-size: 16px; }
-/* Exact CodePen Implementation with CSS Layers */
-@layer spotlight {
-  nav::before,
-  nav::after,
-  nav ul.lit {
-    filter: url('#spotlight');
-  }
-
-  ul.content::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 100px;
-    pointer-events: none;
-    border: 1px solid white;
-    filter: url('#ambience') brightness(2);
-  }
-
-  ul.lit {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-  }
-
-  [data-active='true'] {
-    opacity: 0.8;
-  }
+/* Main Navigation - Collection Style Buttons */
+.main-nav {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
-@layer demo {
-  nav {
-    height: 44px;
-    border-radius: 100px;
-    border: 1px solid color-mix(in hsl, canvasText, #0000 75%);
-    position: relative;
-
-    &::before,
-    &::after {
-      pointer-events: none;
-    }
-
-    &::after {
-      background: color-mix(in hsl, canvas, canvasText 10%);
-      content: '';
-      position: absolute;
-      inset: 0;
-      border: 1px solid color-mix(in hsl, canvasText, #0000);
-      z-index: -1;
-      border-radius: 100px;
-      opacity: 0.15;
-    }
-
-    &::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border: 1px solid color-mix(in hsl, canvasText, #0000);
-      z-index: 2;
-      border-radius: 100px;
-    }
-
-    ul {
-      display: flex;
-      align-items: center;
-      padding: 0;
-      margin: 0;
-      list-style-type: none;
-      height: 100%;
-      font-size: 0.875rem;
-
-      &.lit {
-        pointer-events: none;
-
-        li {
-          padding: 0.5rem 1.25rem;
-        }
-      }
-
-      li {
-        height: 100%;
-        display: grid;
-        place-items: center;
-        a {
-          display: grid;
-          place-items: center;
-          height: 100%;
-          padding: 0.5rem 1.25rem;
-          text-decoration: none;
-          color: inherit;
-          opacity: 0.4;
-          transition: opacity 0.25s ease-out;
-
-          &:is(:hover, :focus-visible) {
-            opacity: 1;
-          }
-
-          span {
-            pointer-events: none;
-          }
-        }
-      }
-    }
-  }
+.nav-button {
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
-/* Diamond icon */
-.diamond {
-  color: canvasText;
-  position: fixed;
-  top: 1rem;
-  left: 1rem;
-  width: 48px;
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  opacity: 0.8;
-  z-index: 1000;
+.nav-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 212, 170, 0.2);
 }
 
-.diamond svg {
-  width: 65%;
-}
-
-.diamond:is(:hover, :focus-visible) {
-  opacity: 1;
-}
-
-/* Tweakpane Configuration Panel */
-div.tp-dfwv {
-  width: 280px;
+.nav-button:active {
+  transform: translateY(0);
 }
 
 
