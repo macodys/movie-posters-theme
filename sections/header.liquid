@@ -10,6 +10,73 @@
       <a href="/collections/sports" class="nav-button">Sports</a>
     </nav>
     <div class="header-actions">
+      <div class="country-selector">
+        <button class="country-button" id="countryButton">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+          </svg>
+          <span id="selectedCountry">US</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6,9 12,15 18,9"></polyline>
+          </svg>
+        </button>
+        <div class="country-dropdown" id="countryDropdown">
+          <div class="country-search">
+            <input type="text" placeholder="Search countries..." id="countrySearch">
+          </div>
+          <div class="country-list" id="countryList">
+            <div class="country-item" data-code="US">
+              <span class="flag">🇺🇸</span>
+              <span class="name">United States</span>
+            </div>
+            <div class="country-item" data-code="GB">
+              <span class="flag">🇬🇧</span>
+              <span class="name">United Kingdom</span>
+            </div>
+            <div class="country-item" data-code="CA">
+              <span class="flag">🇨🇦</span>
+              <span class="name">Canada</span>
+            </div>
+            <div class="country-item" data-code="AU">
+              <span class="flag">🇦🇺</span>
+              <span class="name">Australia</span>
+            </div>
+            <div class="country-item" data-code="DE">
+              <span class="flag">🇩🇪</span>
+              <span class="name">Germany</span>
+            </div>
+            <div class="country-item" data-code="FR">
+              <span class="flag">🇫🇷</span>
+              <span class="name">France</span>
+            </div>
+            <div class="country-item" data-code="IT">
+              <span class="flag">🇮🇹</span>
+              <span class="name">Italy</span>
+            </div>
+            <div class="country-item" data-code="ES">
+              <span class="flag">🇪🇸</span>
+              <span class="name">Spain</span>
+            </div>
+            <div class="country-item" data-code="JP">
+              <span class="flag">🇯🇵</span>
+              <span class="name">Japan</span>
+            </div>
+            <div class="country-item" data-code="BR">
+              <span class="flag">🇧🇷</span>
+              <span class="name">Brazil</span>
+            </div>
+            <div class="country-item" data-code="MX">
+              <span class="flag">🇲🇽</span>
+              <span class="name">Mexico</span>
+            </div>
+            <div class="country-item" data-code="IN">
+              <span class="flag">🇮🇳</span>
+              <span class="name">India</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <div class="search-container">
         <div class="search-box">
           <input type="text" class="search-input" placeholder="Search posters..." />
