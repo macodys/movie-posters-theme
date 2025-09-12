@@ -816,6 +816,8 @@ main#MainContent {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-width: 400px;
+  width: 100%;
 }
 
 .product-image-main {
@@ -1138,6 +1140,11 @@ main#MainContent {
   .product-container {
     grid-template-columns: 1fr;
     gap: 40px;
+  }
+  
+  .product-gallery {
+    max-width: 100%;
+    margin: 0 auto;
   }
   
   .product-thumbnails {
