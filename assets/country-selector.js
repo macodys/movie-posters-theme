@@ -147,29 +147,23 @@ class CountrySelector {
   
   async fetchMarketAwareProducts() {
     try {
-      const currentMarket = this.getCurrentMarket();
       const currentUrl = new URL(window.location.href);
-      const path = currentUrl.pathname;
-      const collectionMatch = path.match(/\/collections\/([^\/]+)/);
-      const marketPrefix = currentMarket ? `/markets/${currentMarket}` : '';
+      // Strip /markets/<code> prefix because Shopify view routing does not support it
+      const path = currentUrl.pathname.replace(/^\/markets\/[^/]+/, '');
+      const collectionMatch = path.match(/^\/collections\/([^\/]+)/);
       
       const candidates = [];
       
-      // 1) Current URL with view override (works on index and collection because we created those views)
-      const url1 = new URL(currentUrl.toString());
-      url1.searchParams.set('view', 'market-products-json');
-      candidates.push(url1.toString());
-      
-      // 2) Explicit collection view if on a collection page
+      // 1) Collection-specific view (rooted, without /markets prefix)
       if (collectionMatch) {
-        candidates.push(`${marketPrefix}/collections/${collectionMatch[1]}?view=market-products-json`);
+        candidates.push(`/collections/${collectionMatch[1]}?view=market-products-json`);
       }
       
-      // 3) All collection scoped to current market
-      candidates.push(`${marketPrefix}/collections/all?view=market-products-json`);
+      // 2) All collection view (rooted)
+      candidates.push(`/collections/all?view=market-products-json`);
       
-      // 4) Root index view (falls back to all collection inside template)
-      candidates.push(`${marketPrefix || ''}/?view=market-products-json`);
+      // 3) Root index view (falls back to 'all' inside template)
+      candidates.push(`/?view=market-products-json`);
       
       for (const endpoint of candidates) {
         try {
