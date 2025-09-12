@@ -95,6 +95,81 @@ class CountrySelector {
     if (storedRegion) {
       this.filterExistingProducts(storedRegion);
     }
+    
+    // Load product regions from your existing catalog
+    this.loadProductRegionsFromCatalog();
+  }
+  
+  async loadProductRegionsFromCatalog() {
+    try {
+      // Fetch product data from your Shopify catalog
+      const response = await fetch('/collections/all/products.json?limit=250');
+      if (!response.ok) return;
+      
+      const data = await response.json();
+      
+      // Update product cards with region data from your catalog
+      data.products.forEach(product => {
+        const region = this.getProductRegionFromCatalog(product);
+        if (region) {
+          this.updateProductCardRegion(product.handle, region);
+        }
+      });
+    } catch (error) {
+      console.warn('Could not load product regions from catalog:', error);
+    }
+  }
+  
+  getProductRegionFromCatalog(product) {
+    // Check for region in product tags
+    if (product.tags) {
+      const regionTags = product.tags.filter(tag => 
+        ['north-america', 'europe', 'asia', 'south-america', 'africa', 'oceania', 'global', 'all'].includes(tag.toLowerCase())
+      );
+      if (regionTags.length > 0) {
+        return regionTags[0].toLowerCase();
+      }
+    }
+    
+    // Check for region in product metafields
+    if (product.metafields) {
+      const regionMetafield = product.metafields.find(field => 
+        field.namespace === 'custom' && field.key === 'region'
+      );
+      if (regionMetafield) {
+        return regionMetafield.value.toLowerCase();
+      }
+    }
+    
+    // Check for region in product type
+    if (product.product_type) {
+      const regionTypes = ['north-america', 'europe', 'asia', 'south-america', 'africa', 'oceania'];
+      const matchingType = regionTypes.find(type => 
+        product.product_type.toLowerCase().includes(type)
+      );
+      if (matchingType) {
+        return matchingType;
+      }
+    }
+    
+    return null;
+  }
+  
+  updateProductCardRegion(productHandle, region) {
+    // Find product cards by handle and update their region data
+    const productCards = document.querySelectorAll(`[data-product-handle="${productHandle}"]`);
+    productCards.forEach(card => {
+      card.dataset.productRegion = region;
+    });
+    
+    // Also check for cards with product URLs containing the handle
+    const allCards = document.querySelectorAll('.product-card, .poster-card');
+    allCards.forEach(card => {
+      const link = card.querySelector('a[href*="/products/"]');
+      if (link && link.href.includes(productHandle)) {
+        card.dataset.productRegion = region;
+      }
+    });
   }
   
   async detectCountryFromIP() {
@@ -438,17 +513,75 @@ class CountrySelector {
     const country = this.countries.find(c => c.code === countryCode);
     if (!country) return;
     
+    // Get the region from your existing product data
+    const region = this.getRegionForCountry(countryCode);
+    
     // Add region filter to all product requests
-    this.addRegionFilter(country.region || countryCode);
+    this.addRegionFilter(region);
     
     // Update collection URLs with region parameter
-    this.updateCollectionUrls(country.region || countryCode);
+    this.updateCollectionUrls(region);
     
     // Filter existing products on the page
-    this.filterExistingProducts(country.region || countryCode);
+    this.filterExistingProducts(region);
     
     // Show region notification
     this.showRegionNotification(country);
+  }
+  
+  getRegionForCountry(countryCode) {
+    // Map country codes to your existing region names
+    const regionMap = {
+      'US': 'north-america',
+      'CA': 'north-america', 
+      'MX': 'north-america',
+      'GB': 'europe',
+      'DE': 'europe',
+      'FR': 'europe',
+      'IT': 'europe',
+      'ES': 'europe',
+      'NL': 'europe',
+      'SE': 'europe',
+      'NO': 'europe',
+      'DK': 'europe',
+      'FI': 'europe',
+      'CH': 'europe',
+      'AT': 'europe',
+      'BE': 'europe',
+      'PL': 'europe',
+      'CZ': 'europe',
+      'HU': 'europe',
+      'PT': 'europe',
+      'GR': 'europe',
+      'RU': 'europe',
+      'JP': 'asia',
+      'CN': 'asia',
+      'KR': 'asia',
+      'TH': 'asia',
+      'SG': 'asia',
+      'MY': 'asia',
+      'ID': 'asia',
+      'PH': 'asia',
+      'VN': 'asia',
+      'IN': 'asia',
+      'AU': 'oceania',
+      'BR': 'south-america',
+      'AR': 'south-america',
+      'CL': 'south-america',
+      'CO': 'south-america',
+      'PE': 'south-america',
+      'VE': 'south-america',
+      'UY': 'south-america',
+      'PY': 'south-america',
+      'BO': 'south-america',
+      'EC': 'south-america',
+      'ZA': 'africa',
+      'EG': 'africa',
+      'NG': 'africa',
+      'KE': 'africa'
+    };
+    
+    return regionMap[countryCode] || countryCode.toLowerCase();
   }
   
   addRegionFilter(region) {
@@ -486,7 +619,7 @@ class CountrySelector {
     
     productCards.forEach(card => {
       const productRegion = card.dataset.productRegion;
-      const isVisible = !productRegion || productRegion === region || productRegion === 'global';
+      const isVisible = this.isProductVisibleInRegion(productRegion, region);
       
       if (isVisible) {
         card.style.display = 'block';
@@ -499,6 +632,28 @@ class CountrySelector {
     
     // Update collection counts
     this.updateCollectionCounts();
+  }
+  
+  isProductVisibleInRegion(productRegion, selectedRegion) {
+    // If no product region is set, show globally
+    if (!productRegion) return true;
+    
+    // If product is marked as global, show everywhere
+    if (productRegion === 'global' || productRegion === 'all') return true;
+    
+    // Check if product region matches selected region
+    if (productRegion === selectedRegion) return true;
+    
+    // Check if product region is a comma-separated list of regions
+    if (productRegion.includes(',')) {
+      const regions = productRegion.split(',').map(r => r.trim());
+      return regions.includes(selectedRegion);
+    }
+    
+    // Check if product region contains the selected region (for partial matches)
+    if (productRegion.toLowerCase().includes(selectedRegion.toLowerCase())) return true;
+    
+    return false;
   }
   
   updateCollectionCounts() {
