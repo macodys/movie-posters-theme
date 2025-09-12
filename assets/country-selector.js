@@ -597,7 +597,7 @@ class CountrySelector {
     const country = this.countries.find(c => c.code === countryCode);
     if (!country || !country.market) return;
     
-    const currentMarket = this.getCurrentMarket();
+    const currentMarket = this.getMarketFromUrlPath() || this.getCurrentMarket();
     if (currentMarket === country.market) return;
     
     // Check if we should redirect (only on first visit)
@@ -609,12 +609,8 @@ class CountrySelector {
     const marketUrl = this.buildMarketUrl(country.market, currentUrl);
     
     if (marketUrl !== currentUrl.href) {
-      // Show a brief notification before redirect
-      this.showMarketNotification(country);
-      
-      setTimeout(() => {
-        window.location.href = marketUrl;
-      }, 2000);
+      // Redirect immediately to avoid mixing products from the previous market
+      window.location.replace(marketUrl);
     }
   }
   
@@ -650,6 +646,15 @@ class CountrySelector {
     
     // Otherwise, prepend market to path
     return `${baseUrl}/markets/${market}${path}${search}`;
+  }
+
+  // Extract market code from /markets/<code>/... path if present
+  getMarketFromUrlPath() {
+    try {
+      const path = window.location.pathname;
+      const m = path.match(/\/markets\/([^\/]+)/);
+      return m ? m[1].toLowerCase() : null;
+    } catch { return null; }
   }
   
   showMarketNotification(country) {
