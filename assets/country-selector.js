@@ -76,7 +76,7 @@ class CountrySelector {
     // Market catalog configuration - based on your actual Shopify catalog settings
     this.marketCatalogConfig = {
       'us': { hasProducts: true, productCount: 21 },
-      'gb': { hasProducts: false, productCount: 0 },
+      'gb': { hasProducts: true, productCount: 1 },
       'ca': { hasProducts: true, productCount: 0 },
       'au': { hasProducts: true, productCount: 0 },
       'de': { hasProducts: true, productCount: 0 },
@@ -185,6 +185,11 @@ class CountrySelector {
           console.log(`Market ${currentMarket} has no products - hiding all products`);
           this.hideAllProducts();
           return;
+        }
+        
+        // If market has products but we want to verify, we can add a verification step here
+        if (marketConfig.hasProducts && marketConfig.productCount > 0) {
+          console.log(`Market ${currentMarket} configured to have ${marketConfig.productCount} products - proceeding with API call`);
         }
       }
       
