@@ -174,11 +174,23 @@ document.addEventListener('DOMContentLoaded', function() {
       e.preventDefault();
       
       const formData = new FormData(this);
-      const quantity = formData.get('quantity');
+      const quantity = parseInt(formData.get('quantity'));
       const variantId = formData.get('id');
       
-      // Add to cart logic would go here
-      console.log('Adding to cart:', { variantId, quantity });
+      // Get product data
+      const productData = {
+        id: variantId || '{{ product.selected_or_first_available_variant.id }}',
+        title: '{{ product.title | escape }}',
+        price: {{ product.selected_or_first_available_variant.price | divided_by: 100.0 }},
+        image: '{{ product.featured_image | image_url: width: 200 }}',
+        variant: '{{ product.selected_or_first_available_variant.title | escape }}',
+        quantity: quantity
+      };
+      
+      // Add to cart
+      if (typeof addToCart === 'function') {
+        addToCart(productData);
+      }
       
       // Show success message
       const addToCartBtn = this.querySelector('.add-to-cart-btn');
@@ -199,3 +211,4 @@ document.addEventListener('DOMContentLoaded', function() {
   window.normalMapUrl = '{{ "Poster_Normal.png" | asset_url }}';
 </script>
 <script src="{{ 'normal-mapping-clean.js' | asset_url }}" defer></script>
+<script src="{{ 'cart.js' | asset_url }}" defer></script>
