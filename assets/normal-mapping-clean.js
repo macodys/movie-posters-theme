@@ -502,12 +502,16 @@ this.hue = ${this.hue};`;
         // Apply exposure (exponential brightness)
         color = color * pow(2.0, u_exposure);
         
-        // Apply contrast (proper contrast implementation)
-        color = (color - 0.5) * u_contrast + 0.5;
+        // Apply contrast (preserves colors, only affects luminance)
+        float luminance = dot(color, vec3(0.299, 0.587, 0.114));
+        float contrastFactor = (luminance - 0.5) * u_contrast + 0.5;
+        if (luminance > 0.0) {
+          color = color * (contrastFactor / luminance);
+        }
         
         // Apply saturation
-        float luminance = dot(color, vec3(0.299, 0.587, 0.114));
-        color = mix(vec3(luminance), color, u_saturation);
+        float newLuminance = dot(color, vec3(0.299, 0.587, 0.114));
+        color = mix(vec3(newLuminance), color, u_saturation);
         
         // Apply hue shift to the final result
         color = hueShift(color, u_hue);
