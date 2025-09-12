@@ -21,8 +21,8 @@ class NormalMappingEffect {
     
     // Enhanced effect parameters
     this.saturation = 1.3;
-    this.contrast = 1.2;
-    this.brightness = 0.1;
+    this.contrast = 1.0;
+    this.exposure = 0.0;
     this.reflectionStrength = 2.0;
     this.hue = 0.0;
     
@@ -140,14 +140,14 @@ class NormalMappingEffect {
       
       <div style="margin-bottom: 12px;">
         <label style="display: block; margin-bottom: 4px;">Contrast</label>
-        <input type="range" id="debugContrast" min="0.5" max="2" step="0.1" value="${this.contrast}" style="width: 100%;">
+        <input type="range" id="debugContrast" min="0.1" max="3" step="0.1" value="${this.contrast}" style="width: 100%;">
         <span id="contrastValue" style="color: #ccc; font-size: 11px;">${this.contrast}</span>
       </div>
       
       <div style="margin-bottom: 12px;">
-        <label style="display: block; margin-bottom: 4px;">Brightness</label>
-        <input type="range" id="debugBrightness" min="-0.5" max="1" step="0.1" value="${this.brightness}" style="width: 100%;">
-        <span id="brightnessValue" style="color: #ccc; font-size: 11px;">${this.brightness}</span>
+        <label style="display: block; margin-bottom: 4px;">Exposure</label>
+        <input type="range" id="debugExposure" min="-3" max="3" step="0.1" value="${this.exposure}" style="width: 100%;">
+        <span id="exposureValue" style="color: #ccc; font-size: 11px;">${this.exposure}</span>
       </div>
       
       <div style="margin-bottom: 12px;">
@@ -183,7 +183,7 @@ class NormalMappingEffect {
     const lightRadiusSlider = document.getElementById('debugLightRadius');
     const saturationSlider = document.getElementById('debugSaturation');
     const contrastSlider = document.getElementById('debugContrast');
-    const brightnessSlider = document.getElementById('debugBrightness');
+    const exposureSlider = document.getElementById('debugExposure');
     const reflectionStrengthSlider = document.getElementById('debugReflectionStrength');
     const hueSlider = document.getElementById('debugHue');
     const copyButton = document.getElementById('copyValues');
@@ -196,7 +196,7 @@ class NormalMappingEffect {
     const lightRadiusValue = document.getElementById('lightRadiusValue');
     const saturationValue = document.getElementById('saturationValue');
     const contrastValue = document.getElementById('contrastValue');
-    const brightnessValue = document.getElementById('brightnessValue');
+    const exposureValue = document.getElementById('exposureValue');
     const reflectionStrengthValue = document.getElementById('reflectionStrengthValue');
     const hueValue = document.getElementById('hueValue');
     
@@ -240,9 +240,9 @@ class NormalMappingEffect {
       contrastValue.textContent = this.contrast.toFixed(1);
     });
     
-    brightnessSlider.addEventListener('input', (e) => {
-      this.brightness = parseFloat(e.target.value);
-      brightnessValue.textContent = this.brightness.toFixed(1);
+    exposureSlider.addEventListener('input', (e) => {
+      this.exposure = parseFloat(e.target.value);
+      exposureValue.textContent = this.exposure.toFixed(1);
     });
     
     reflectionStrengthSlider.addEventListener('input', (e) => {
@@ -265,7 +265,7 @@ class NormalMappingEffect {
         lightRadius: this.lightRadius,
         saturation: this.saturation,
         contrast: this.contrast,
-        brightness: this.brightness,
+        exposure: this.exposure,
         reflectionStrength: this.reflectionStrength,
         hue: this.hue
       };
@@ -278,7 +278,7 @@ this.lightZ = ${this.lightZ};
 this.lightRadius = ${this.lightRadius};
 this.saturation = ${this.saturation};
 this.contrast = ${this.contrast};
-this.brightness = ${this.brightness};
+this.exposure = ${this.exposure};
 this.reflectionStrength = ${this.reflectionStrength};
 this.hue = ${this.hue};`;
       
@@ -407,7 +407,7 @@ this.hue = ${this.hue};`;
       uniform float u_lightRadius;
       uniform float u_saturation;
       uniform float u_contrast;
-      uniform float u_brightness;
+      uniform float u_exposure;
       uniform float u_reflectionStrength;
       uniform float u_hue;
       
@@ -499,8 +499,11 @@ this.hue = ${this.hue};`;
                    + spec * specColor
                    + rim * (0.5 + 0.8 * albedo) * u_reflectionStrength;
         
-        // Apply brightness and contrast
-        color = (color - 0.5) * u_contrast + 0.5 + u_brightness;
+        // Apply exposure (exponential brightness)
+        color = color * pow(2.0, u_exposure);
+        
+        // Apply contrast (proper contrast implementation)
+        color = (color - 0.5) * u_contrast + 0.5;
         
         // Apply saturation
         float luminance = dot(color, vec3(0.299, 0.587, 0.114));
@@ -728,7 +731,7 @@ this.hue = ${this.hue};`;
       const lightRadiusLocation = this.gl.getUniformLocation(this.program, 'u_lightRadius');
       const saturationLocation = this.gl.getUniformLocation(this.program, 'u_saturation');
       const contrastLocation = this.gl.getUniformLocation(this.program, 'u_contrast');
-      const brightnessLocation = this.gl.getUniformLocation(this.program, 'u_brightness');
+      const exposureLocation = this.gl.getUniformLocation(this.program, 'u_exposure');
       const reflectionStrengthLocation = this.gl.getUniformLocation(this.program, 'u_reflectionStrength');
       const hueLocation = this.gl.getUniformLocation(this.program, 'u_hue');
       
@@ -745,7 +748,7 @@ this.hue = ${this.hue};`;
       this.gl.uniform1f(lightRadiusLocation, this.lightRadius);
       this.gl.uniform1f(saturationLocation, this.saturation);
       this.gl.uniform1f(contrastLocation, this.contrast);
-      this.gl.uniform1f(brightnessLocation, this.brightness);
+      this.gl.uniform1f(exposureLocation, this.exposure);
       this.gl.uniform1f(reflectionStrengthLocation, this.reflectionStrength);
       this.gl.uniform1f(hueLocation, this.hue);
       
