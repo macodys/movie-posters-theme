@@ -362,6 +362,38 @@ main#MainContent {
   background: rgba(255, 255, 255, 0.3);
 }
 
+/* Region Filtering Effects */
+.region-hidden {
+  display: none !important;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: all 0.3s ease;
+}
+
+.product-card, .poster-card {
+  transition: all 0.3s ease;
+}
+
+.product-card.region-hidden, .poster-card.region-hidden {
+  display: none !important;
+}
+
+/* Region notification */
+.region-notification {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from { 
+    transform: translateX(100%); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateX(0); 
+    opacity: 1; 
+  }
+}
+
 
 /* Screen reader only utility */
 .sr-only {

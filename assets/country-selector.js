@@ -8,69 +8,69 @@ class CountrySelector {
     this.selectedCurrency = document.getElementById('selectedCurrency');
     this.countrySelector = document.querySelector('.country-selector');
     
-    // Countries with Shopify market mapping
+    // Countries with Shopify market mapping and regions
     this.countries = [
-      { code: 'US', name: 'United States', flag: '🇺🇸', market: 'us', currency: 'USD' },
-      { code: 'GB', name: 'United Kingdom', flag: '🇬🇧', market: 'gb', currency: 'GBP' },
-      { code: 'CA', name: 'Canada', flag: '🇨🇦', market: 'ca', currency: 'CAD' },
-      { code: 'AU', name: 'Australia', flag: '🇦🇺', market: 'au', currency: 'AUD' },
-      { code: 'DE', name: 'Germany', flag: '🇩🇪', market: 'de', currency: 'EUR' },
-      { code: 'FR', name: 'France', flag: '🇫🇷', market: 'fr', currency: 'EUR' },
-      { code: 'IT', name: 'Italy', flag: '🇮🇹', market: 'it', currency: 'EUR' },
-      { code: 'ES', name: 'Spain', flag: '🇪🇸', market: 'es', currency: 'EUR' },
-      { code: 'JP', name: 'Japan', flag: '🇯🇵', market: 'jp', currency: 'JPY' },
-      { code: 'BR', name: 'Brazil', flag: '🇧🇷', market: 'br', currency: 'BRL' },
-      { code: 'MX', name: 'Mexico', flag: '🇲🇽', market: 'mx', currency: 'MXN' },
-      { code: 'IN', name: 'India', flag: '🇮🇳', market: 'in', currency: 'INR' },
-      { code: 'NL', name: 'Netherlands', flag: '🇳🇱', market: 'nl', currency: 'EUR' },
-      { code: 'SE', name: 'Sweden', flag: '🇸🇪', market: 'se', currency: 'SEK' },
-      { code: 'NO', name: 'Norway', flag: '🇳🇴', market: 'no', currency: 'NOK' },
-      { code: 'DK', name: 'Denmark', flag: '🇩🇰', market: 'dk', currency: 'DKK' },
-      { code: 'FI', name: 'Finland', flag: '🇫🇮', market: 'fi', currency: 'EUR' },
-      { code: 'CH', name: 'Switzerland', flag: '🇨🇭', market: 'ch', currency: 'CHF' },
-      { code: 'AT', name: 'Austria', flag: '🇦🇹', market: 'at', currency: 'EUR' },
-      { code: 'BE', name: 'Belgium', flag: '🇧🇪', market: 'be', currency: 'EUR' },
-      { code: 'PL', name: 'Poland', flag: '🇵🇱', market: 'pl', currency: 'PLN' },
-      { code: 'CZ', name: 'Czech Republic', flag: '🇨🇿', market: 'cz', currency: 'CZK' },
-      { code: 'HU', name: 'Hungary', flag: '🇭🇺', market: 'hu', currency: 'HUF' },
-      { code: 'PT', name: 'Portugal', flag: '🇵🇹', market: 'pt', currency: 'EUR' },
-      { code: 'GR', name: 'Greece', flag: '🇬🇷', market: 'gr', currency: 'EUR' },
-      { code: 'RU', name: 'Russia', flag: '🇷🇺', market: 'ru', currency: 'RUB' },
-      { code: 'CN', name: 'China', flag: '🇨🇳', market: 'cn', currency: 'CNY' },
-      { code: 'KR', name: 'South Korea', flag: '🇰🇷', market: 'kr', currency: 'KRW' },
-      { code: 'TH', name: 'Thailand', flag: '🇹🇭', market: 'th', currency: 'THB' },
-      { code: 'SG', name: 'Singapore', flag: '🇸🇬', market: 'sg', currency: 'SGD' },
-      { code: 'MY', name: 'Malaysia', flag: '🇲🇾', market: 'my', currency: 'MYR' },
-      { code: 'ID', name: 'Indonesia', flag: '🇮🇩', market: 'id', currency: 'IDR' },
-      { code: 'PH', name: 'Philippines', flag: '🇵🇭', market: 'ph', currency: 'PHP' },
-      { code: 'VN', name: 'Vietnam', flag: '🇻🇳', market: 'vn', currency: 'VND' },
-      { code: 'ZA', name: 'South Africa', flag: '🇿🇦', market: 'za', currency: 'ZAR' },
-      { code: 'EG', name: 'Egypt', flag: '🇪🇬', market: 'eg', currency: 'EGP' },
-      { code: 'NG', name: 'Nigeria', flag: '🇳🇬', market: 'ng', currency: 'NGN' },
-      { code: 'KE', name: 'Kenya', flag: '🇰🇪', market: 'ke', currency: 'KES' },
-      { code: 'AR', name: 'Argentina', flag: '🇦🇷', market: 'ar', currency: 'ARS' },
-      { code: 'CL', name: 'Chile', flag: '🇨🇱', market: 'cl', currency: 'CLP' },
-      { code: 'CO', name: 'Colombia', flag: '🇨🇴', market: 'co', currency: 'COP' },
-      { code: 'PE', name: 'Peru', flag: '🇵🇪', market: 'pe', currency: 'PEN' },
-      { code: 'VE', name: 'Venezuela', flag: '🇻🇪', market: 've', currency: 'VES' },
-      { code: 'UY', name: 'Uruguay', flag: '🇺🇾', market: 'uy', currency: 'UYU' },
-      { code: 'PY', name: 'Paraguay', flag: '🇵🇾', market: 'py', currency: 'PYG' },
-      { code: 'BO', name: 'Bolivia', flag: '🇧🇴', market: 'bo', currency: 'BOB' },
-      { code: 'EC', name: 'Ecuador', flag: '🇪🇨', market: 'ec', currency: 'USD' },
-      { code: 'GT', name: 'Guatemala', flag: '🇬🇹', market: 'gt', currency: 'GTQ' },
-      { code: 'CU', name: 'Cuba', flag: '🇨🇺', market: 'cu', currency: 'CUP' },
-      { code: 'DO', name: 'Dominican Republic', flag: '🇩🇴', market: 'do', currency: 'DOP' },
-      { code: 'HT', name: 'Haiti', flag: '🇭🇹', market: 'ht', currency: 'HTG' },
-      { code: 'JM', name: 'Jamaica', flag: '🇯🇲', market: 'jm', currency: 'JMD' },
-      { code: 'TT', name: 'Trinidad and Tobago', flag: '🇹🇹', market: 'tt', currency: 'TTD' },
-      { code: 'BB', name: 'Barbados', flag: '🇧🇧', market: 'bb', currency: 'BBD' },
-      { code: 'BS', name: 'Bahamas', flag: '🇧🇸', market: 'bs', currency: 'BSD' },
-      { code: 'BZ', name: 'Belize', flag: '🇧🇿', market: 'bz', currency: 'BZD' },
-      { code: 'CR', name: 'Costa Rica', flag: '🇨🇷', market: 'cr', currency: 'CRC' },
-      { code: 'PA', name: 'Panama', flag: '🇵🇦', market: 'pa', currency: 'PAB' },
-      { code: 'HN', name: 'Honduras', flag: '🇭🇳', market: 'hn', currency: 'HNL' },
-      { code: 'NI', name: 'Nicaragua', flag: '🇳🇮', market: 'ni', currency: 'NIO' },
-      { code: 'SV', name: 'El Salvador', flag: '🇸🇻', market: 'sv', currency: 'USD' }
+      { code: 'US', name: 'United States', flag: '🇺🇸', market: 'us', currency: 'USD', region: 'north-america' },
+      { code: 'GB', name: 'United Kingdom', flag: '🇬🇧', market: 'gb', currency: 'GBP', region: 'europe' },
+      { code: 'CA', name: 'Canada', flag: '🇨🇦', market: 'ca', currency: 'CAD', region: 'north-america' },
+      { code: 'AU', name: 'Australia', flag: '🇦🇺', market: 'au', currency: 'AUD', region: 'oceania' },
+      { code: 'DE', name: 'Germany', flag: '🇩🇪', market: 'de', currency: 'EUR', region: 'europe' },
+      { code: 'FR', name: 'France', flag: '🇫🇷', market: 'fr', currency: 'EUR', region: 'europe' },
+      { code: 'IT', name: 'Italy', flag: '🇮🇹', market: 'it', currency: 'EUR', region: 'europe' },
+      { code: 'ES', name: 'Spain', flag: '🇪🇸', market: 'es', currency: 'EUR', region: 'europe' },
+      { code: 'JP', name: 'Japan', flag: '🇯🇵', market: 'jp', currency: 'JPY', region: 'asia' },
+      { code: 'BR', name: 'Brazil', flag: '🇧🇷', market: 'br', currency: 'BRL', region: 'south-america' },
+      { code: 'MX', name: 'Mexico', flag: '🇲🇽', market: 'mx', currency: 'MXN', region: 'north-america' },
+      { code: 'IN', name: 'India', flag: '🇮🇳', market: 'in', currency: 'INR', region: 'asia' },
+      { code: 'NL', name: 'Netherlands', flag: '🇳🇱', market: 'nl', currency: 'EUR', region: 'europe' },
+      { code: 'SE', name: 'Sweden', flag: '🇸🇪', market: 'se', currency: 'SEK', region: 'europe' },
+      { code: 'NO', name: 'Norway', flag: '🇳🇴', market: 'no', currency: 'NOK', region: 'europe' },
+      { code: 'DK', name: 'Denmark', flag: '🇩🇰', market: 'dk', currency: 'DKK', region: 'europe' },
+      { code: 'FI', name: 'Finland', flag: '🇫🇮', market: 'fi', currency: 'EUR', region: 'europe' },
+      { code: 'CH', name: 'Switzerland', flag: '🇨🇭', market: 'ch', currency: 'CHF', region: 'europe' },
+      { code: 'AT', name: 'Austria', flag: '🇦🇹', market: 'at', currency: 'EUR', region: 'europe' },
+      { code: 'BE', name: 'Belgium', flag: '🇧🇪', market: 'be', currency: 'EUR', region: 'europe' },
+      { code: 'PL', name: 'Poland', flag: '🇵🇱', market: 'pl', currency: 'PLN', region: 'europe' },
+      { code: 'CZ', name: 'Czech Republic', flag: '🇨🇿', market: 'cz', currency: 'CZK', region: 'europe' },
+      { code: 'HU', name: 'Hungary', flag: '🇭🇺', market: 'hu', currency: 'HUF', region: 'europe' },
+      { code: 'PT', name: 'Portugal', flag: '🇵🇹', market: 'pt', currency: 'EUR', region: 'europe' },
+      { code: 'GR', name: 'Greece', flag: '🇬🇷', market: 'gr', currency: 'EUR', region: 'europe' },
+      { code: 'RU', name: 'Russia', flag: '🇷🇺', market: 'ru', currency: 'RUB', region: 'europe' },
+      { code: 'CN', name: 'China', flag: '🇨🇳', market: 'cn', currency: 'CNY', region: 'asia' },
+      { code: 'KR', name: 'South Korea', flag: '🇰🇷', market: 'kr', currency: 'KRW', region: 'asia' },
+      { code: 'TH', name: 'Thailand', flag: '🇹🇭', market: 'th', currency: 'THB', region: 'asia' },
+      { code: 'SG', name: 'Singapore', flag: '🇸🇬', market: 'sg', currency: 'SGD', region: 'asia' },
+      { code: 'MY', name: 'Malaysia', flag: '🇲🇾', market: 'my', currency: 'MYR', region: 'asia' },
+      { code: 'ID', name: 'Indonesia', flag: '🇮🇩', market: 'id', currency: 'IDR', region: 'asia' },
+      { code: 'PH', name: 'Philippines', flag: '🇵🇭', market: 'ph', currency: 'PHP', region: 'asia' },
+      { code: 'VN', name: 'Vietnam', flag: '🇻🇳', market: 'vn', currency: 'VND', region: 'asia' },
+      { code: 'ZA', name: 'South Africa', flag: '🇿🇦', market: 'za', currency: 'ZAR', region: 'africa' },
+      { code: 'EG', name: 'Egypt', flag: '🇪🇬', market: 'eg', currency: 'EGP', region: 'africa' },
+      { code: 'NG', name: 'Nigeria', flag: '🇳🇬', market: 'ng', currency: 'NGN', region: 'africa' },
+      { code: 'KE', name: 'Kenya', flag: '🇰🇪', market: 'ke', currency: 'KES', region: 'africa' },
+      { code: 'AR', name: 'Argentina', flag: '🇦🇷', market: 'ar', currency: 'ARS', region: 'south-america' },
+      { code: 'CL', name: 'Chile', flag: '🇨🇱', market: 'cl', currency: 'CLP', region: 'south-america' },
+      { code: 'CO', name: 'Colombia', flag: '🇨🇴', market: 'co', currency: 'COP', region: 'south-america' },
+      { code: 'PE', name: 'Peru', flag: '🇵🇪', market: 'pe', currency: 'PEN', region: 'south-america' },
+      { code: 'VE', name: 'Venezuela', flag: '🇻🇪', market: 've', currency: 'VES', region: 'south-america' },
+      { code: 'UY', name: 'Uruguay', flag: '🇺🇾', market: 'uy', currency: 'UYU', region: 'south-america' },
+      { code: 'PY', name: 'Paraguay', flag: '🇵🇾', market: 'py', currency: 'PYG', region: 'south-america' },
+      { code: 'BO', name: 'Bolivia', flag: '🇧🇴', market: 'bo', currency: 'BOB', region: 'south-america' },
+      { code: 'EC', name: 'Ecuador', flag: '🇪🇨', market: 'ec', currency: 'USD', region: 'south-america' },
+      { code: 'GT', name: 'Guatemala', flag: '🇬🇹', market: 'gt', currency: 'GTQ', region: 'central-america' },
+      { code: 'CU', name: 'Cuba', flag: '🇨🇺', market: 'cu', currency: 'CUP', region: 'caribbean' },
+      { code: 'DO', name: 'Dominican Republic', flag: '🇩🇴', market: 'do', currency: 'DOP', region: 'caribbean' },
+      { code: 'HT', name: 'Haiti', flag: '🇭🇹', market: 'ht', currency: 'HTG', region: 'caribbean' },
+      { code: 'JM', name: 'Jamaica', flag: '🇯🇲', market: 'jm', currency: 'JMD', region: 'caribbean' },
+      { code: 'TT', name: 'Trinidad and Tobago', flag: '🇹🇹', market: 'tt', currency: 'TTD', region: 'caribbean' },
+      { code: 'BB', name: 'Barbados', flag: '🇧🇧', market: 'bb', currency: 'BBD', region: 'caribbean' },
+      { code: 'BS', name: 'Bahamas', flag: '🇧🇸', market: 'bs', currency: 'BSD', region: 'caribbean' },
+      { code: 'BZ', name: 'Belize', flag: '🇧🇿', market: 'bz', currency: 'BZD', region: 'central-america' },
+      { code: 'CR', name: 'Costa Rica', flag: '🇨🇷', market: 'cr', currency: 'CRC', region: 'central-america' },
+      { code: 'PA', name: 'Panama', flag: '🇵🇦', market: 'pa', currency: 'PAB', region: 'central-america' },
+      { code: 'HN', name: 'Honduras', flag: '🇭🇳', market: 'hn', currency: 'HNL', region: 'central-america' },
+      { code: 'NI', name: 'Nicaragua', flag: '🇳🇮', market: 'ni', currency: 'NIO', region: 'central-america' },
+      { code: 'SV', name: 'El Salvador', flag: '🇸🇻', market: 'sv', currency: 'USD', region: 'central-america' }
     ];
     
     this.currentCountry = this.getStoredCountry() || 'US';
@@ -85,6 +85,16 @@ class CountrySelector {
     this.updateSelectedCountry();
     this.bindEvents();
     this.detectCountryFromIP();
+    
+    // Apply region filtering on page load
+    this.applyStoredRegionFilter();
+  }
+  
+  applyStoredRegionFilter() {
+    const storedRegion = localStorage.getItem('selectedRegion');
+    if (storedRegion) {
+      this.filterExistingProducts(storedRegion);
+    }
   }
   
   async detectCountryFromIP() {
@@ -358,6 +368,9 @@ class CountrySelector {
     this.storeCountry(countryCode);
     this.closeDropdown();
     
+    // Filter products by region
+    this.filterProductsByRegion(countryCode);
+    
     // Redirect to appropriate market
     this.redirectToMarket(countryCode);
     
@@ -418,6 +431,144 @@ class CountrySelector {
     return this.countries
       .filter(c => c.market)
       .map(c => ({ code: c.market, name: c.name, country: c.code, currency: c.currency }));
+  }
+  
+  // Filter products by region
+  filterProductsByRegion(countryCode) {
+    const country = this.countries.find(c => c.code === countryCode);
+    if (!country) return;
+    
+    // Add region filter to all product requests
+    this.addRegionFilter(country.region || countryCode);
+    
+    // Update collection URLs with region parameter
+    this.updateCollectionUrls(country.region || countryCode);
+    
+    // Filter existing products on the page
+    this.filterExistingProducts(country.region || countryCode);
+    
+    // Show region notification
+    this.showRegionNotification(country);
+  }
+  
+  addRegionFilter(region) {
+    // Store current region for future requests
+    localStorage.setItem('selectedRegion', region);
+    
+    // Update all forms to include region parameter
+    const forms = document.querySelectorAll('form[action*="/collections/"]');
+    forms.forEach(form => {
+      this.addHiddenInput(form, 'region', region);
+    });
+  }
+  
+  updateCollectionUrls(region) {
+    // Update navigation links to include region parameter
+    const navLinks = document.querySelectorAll('.nav-button[href*="/collections/"]');
+    navLinks.forEach(link => {
+      const url = new URL(link.href);
+      url.searchParams.set('region', region);
+      link.href = url.toString();
+    });
+    
+    // Update collection links in product cards
+    const productLinks = document.querySelectorAll('a[href*="/collections/"]');
+    productLinks.forEach(link => {
+      const url = new URL(link.href);
+      url.searchParams.set('region', region);
+      link.href = url.toString();
+    });
+  }
+  
+  filterExistingProducts(region) {
+    // Filter product cards based on region
+    const productCards = document.querySelectorAll('.product-card, .poster-card, [data-product-region]');
+    
+    productCards.forEach(card => {
+      const productRegion = card.dataset.productRegion;
+      const isVisible = !productRegion || productRegion === region || productRegion === 'global';
+      
+      if (isVisible) {
+        card.style.display = 'block';
+        card.classList.remove('region-hidden');
+      } else {
+        card.style.display = 'none';
+        card.classList.add('region-hidden');
+      }
+    });
+    
+    // Update collection counts
+    this.updateCollectionCounts();
+  }
+  
+  updateCollectionCounts() {
+    const visibleProducts = document.querySelectorAll('.product-card:not(.region-hidden), .poster-card:not(.region-hidden)');
+    const countElements = document.querySelectorAll('.collection-count, .product-count');
+    
+    countElements.forEach(element => {
+      element.textContent = visibleProducts.length;
+    });
+  }
+  
+  addHiddenInput(form, name, value) {
+    // Check if input already exists
+    let existingInput = form.querySelector(`input[name="${name}"]`);
+    if (existingInput) {
+      existingInput.value = value;
+    } else {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    }
+  }
+  
+  showRegionNotification(country) {
+    // Create region filter notification
+    const notification = document.createElement('div');
+    notification.className = 'region-notification';
+    notification.style.cssText = `
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: rgba(0, 212, 170, 0.95);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      z-index: 10000;
+      font-size: 13px;
+      font-weight: 500;
+      max-width: 280px;
+      animation: slideInRight 0.3s ease-out;
+    `;
+    
+    notification.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 16px;">${country.flag}</span>
+        <span>Showing products for ${country.name}</span>
+      </div>
+    `;
+    
+    // Add animation keyframes
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+      notification.remove();
+      style.remove();
+    }, 3000);
   }
 }
 
