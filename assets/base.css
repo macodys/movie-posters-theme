@@ -818,6 +818,8 @@ main#MainContent {
   gap: 20px;
   max-width: 400px;
   width: 100%;
+  margin: 0 auto;
+  justify-self: center;
 }
 
 .product-image-main {
@@ -1136,6 +1138,16 @@ main#MainContent {
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+  .product-container {
+    gap: 40px;
+  }
+  
+  .product-gallery {
+    max-width: 350px;
+  }
+}
+
 @media (max-width: 768px) {
   .product-container {
     grid-template-columns: 1fr;
@@ -1154,6 +1166,16 @@ main#MainContent {
   .recommendations-grid {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-page {
+    padding: 20px 16px;
+  }
+  
+  .product-gallery {
+    max-width: 100%;
   }
 }
 
