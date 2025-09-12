@@ -16,13 +16,13 @@ class NormalMappingEffect {
     this.specPower = 128;
     this.rimPower = 3.1;
     this.rimStrength = 0.9;
-    this.lightZ = 0.91;
-    this.lightRadius = 0.33;
+    this.lightZ = 0.64;
+    this.lightRadius = 0.32;
     
     // Enhanced effect parameters
-    this.saturation = 1.5;
+    this.saturation = 1.3;
     this.contrast = 1.2;
-    this.brightness = 0.3;
+    this.brightness = 0.1;
     this.reflectionStrength = 2.0;
     
     this.init().catch(error => {
