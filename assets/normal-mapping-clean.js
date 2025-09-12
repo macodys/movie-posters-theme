@@ -25,6 +25,7 @@ class NormalMappingEffect {
     this.brightness = 0.1;
     this.reflectionStrength = 2.0;
     this.preserveColors = true;
+    this.hue = 0.0;
     
     this.init().catch(error => {
       console.error('Failed to initialize normal mapping effect:', error);
@@ -157,6 +158,12 @@ class NormalMappingEffect {
       </div>
       
       <div style="margin-bottom: 12px;">
+        <label style="display: block; margin-bottom: 4px;">Hue Shift</label>
+        <input type="range" id="debugHue" min="-180" max="180" step="1" value="${this.hue}" style="width: 100%;">
+        <span id="hueValue" style="color: #ccc; font-size: 11px;">${this.hue}°</span>
+      </div>
+      
+      <div style="margin-bottom: 12px;">
         <label style="display: flex; align-items: center; margin-bottom: 4px;">
           <input type="checkbox" id="debugPreserveColors" ${this.preserveColors ? 'checked' : ''} style="margin-right: 8px;">
           Preserve Original Colors
@@ -186,6 +193,7 @@ class NormalMappingEffect {
     const contrastSlider = document.getElementById('debugContrast');
     const brightnessSlider = document.getElementById('debugBrightness');
     const reflectionStrengthSlider = document.getElementById('debugReflectionStrength');
+    const hueSlider = document.getElementById('debugHue');
     const preserveColorsCheckbox = document.getElementById('debugPreserveColors');
     const copyButton = document.getElementById('copyValues');
     
@@ -199,6 +207,7 @@ class NormalMappingEffect {
     const contrastValue = document.getElementById('contrastValue');
     const brightnessValue = document.getElementById('brightnessValue');
     const reflectionStrengthValue = document.getElementById('reflectionStrengthValue');
+    const hueValue = document.getElementById('hueValue');
     
     normalIntensitySlider.addEventListener('input', (e) => {
       this.normalIntensity = parseFloat(e.target.value);
@@ -250,6 +259,11 @@ class NormalMappingEffect {
       reflectionStrengthValue.textContent = this.reflectionStrength.toFixed(1);
     });
     
+    hueSlider.addEventListener('input', (e) => {
+      this.hue = parseFloat(e.target.value);
+      hueValue.textContent = this.hue + '°';
+    });
+    
     preserveColorsCheckbox.addEventListener('change', (e) => {
       this.preserveColors = e.target.checked;
     });
@@ -266,6 +280,7 @@ class NormalMappingEffect {
         contrast: this.contrast,
         brightness: this.brightness,
         reflectionStrength: this.reflectionStrength,
+        hue: this.hue,
         preserveColors: this.preserveColors
       };
       
@@ -279,6 +294,7 @@ this.saturation = ${this.saturation};
 this.contrast = ${this.contrast};
 this.brightness = ${this.brightness};
 this.reflectionStrength = ${this.reflectionStrength};
+this.hue = ${this.hue};
 this.preserveColors = ${this.preserveColors};`;
       
       navigator.clipboard.writeText(valuesText).then(() => {
@@ -408,6 +424,7 @@ this.preserveColors = ${this.preserveColors};`;
       uniform float u_contrast;
       uniform float u_brightness;
       uniform float u_reflectionStrength;
+      uniform float u_hue;
       uniform bool u_preserveColors;
       
       varying vec2 v_texCoord;
@@ -424,6 +441,31 @@ this.preserveColors = ${this.preserveColors};`;
       vec3 tonemapACES(vec3 x) {
         const float a = 2.51; const float b = 0.03; const float c = 2.43; const float d = 0.59; const float e = 0.14;
         return clamp((x*(a*x+b))/(x*(c*x+d)+e), 0.0, 1.0);
+      }
+      
+      // Hue shift function
+      vec3 hueShift(vec3 color, float hue) {
+        if (hue == 0.0) return color;
+        
+        float angle = hue * 3.14159265 / 180.0;
+        float cosAngle = cos(angle);
+        float sinAngle = sin(angle);
+        
+        // Convert RGB to YUV
+        float y = 0.299 * color.r + 0.587 * color.g + 0.114 * color.b;
+        float u = -0.147 * color.r - 0.289 * color.g + 0.436 * color.b;
+        float v = 0.615 * color.r - 0.515 * color.g - 0.100 * color.b;
+        
+        // Rotate UV plane
+        float newU = u * cosAngle - v * sinAngle;
+        float newV = u * sinAngle + v * cosAngle;
+        
+        // Convert back to RGB
+        return vec3(
+          y + 1.140 * newV,
+          y - 0.394 * newU - 0.581 * newV,
+          y + 2.032 * newU
+        );
       }
       
       void main() {
@@ -464,8 +506,8 @@ this.preserveColors = ${this.preserveColors};`;
         vec3 ambient = albedo * 0.15;
         
         // Enhanced light colors for more dramatic effect
-        vec3 lightColor = vec3(1.2, 1.1, 1.0);
-        vec3 specColor = vec3(1.5, 1.3, 1.0);
+        vec3 lightColor = hueShift(vec3(1.2, 1.1, 1.0), u_hue);
+        vec3 specColor = hueShift(vec3(1.5, 1.3, 1.0), u_hue);
         
         vec3 color;
         if (u_preserveColors) {
@@ -711,6 +753,7 @@ this.preserveColors = ${this.preserveColors};`;
       const contrastLocation = this.gl.getUniformLocation(this.program, 'u_contrast');
       const brightnessLocation = this.gl.getUniformLocation(this.program, 'u_brightness');
       const reflectionStrengthLocation = this.gl.getUniformLocation(this.program, 'u_reflectionStrength');
+      const hueLocation = this.gl.getUniformLocation(this.program, 'u_hue');
       const preserveColorsLocation = this.gl.getUniformLocation(this.program, 'u_preserveColors');
       
       this.gl.uniform1i(posterTextureLocation, 0);
@@ -728,6 +771,7 @@ this.preserveColors = ${this.preserveColors};`;
       this.gl.uniform1f(contrastLocation, this.contrast);
       this.gl.uniform1f(brightnessLocation, this.brightness);
       this.gl.uniform1f(reflectionStrengthLocation, this.reflectionStrength);
+      this.gl.uniform1f(hueLocation, this.hue);
       this.gl.uniform1i(preserveColorsLocation, this.preserveColors ? 1 : 0);
       
       // Bind textures
