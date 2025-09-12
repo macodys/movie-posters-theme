@@ -73,6 +73,71 @@ class CountrySelector {
       { code: 'SV', name: 'El Salvador', flag: '🇸🇻', market: 'sv', currency: 'USD', region: 'central-america' }
     ];
     
+    // Market catalog configuration - based on your actual Shopify catalog settings
+    this.marketCatalogConfig = {
+      'us': { hasProducts: true, productCount: 21 },
+      'gb': { hasProducts: false, productCount: 0 },
+      'ca': { hasProducts: true, productCount: 0 },
+      'au': { hasProducts: true, productCount: 0 },
+      'de': { hasProducts: true, productCount: 0 },
+      'fr': { hasProducts: true, productCount: 0 },
+      'it': { hasProducts: true, productCount: 0 },
+      'es': { hasProducts: true, productCount: 0 },
+      'jp': { hasProducts: true, productCount: 0 },
+      'br': { hasProducts: true, productCount: 0 },
+      'mx': { hasProducts: true, productCount: 0 },
+      'in': { hasProducts: true, productCount: 0 },
+      'nl': { hasProducts: true, productCount: 0 },
+      'se': { hasProducts: true, productCount: 0 },
+      'no': { hasProducts: true, productCount: 0 },
+      'dk': { hasProducts: true, productCount: 0 },
+      'fi': { hasProducts: true, productCount: 0 },
+      'ch': { hasProducts: true, productCount: 0 },
+      'at': { hasProducts: true, productCount: 0 },
+      'be': { hasProducts: true, productCount: 0 },
+      'pl': { hasProducts: true, productCount: 0 },
+      'cz': { hasProducts: true, productCount: 0 },
+      'hu': { hasProducts: true, productCount: 0 },
+      'pt': { hasProducts: true, productCount: 0 },
+      'gr': { hasProducts: true, productCount: 0 },
+      'ru': { hasProducts: true, productCount: 0 },
+      'cn': { hasProducts: true, productCount: 0 },
+      'kr': { hasProducts: true, productCount: 0 },
+      'th': { hasProducts: true, productCount: 0 },
+      'sg': { hasProducts: true, productCount: 0 },
+      'my': { hasProducts: true, productCount: 0 },
+      'id': { hasProducts: true, productCount: 0 },
+      'ph': { hasProducts: true, productCount: 0 },
+      'vn': { hasProducts: true, productCount: 0 },
+      'za': { hasProducts: true, productCount: 0 },
+      'eg': { hasProducts: true, productCount: 0 },
+      'ng': { hasProducts: true, productCount: 0 },
+      'ke': { hasProducts: true, productCount: 0 },
+      'ar': { hasProducts: true, productCount: 0 },
+      'cl': { hasProducts: true, productCount: 0 },
+      'co': { hasProducts: true, productCount: 0 },
+      'pe': { hasProducts: true, productCount: 0 },
+      've': { hasProducts: true, productCount: 0 },
+      'uy': { hasProducts: true, productCount: 0 },
+      'py': { hasProducts: true, productCount: 0 },
+      'bo': { hasProducts: true, productCount: 0 },
+      'ec': { hasProducts: true, productCount: 0 },
+      'gt': { hasProducts: true, productCount: 0 },
+      'cu': { hasProducts: true, productCount: 0 },
+      'do': { hasProducts: true, productCount: 0 },
+      'ht': { hasProducts: true, productCount: 0 },
+      'jm': { hasProducts: true, productCount: 0 },
+      'tt': { hasProducts: true, productCount: 0 },
+      'bb': { hasProducts: true, productCount: 0 },
+      'bs': { hasProducts: true, productCount: 0 },
+      'bz': { hasProducts: true, productCount: 0 },
+      'cr': { hasProducts: true, productCount: 0 },
+      'pa': { hasProducts: true, productCount: 0 },
+      'hn': { hasProducts: true, productCount: 0 },
+      'ni': { hasProducts: true, productCount: 0 },
+      'sv': { hasProducts: true, productCount: 0 }
+    };
+    
     this.currentCountry = this.getStoredCountry() || 'US';
     this.filteredCountries = [...this.countries];
     this.isDetecting = false;
@@ -111,23 +176,13 @@ class CountrySelector {
       
       if (!currentMarket) return;
       
-      // Special handling for UK market - if it has 0 products, hide all
-      if (currentMarket.toLowerCase() === 'gb' || currentMarket.toLowerCase() === 'uk') {
-        console.log('UK market detected - checking catalog for products');
+      // Check market catalog configuration first
+      const marketConfig = this.marketCatalogConfig[currentMarket.toLowerCase()];
+      if (marketConfig) {
+        console.log(`Market ${currentMarket} config: hasProducts=${marketConfig.hasProducts}, productCount=${marketConfig.productCount}`);
         
-        // Try to get products with UK market filter
-        const ukResponse = await fetch(`/collections/all/products.json?market=UK&limit=250`);
-        if (ukResponse.ok) {
-          const ukData = await ukResponse.json();
-          console.log(`UK market API returned: ${ukData.products.length} products`);
-          
-          if (ukData.products.length === 0) {
-            console.log('UK catalog has 0 products - hiding all products');
-            this.hideAllProducts();
-            return;
-          }
-        } else {
-          console.log('UK market API failed - assuming 0 products and hiding all');
+        if (!marketConfig.hasProducts || marketConfig.productCount === 0) {
+          console.log(`Market ${currentMarket} has no products - hiding all products`);
           this.hideAllProducts();
           return;
         }
