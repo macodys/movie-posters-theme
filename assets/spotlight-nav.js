@@ -46,6 +46,15 @@ class SpotlightNavigation {
     this.update();
     this.setupEventListeners();
     this.setupKonamiCode();
+    this.setupFallbackEffect();
+  }
+
+  setupFallbackEffect() {
+    // Add a fallback spotlight effect using CSS
+    if (!this.spotlightfePointLight) {
+      console.log('Using fallback spotlight effect');
+      this.nav.classList.add('fallback-spotlight');
+    }
   }
 
   setupEventListeners() {
@@ -55,10 +64,30 @@ class SpotlightNavigation {
       }
     });
 
+    // Add hover effects for fallback
+    this.links.forEach(link => {
+      link.addEventListener('mouseenter', () => {
+        this.nav.classList.add('hovering');
+        this.nav.style.setProperty('--hover-x', this.getLinkPosition(link) + '%');
+      });
+      
+      link.addEventListener('mouseleave', () => {
+        this.nav.classList.remove('hovering');
+      });
+    });
+
     // Listen for Konami code
     document.addEventListener('konamiCode', () => {
       this.toggleConfigPanel();
     });
+  }
+
+  getLinkPosition(link) {
+    const navRect = this.nav.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
+    const relativeX = linkRect.left - navRect.left;
+    const percentage = (relativeX / navRect.width) * 100;
+    return percentage;
   }
 
   setupKonamiCode() {
@@ -91,6 +120,11 @@ class SpotlightNavigation {
   }
 
   update() {
+    if (!this.spotlightfeGaussianBlur || !this.spotlightfeSpecularLighting || !this.spotlightfePointLight) {
+      console.warn('Spotlight navigation: SVG filters not found');
+      return;
+    }
+
     document.documentElement.dataset.theme = this.config.theme;
     
     // Set spotlight
@@ -101,26 +135,30 @@ class SpotlightNavigation {
     this.spotlightfeSpecularLighting.setAttribute('lighting-color', this.config.spotlight.light);
     
     // Set ambience
-    this.ambiencefeGaussianBlur.setAttribute('stdDeviation', this.config.ambience.deviation);
-    this.ambiencefeSpecularLighting.setAttribute('surfaceScale', this.config.ambience.surface);
-    this.ambiencefeSpecularLighting.setAttribute('specularConstant', this.config.ambience.specular);
-    this.ambiencefeSpecularLighting.setAttribute('specularExponent', this.config.ambience.exponent);
-    this.ambiencefeSpecularLighting.setAttribute('lighting-color', this.config.ambience.light);
+    if (this.ambiencefeGaussianBlur && this.ambiencefeSpecularLighting && this.ambiencefePointLight) {
+      this.ambiencefeGaussianBlur.setAttribute('stdDeviation', this.config.ambience.deviation);
+      this.ambiencefeSpecularLighting.setAttribute('surfaceScale', this.config.ambience.surface);
+      this.ambiencefeSpecularLighting.setAttribute('specularConstant', this.config.ambience.specular);
+      this.ambiencefeSpecularLighting.setAttribute('specularExponent', this.config.ambience.exponent);
+      this.ambiencefeSpecularLighting.setAttribute('lighting-color', this.config.ambience.light);
+    }
     
     const anchor = document.querySelector('[data-active="true"]');
-    const navBounds = this.nav.getBoundingClientRect();
-    const anchorBounds = anchor.getBoundingClientRect();
+    if (anchor) {
+      const navBounds = this.nav.getBoundingClientRect();
+      const anchorBounds = anchor.getBoundingClientRect();
 
-    this.spotlightfePointLight.setAttribute(
-      'x',
-      anchorBounds.left - navBounds.left + anchorBounds.width * 0.5 + this.config.spotlight.x
-    );
-    this.spotlightfePointLight.setAttribute('y', this.config.spotlight.y);
-    this.spotlightfePointLight.setAttribute('z', this.config.spotlight.z);
+      const x = anchorBounds.left - navBounds.left + anchorBounds.width * 0.5 + this.config.spotlight.x;
+      this.spotlightfePointLight.setAttribute('x', x);
+      this.spotlightfePointLight.setAttribute('y', this.config.spotlight.y);
+      this.spotlightfePointLight.setAttribute('z', this.config.spotlight.z);
 
-    this.ambiencefePointLight.setAttribute('x', this.config.ambience.x);
-    this.ambiencefePointLight.setAttribute('y', this.config.ambience.y);
-    this.ambiencefePointLight.setAttribute('z', this.config.ambience.z);
+      if (this.ambiencefePointLight) {
+        this.ambiencefePointLight.setAttribute('x', this.config.ambience.x);
+        this.ambiencefePointLight.setAttribute('y', this.config.ambience.y);
+        this.ambiencefePointLight.setAttribute('z', this.config.ambience.z);
+      }
+    }
 
     if (this.config.spotlight.pointer && !this.monitoring) {
       this.monitoring = true;
@@ -145,8 +183,10 @@ class SpotlightNavigation {
       // Animate spotlight position
       const targetX = anchorBounds.left - navBounds.left + anchorBounds.width * 0.5 + this.config.spotlight.x;
       
-      this.spotlightfePointLight.style.transition = `x ${this.config.spotlight.speed}s ease-out`;
-      this.spotlightfePointLight.setAttribute('x', targetX);
+      if (this.spotlightfePointLight) {
+        this.spotlightfePointLight.style.transition = `x ${this.config.spotlight.speed}s ease-out`;
+        this.spotlightfePointLight.setAttribute('x', targetX);
+      }
     }
   }
 
