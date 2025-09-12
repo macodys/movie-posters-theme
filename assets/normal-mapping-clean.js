@@ -24,7 +24,6 @@ class NormalMappingEffect {
     this.contrast = 1.2;
     this.brightness = 0.1;
     this.reflectionStrength = 2.0;
-    this.preserveColors = true;
     this.hue = 0.0;
     
     this.init().catch(error => {
@@ -163,13 +162,6 @@ class NormalMappingEffect {
         <span id="hueValue" style="color: #ccc; font-size: 11px;">${this.hue}°</span>
       </div>
       
-      <div style="margin-bottom: 12px;">
-        <label style="display: flex; align-items: center; margin-bottom: 4px;">
-          <input type="checkbox" id="debugPreserveColors" ${this.preserveColors ? 'checked' : ''} style="margin-right: 8px;">
-          Preserve Original Colors
-        </label>
-      </div>
-      
       <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
         <div style="font-size: 11px; color: #999;">Move mouse to drag the light</div>
         <button id="copyValues" style="margin-top: 8px; padding: 6px 12px; background: #333; border: 1px solid #555; color: #fff; border-radius: 4px; cursor: pointer; font-size: 11px;">Copy Values</button>
@@ -194,7 +186,6 @@ class NormalMappingEffect {
     const brightnessSlider = document.getElementById('debugBrightness');
     const reflectionStrengthSlider = document.getElementById('debugReflectionStrength');
     const hueSlider = document.getElementById('debugHue');
-    const preserveColorsCheckbox = document.getElementById('debugPreserveColors');
     const copyButton = document.getElementById('copyValues');
     
     const normalIntensityValue = document.getElementById('normalIntensityValue');
@@ -264,10 +255,6 @@ class NormalMappingEffect {
       hueValue.textContent = this.hue + '°';
     });
     
-    preserveColorsCheckbox.addEventListener('change', (e) => {
-      this.preserveColors = e.target.checked;
-    });
-    
     copyButton.addEventListener('click', () => {
       const values = {
         normalIntensity: this.normalIntensity,
@@ -280,8 +267,7 @@ class NormalMappingEffect {
         contrast: this.contrast,
         brightness: this.brightness,
         reflectionStrength: this.reflectionStrength,
-        hue: this.hue,
-        preserveColors: this.preserveColors
+        hue: this.hue
       };
       
       const valuesText = `this.normalIntensity = ${this.normalIntensity};
@@ -294,8 +280,7 @@ this.saturation = ${this.saturation};
 this.contrast = ${this.contrast};
 this.brightness = ${this.brightness};
 this.reflectionStrength = ${this.reflectionStrength};
-this.hue = ${this.hue};
-this.preserveColors = ${this.preserveColors};`;
+this.hue = ${this.hue};`;
       
       navigator.clipboard.writeText(valuesText).then(() => {
         copyButton.textContent = 'Copied!';
@@ -425,7 +410,6 @@ this.preserveColors = ${this.preserveColors};`;
       uniform float u_brightness;
       uniform float u_reflectionStrength;
       uniform float u_hue;
-      uniform bool u_preserveColors;
       
       varying vec2 v_texCoord;
       
@@ -509,28 +493,21 @@ this.preserveColors = ${this.preserveColors};`;
         vec3 lightColor = hueShift(vec3(1.2, 1.1, 1.0), u_hue);
         vec3 specColor = hueShift(vec3(1.5, 1.3, 1.0), u_hue);
         
-        vec3 color;
-        if (u_preserveColors) {
-          // Preserve original colors - only add lighting intensity, not color shifts
-          float lightingIntensity = 0.15 + NdotL * atten + spec * 0.3 + rim * 0.2;
-          color = albedo * lightingIntensity;
-          
-          // Apply only brightness and contrast for color preservation mode
-          color = (color - 0.5) * u_contrast + 0.5 + u_brightness;
-        } else {
-          // Full color modification
-          color = ambient
-                 + diffuse * lightColor
-                 + spec * specColor
-                 + rim * (0.5 + 0.8 * albedo) * u_reflectionStrength;
-          
-          // Apply brightness and contrast
-          color = (color - 0.5) * u_contrast + 0.5 + u_brightness;
-          
-          // Apply saturation
-          float luminance = dot(color, vec3(0.299, 0.587, 0.114));
-          color = mix(vec3(luminance), color, u_saturation);
-        }
+        // Full color modification with hue shift
+        vec3 color = ambient
+                   + diffuse * lightColor
+                   + spec * specColor
+                   + rim * (0.5 + 0.8 * albedo) * u_reflectionStrength;
+        
+        // Apply brightness and contrast
+        color = (color - 0.5) * u_contrast + 0.5 + u_brightness;
+        
+        // Apply saturation
+        float luminance = dot(color, vec3(0.299, 0.587, 0.114));
+        color = mix(vec3(luminance), color, u_saturation);
+        
+        // Apply hue shift to the final result
+        color = hueShift(color, u_hue);
         
         // Vignette & subtle filmic curve
         vec2 q = uv - 0.5;
@@ -754,7 +731,6 @@ this.preserveColors = ${this.preserveColors};`;
       const brightnessLocation = this.gl.getUniformLocation(this.program, 'u_brightness');
       const reflectionStrengthLocation = this.gl.getUniformLocation(this.program, 'u_reflectionStrength');
       const hueLocation = this.gl.getUniformLocation(this.program, 'u_hue');
-      const preserveColorsLocation = this.gl.getUniformLocation(this.program, 'u_preserveColors');
       
       this.gl.uniform1i(posterTextureLocation, 0);
       this.gl.uniform1i(normalTextureLocation, 1);
@@ -772,7 +748,6 @@ this.preserveColors = ${this.preserveColors};`;
       this.gl.uniform1f(brightnessLocation, this.brightness);
       this.gl.uniform1f(reflectionStrengthLocation, this.reflectionStrength);
       this.gl.uniform1f(hueLocation, this.hue);
-      this.gl.uniform1i(preserveColorsLocation, this.preserveColors ? 1 : 0);
       
       // Bind textures
       this.gl.activeTexture(this.gl.TEXTURE0);
