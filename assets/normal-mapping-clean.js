@@ -472,20 +472,23 @@ this.preserveColors = ${this.preserveColors};`;
           // Preserve original colors - only add lighting intensity, not color shifts
           float lightingIntensity = 0.15 + NdotL * atten + spec * 0.3 + rim * 0.2;
           color = albedo * lightingIntensity;
+          
+          // Apply only brightness and contrast for color preservation mode
+          color = (color - 0.5) * u_contrast + 0.5 + u_brightness;
         } else {
           // Full color modification
           color = ambient
                  + diffuse * lightColor
                  + spec * specColor
                  + rim * (0.5 + 0.8 * albedo) * u_reflectionStrength;
+          
+          // Apply brightness and contrast
+          color = (color - 0.5) * u_contrast + 0.5 + u_brightness;
+          
+          // Apply saturation
+          float luminance = dot(color, vec3(0.299, 0.587, 0.114));
+          color = mix(vec3(luminance), color, u_saturation);
         }
-        
-        // Apply brightness and contrast
-        color = (color - 0.5) * u_contrast + 0.5 + u_brightness;
-        
-        // Apply saturation
-        float luminance = dot(color, vec3(0.299, 0.587, 0.114));
-        color = mix(vec3(luminance), color, u_saturation);
         
         // Vignette & subtle filmic curve
         vec2 q = uv - 0.5;
