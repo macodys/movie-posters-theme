@@ -138,7 +138,10 @@ class CountrySelector {
       'sv': { hasProducts: true, productCount: 0 }
     };
     
-    this.currentCountry = this.getStoredCountry() || 'US';
+    // Detect current market from URL first
+    const currentMarket = this.getCurrentMarket();
+    const marketCountry = this.countries.find(c => c.market === currentMarket);
+    this.currentCountry = marketCountry ? marketCountry.code : (this.getStoredCountry() || 'US');
     this.filteredCountries = [...this.countries];
     this.isDetecting = false;
     
@@ -1034,6 +1037,54 @@ class CountrySelector {
     }
   }
   
+  redirectToMarket(countryCode) {
+    const country = this.countries.find(c => c.code === countryCode);
+    if (!country || !country.market) return;
+    
+    const currentUrl = new URL(window.location.href);
+    const currentPath = currentUrl.pathname;
+    
+    // Check if we're already on the correct market
+    if (currentPath.startsWith(`/markets/${country.market}`)) {
+      return; // Already on the correct market
+    }
+    
+    // Build the new URL with the market prefix
+    let newPath = currentPath;
+    if (currentPath.startsWith('/markets/')) {
+      // Replace existing market
+      newPath = currentPath.replace(/^\/markets\/[^\/]+/, '');
+    }
+    if (!newPath.startsWith('/')) {
+      newPath = '/' + newPath;
+    }
+    
+    const newUrl = `/markets/${country.market}${newPath}`;
+    
+    // Add query parameters if they exist
+    if (currentUrl.search) {
+      const newUrlObj = new URL(newUrl, window.location.origin);
+      currentUrl.searchParams.forEach((value, key) => {
+        newUrlObj.searchParams.set(key, value);
+      });
+      window.location.href = newUrlObj.toString();
+    } else {
+      window.location.href = newUrl;
+    }
+  }
+
+  getCurrentMarket() {
+    // Extract market from current URL
+    const currentUrl = new URL(window.location.href);
+    const pathMatch = currentUrl.pathname.match(/^\/markets\/([^\/]+)/);
+    if (pathMatch) {
+      return pathMatch[1];
+    }
+    
+    // Fallback to stored market
+    return localStorage.getItem('selectedMarket') || 'us';
+  }
+
   showRegionNotification(country) {
     // Create region filter notification
     const notification = document.createElement('div');
@@ -1058,7 +1109,7 @@ class CountrySelector {
     notification.innerHTML = `
       <div style="display: flex; align-items: center; gap: 8px;">
         <span style="font-size: 16px;">${country.flag}</span>
-        <span>Showing products for ${country.name}</span>
+        <span>Redirecting to ${country.name} market...</span>
       </div>
     `;
     
