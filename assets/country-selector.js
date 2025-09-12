@@ -134,7 +134,7 @@ class CountrySelector {
       }
       
       // For other markets, try to get market-specific products
-      let catalogResponse;
+      let catalogData;
       const apiEndpoints = [
         `/collections/all/products.json?market=${currentMarket}&limit=250`,
         `/collections/all/products.json?market=${currentMarket}`,
@@ -146,12 +146,12 @@ class CountrySelector {
       for (const endpoint of apiEndpoints) {
         try {
           console.log(`Trying API endpoint: ${endpoint}`);
-          catalogResponse = await fetch(endpoint);
-          if (catalogResponse.ok) {
-            const testData = await catalogResponse.json();
-            console.log(`API ${endpoint} returned ${testData.products?.length || 0} products`);
+          const response = await fetch(endpoint);
+          if (response.ok) {
+            catalogData = await response.json();
+            console.log(`API ${endpoint} returned ${catalogData.products?.length || 0} products`);
             
-            if (testData.products?.length > 0) {
+            if (catalogData.products?.length > 0) {
               productsFound = true;
               break;
             }
@@ -161,13 +161,12 @@ class CountrySelector {
         }
       }
       
-      if (!productsFound || !catalogResponse?.ok) {
+      if (!productsFound || !catalogData) {
         console.warn('Could not fetch products for market:', currentMarket);
         this.hideAllProducts();
         return;
       }
       
-      const catalogData = await catalogResponse.json();
       console.log(`Found ${catalogData.products.length} products for market: ${currentMarket}`);
       
       // Get all product handles that should be visible in this market
