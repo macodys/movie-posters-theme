@@ -223,22 +223,7 @@ class CountrySelector {
       
       if (!currentMarket) return;
       
-      // Check market catalog configuration first
-      const marketConfig = this.marketCatalogConfig[currentMarket.toLowerCase()];
-      if (marketConfig) {
-        console.log(`Market ${currentMarket} config: hasProducts=${marketConfig.hasProducts}, productCount=${marketConfig.productCount}`);
-        
-        if (!marketConfig.hasProducts || marketConfig.productCount === 0) {
-          console.log(`Market ${currentMarket} has no products - hiding all products`);
-          this.hideAllProducts();
-          return;
-        }
-        
-        // If market has products but we want to verify, we can add a verification step here
-        if (marketConfig.hasProducts && marketConfig.productCount > 0) {
-          console.log(`Market ${currentMarket} configured to have ${marketConfig.productCount} products - proceeding with API call`);
-        }
-      }
+      // Do not rely on hardcoded market configuration; use server-rendered data exclusively
       
       // First, try server-rendered market-aware JSON views (respects Markets/Catalogs)
       console.log(`Trying server-rendered market JSON for market: ${currentMarket}`);
@@ -256,62 +241,9 @@ class CountrySelector {
         }
       }
 
-      // Fallback: API isn't properly filtering by market; fetch all products then filter by config
-      console.log(`Fetching all products and filtering for market: ${currentMarket}`);
-      
-      let catalogData;
-      try {
-        const response = await fetch('/collections/all/products.json?limit=250');
-        if (!response.ok) {
-          console.warn('Could not fetch products');
-          this.hideAllProducts();
-          return;
-        }
-        
-        catalogData = await response.json();
-        console.log(`Fetched ${catalogData.products.length} total products from API`);
-      } catch (error) {
-        console.warn('Could not fetch products:', error);
-        this.hideAllProducts();
-        return;
-      }
-      
-      // For markets with products, we need to determine which products to show
-      // We'll try to get the actual market-specific products using different API approaches
-      let visibleProductHandles;
-      
-      // Try to get market-specific products using the market parameter (may not be reliable)
-      try {
-        console.log(`Attempting to get market-specific products for ${currentMarket}`);
-        const marketResponse = await fetch(`/collections/all/products.json?market=${currentMarket}&limit=250`);
-        
-        if (marketResponse.ok) {
-          const marketData = await marketResponse.json();
-          console.log(`Market-specific API returned ${marketData.products.length} products for ${currentMarket}`);
-          
-          // If the market API returns fewer products than the general API, use those
-          if (marketData.products.length < catalogData.products.length) {
-            console.log(`Using market-specific products (${marketData.products.length} vs ${catalogData.products.length})`);
-            visibleProductHandles = new Set(marketData.products.map(product => product.handle));
-          } else {
-            // If market API returns same or more products, it's not filtering properly
-            console.log(`Market API not filtering properly, using configuration-based approach`);
-            this.useConfigurationBasedFiltering(currentMarket, catalogData, marketConfig);
-            return;
-          }
-        } else {
-          console.log(`Market-specific API failed, using configuration-based approach`);
-          this.useConfigurationBasedFiltering(currentMarket, catalogData, marketConfig);
-          return;
-        }
-      } catch (error) {
-        console.log(`Market-specific API error, using configuration-based approach:`, error);
-        this.useConfigurationBasedFiltering(currentMarket, catalogData, marketConfig);
-        return;
-      }
-      
-      // Apply the filtering
-      this.applyProductFiltering(visibleProductHandles, currentMarket);
+      // If market JSON is unavailable, fail closed to avoid showing wrong-market products
+      console.warn('Market JSON unavailable; hiding products to avoid wrong-market display');
+      this.hideAllProducts();
       
     } catch (error) {
       console.warn('Could not load product regions from catalog:', error);
