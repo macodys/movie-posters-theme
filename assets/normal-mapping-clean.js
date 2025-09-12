@@ -86,6 +86,10 @@ class NormalMappingEffect {
       min-width: 250px;
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.1);
+      display: none;
+      opacity: 0;
+      transform: translateX(-20px);
+      transition: all 0.3s ease;
     `;
     
     this.debugPanel.innerHTML = `
@@ -159,6 +163,8 @@ class NormalMappingEffect {
     
     document.body.appendChild(this.debugPanel);
     this.setupDebugEventListeners();
+    this.setupKonamiCode();
+    this.addKonamiStyles();
   }
   
   setupDebugEventListeners() {
@@ -267,6 +273,88 @@ this.reflectionStrength = ${this.reflectionStrength};`;
         }, 2000);
       });
     });
+  }
+  
+  setupKonamiCode() {
+    // Konami Code: ↑↑↓↓←→←→BA
+    const konamiCode = [
+      'ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown',
+      'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight',
+      'KeyB', 'KeyA'
+    ];
+    
+    let konamiIndex = 0;
+    let isDebugVisible = false;
+    
+    const handleKeyPress = (event) => {
+      if (event.code === konamiCode[konamiIndex]) {
+        konamiIndex++;
+        
+        if (konamiIndex === konamiCode.length) {
+          // Konami code completed!
+          isDebugVisible = !isDebugVisible;
+          
+          if (isDebugVisible) {
+            this.debugPanel.style.display = 'block';
+            // Trigger animation
+            setTimeout(() => {
+              this.debugPanel.style.opacity = '1';
+              this.debugPanel.style.transform = 'translateX(0)';
+            }, 10);
+            
+            // Add a fun message
+            const message = document.createElement('div');
+            message.style.cssText = `
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              background: rgba(0,0,0,0.9);
+              color: #00ff00;
+              padding: 20px;
+              border-radius: 10px;
+              font-family: monospace;
+              font-size: 18px;
+              z-index: 1001;
+              border: 2px solid #00ff00;
+              animation: pulse 0.5s ease-in-out;
+            `;
+            message.textContent = '🎮 Debug Mode Activated! 🎮';
+            document.body.appendChild(message);
+            
+            setTimeout(() => {
+              message.remove();
+            }, 2000);
+            
+          } else {
+            this.debugPanel.style.opacity = '0';
+            this.debugPanel.style.transform = 'translateX(-20px)';
+            setTimeout(() => {
+              this.debugPanel.style.display = 'none';
+            }, 300);
+          }
+          
+          konamiIndex = 0; // Reset for next time
+        }
+      } else {
+        konamiIndex = 0; // Reset if wrong key
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyPress);
+  }
+  
+  addKonamiStyles() {
+    // Add CSS for the pulse animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes pulse {
+        0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+        50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
   }
   
   setupWebGL() {
