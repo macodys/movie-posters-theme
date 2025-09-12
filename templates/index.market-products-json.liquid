@@ -1,0 +1,19 @@
+{%- comment -%}
+  Fallback for the home page: returns handles of products from the 'all' collection
+  visible to the current market. Use /?view=market-products-json.
+{%- endcomment -%}
+{
+  "market": {{ localization.market.handle | default: localization.country.iso_code | downcase | json }},
+  "products": [
+    {%- assign all_collection = collections['all'] -%}
+    {%- if all_collection -%}
+      {%- paginate all_collection.products by 250 -%}
+        {%- for product in all_collection.products -%}
+          {%- if forloop.index0 > 0 -%},{%- endif -%}
+          {"handle": {{ product.handle | json }}, "id": {{ product.id }}, "title": {{ product.title | json }}}
+        {%- endfor -%}
+      {%- endpaginate -%}
+    {%- endif -%}
+  ]
+}
+

@@ -1,0 +1,19 @@
+{%- comment -%}
+  Returns a minimal JSON payload of product handles visible to the current visitor
+  for the active collection context (use with /collections/<handle>?view=market-products-json).
+  This is rendered server-side and respects Shopify Markets/Catalog product availability
+  and prices for the visitor's market.
+{%- endcomment -%}
+{
+  "collection": {{ collection.handle | json }},
+  "market": {{ localization.market.handle | default: localization.country.iso_code | downcase | json }},
+  "products": [
+    {%- paginate collection.products by 250 -%}
+      {%- for product in collection.products -%}
+        {%- if forloop.index0 > 0 -%},{%- endif -%}
+        {"handle": {{ product.handle | json }}, "id": {{ product.id }}, "title": {{ product.title | json }}}
+      {%- endfor -%}
+    {%- endpaginate -%}
+  ]
+}
+

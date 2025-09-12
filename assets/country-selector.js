@@ -145,6 +145,30 @@ class CountrySelector {
     this.init();
   }
   
+  async fetchMarketAwareProducts() {
+    try {
+      // Prefer collection context if present
+      const url = new URL(window.location.href);
+      const path = url.pathname;
+      let viewUrl = null;
+      const collectionMatch = path.match(/\/collections\/([^\/]+)/);
+      if (collectionMatch) {
+        viewUrl = `/collections/${collectionMatch[1]}?view=market-products-json`;
+      } else {
+        // Home or other pages – use index view that falls back to 'all' collection
+        viewUrl = `/?view=market-products-json`;
+      }
+      const res = await fetch(viewUrl, { headers: { 'Accept': 'application/json' } });
+      if (!res.ok) return null;
+      // Some themes return text for json views, parse safely
+      const text = await res.text();
+      try { return JSON.parse(text); } catch { return null; }
+    } catch (e) {
+      console.warn('fetchMarketAwareProducts failed:', e);
+      return null;
+    }
+  }
+
   init() {
     this.renderCountries();
     this.updateSelectedCountry();
@@ -193,8 +217,23 @@ class CountrySelector {
         }
       }
       
-      // Since the API isn't properly filtering by market, we'll use a different approach
-      // We'll fetch all products and then filter based on our configuration
+      // First, try server-rendered market-aware JSON views (respects Markets/Catalogs)
+      console.log(`Trying server-rendered market JSON for market: ${currentMarket}`);
+      const marketJsonData = await this.fetchMarketAwareProducts();
+      if (marketJsonData && Array.isArray(marketJsonData.products)) {
+        const visibleProductHandles = new Set(marketJsonData.products.map(p => p.handle));
+        if (visibleProductHandles.size > 0) {
+          console.log(`Server-rendered market JSON returned ${visibleProductHandles.size} products`);
+          this.applyProductFiltering(visibleProductHandles, currentMarket);
+          return;
+        } else if (marketConfig && marketConfig.productCount === 0) {
+          console.log('Server-rendered JSON returned 0 products; hiding all');
+          this.hideAllProducts();
+          return;
+        }
+      }
+
+      // Fallback: API isn't properly filtering by market; fetch all products then filter by config
       console.log(`Fetching all products and filtering for market: ${currentMarket}`);
       
       let catalogData;
@@ -218,7 +257,7 @@ class CountrySelector {
       // We'll try to get the actual market-specific products using different API approaches
       let visibleProductHandles;
       
-      // Try to get market-specific products using the market parameter
+      // Try to get market-specific products using the market parameter (may not be reliable)
       try {
         console.log(`Attempting to get market-specific products for ${currentMarket}`);
         const marketResponse = await fetch(`/collections/all/products.json?market=${currentMarket}&limit=250`);
