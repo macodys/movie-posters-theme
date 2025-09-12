@@ -91,9 +91,9 @@ class CountrySelector {
   }
   
   applyStoredRegionFilter() {
-    const storedRegion = localStorage.getItem('selectedRegion');
-    if (storedRegion) {
-      this.filterExistingProducts(storedRegion);
+    const storedMarket = localStorage.getItem('selectedMarket') || localStorage.getItem('selectedRegion');
+    if (storedMarket) {
+      this.filterExistingProducts(storedMarket);
     }
     
     // Apply stored country pricing
@@ -102,7 +102,7 @@ class CountrySelector {
       this.updatePricingForCountry(storedCountry);
     }
     
-    // Load product regions from your existing catalog
+    // Load product markets from your existing catalog
     this.loadProductRegionsFromCatalog();
   }
   
@@ -114,18 +114,18 @@ class CountrySelector {
       
       const data = await response.json();
       
-      // Update product cards with region data from your catalog
+      // Get current market from URL or stored preference
+      const currentMarket = this.getCurrentMarket();
+      console.log('Current market:', currentMarket);
+      
+      // Update product cards with market data
       data.products.forEach(product => {
-        const region = this.getProductRegionFromCatalog(product);
-        if (region) {
-          this.updateProductCardRegion(product.handle, region);
-        }
+        this.updateProductCardRegion(product.handle, currentMarket);
       });
       
-      // Re-apply current region filter after loading product data
-      const currentRegion = localStorage.getItem('selectedRegion');
-      if (currentRegion) {
-        this.filterExistingProducts(currentRegion);
+      // Re-apply current market filter after loading product data
+      if (currentMarket) {
+        this.filterExistingProducts(currentMarket);
       }
     } catch (error) {
       console.warn('Could not load product regions from catalog:', error);
@@ -632,99 +632,55 @@ class CountrySelector {
     }
   }
   
-  // Filter products by region
+  // Filter products by market
   filterProductsByRegion(countryCode) {
     const country = this.countries.find(c => c.code === countryCode);
     if (!country) return;
     
-    // Get the region from your existing product data
-    const region = this.getRegionForCountry(countryCode);
+    // Use the market directly from the country data
+    const market = country.market || countryCode;
+    console.log(`Filtering products for country: ${countryCode}, market: ${market}`);
     
-    // Add region filter to all product requests
-    this.addRegionFilter(region);
+    // Store the selected market
+    localStorage.setItem('selectedMarket', market);
+    localStorage.setItem('selectedRegion', market); // Keep for compatibility
     
-    // Update collection URLs with region parameter
-    this.updateCollectionUrls(region);
+    // Add market filter to all product requests
+    this.addRegionFilter(market);
+    
+    // Update collection URLs with market parameter
+    this.updateCollectionUrls(market);
     
     // Filter existing products on the page
-    this.filterExistingProducts(region);
+    this.filterExistingProducts(market);
     
-    // Show region notification
+    // Show market notification
     this.showRegionNotification(country);
   }
   
-  getRegionForCountry(countryCode) {
-    // Map country codes to your existing region names
-    const regionMap = {
-      'US': 'north-america',
-      'CA': 'north-america', 
-      'MX': 'north-america',
-      'GB': 'europe',
-      'DE': 'europe',
-      'FR': 'europe',
-      'IT': 'europe',
-      'ES': 'europe',
-      'NL': 'europe',
-      'SE': 'europe',
-      'NO': 'europe',
-      'DK': 'europe',
-      'FI': 'europe',
-      'CH': 'europe',
-      'AT': 'europe',
-      'BE': 'europe',
-      'PL': 'europe',
-      'CZ': 'europe',
-      'HU': 'europe',
-      'PT': 'europe',
-      'GR': 'europe',
-      'RU': 'europe',
-      'JP': 'asia',
-      'CN': 'asia',
-      'KR': 'asia',
-      'TH': 'asia',
-      'SG': 'asia',
-      'MY': 'asia',
-      'ID': 'asia',
-      'PH': 'asia',
-      'VN': 'asia',
-      'IN': 'asia',
-      'AU': 'oceania',
-      'BR': 'south-america',
-      'AR': 'south-america',
-      'CL': 'south-america',
-      'CO': 'south-america',
-      'PE': 'south-america',
-      'VE': 'south-america',
-      'UY': 'south-america',
-      'PY': 'south-america',
-      'BO': 'south-america',
-      'EC': 'south-america',
-      'ZA': 'africa',
-      'EG': 'africa',
-      'NG': 'africa',
-      'KE': 'africa'
-    };
-    
-    return regionMap[countryCode] || countryCode.toLowerCase();
-  }
+  // This method is no longer needed since we use markets directly
+  // getRegionForCountry() removed - using markets from country data instead
   
-  addRegionFilter(region) {
-    // Store current region for future requests
-    localStorage.setItem('selectedRegion', region);
+  addRegionFilter(market) {
+    // Store current market for future requests
+    localStorage.setItem('selectedMarket', market);
+    localStorage.setItem('selectedRegion', market); // Keep for compatibility
     
-    // Update all forms to include region parameter
+    // Update all forms to include market parameter
     const forms = document.querySelectorAll('form[action*="/collections/"]');
     forms.forEach(form => {
-      this.addHiddenInput(form, 'region', region);
+      this.addHiddenInput(form, 'market', market);
+      this.addHiddenInput(form, 'region', market); // Keep for compatibility
     });
   }
   
-  updateCollectionUrls(region) {
-    // Update navigation links to include region parameter
+  updateCollectionUrls(market) {
+    // Update navigation links to include market parameter
     const navLinks = document.querySelectorAll('.nav-button[href*="/collections/"]');
     navLinks.forEach(link => {
       const url = new URL(link.href);
-      url.searchParams.set('region', region);
+      url.searchParams.set('market', market);
+      url.searchParams.set('region', market); // Keep for compatibility
       link.href = url.toString();
     });
     
@@ -732,15 +688,16 @@ class CountrySelector {
     const productLinks = document.querySelectorAll('a[href*="/collections/"]');
     productLinks.forEach(link => {
       const url = new URL(link.href);
-      url.searchParams.set('region', region);
+      url.searchParams.set('market', market);
+      url.searchParams.set('region', market); // Keep for compatibility
       link.href = url.toString();
     });
   }
   
-  filterExistingProducts(region) {
-    console.log('Filtering products for region:', region);
+  filterExistingProducts(market) {
+    console.log('Filtering products for market:', market);
     
-    // Filter product cards based on region
+    // Filter product cards based on market
     const productCards = document.querySelectorAll('.product-card, .poster-card, [data-product-region]');
     console.log('Found product cards:', productCards.length);
     
@@ -748,10 +705,10 @@ class CountrySelector {
     let hiddenCount = 0;
     
     productCards.forEach(card => {
-      const productRegion = card.dataset.productRegion;
-      const isVisible = this.isProductVisibleInRegion(productRegion, region);
+      const productMarket = card.dataset.productRegion; // Using same attribute for market
+      const isVisible = this.isProductVisibleInRegion(productMarket, market);
       
-      console.log(`Product region: "${productRegion}", Selected region: "${region}", Visible: ${isVisible}`);
+      console.log(`Product market: "${productMarket}", Selected market: "${market}", Visible: ${isVisible}`);
       
       if (isVisible) {
         card.style.display = 'block';
@@ -770,26 +727,26 @@ class CountrySelector {
     this.updateCollectionCounts();
   }
   
-  isProductVisibleInRegion(productRegion, selectedRegion) {
-    // If no product region is set, show globally
-    if (!productRegion || productRegion === '') return true;
+  isProductVisibleInRegion(productMarket, selectedMarket) {
+    // If no product market is set, show globally
+    if (!productMarket || productMarket === '') return true;
     
     // If product is marked as global, show everywhere
-    if (productRegion === 'global' || productRegion === 'all') return true;
+    if (productMarket === 'global' || productMarket === 'all') return true;
     
-    // Check if product region matches selected region exactly
-    if (productRegion === selectedRegion) return true;
+    // Check if product market matches selected market exactly
+    if (productMarket === selectedMarket) return true;
     
-    // Check if product region is a comma-separated list of regions
-    if (productRegion.includes(',')) {
-      const regions = productRegion.split(',').map(r => r.trim().toLowerCase());
-      return regions.includes(selectedRegion.toLowerCase());
+    // Check if product market is a comma-separated list of markets
+    if (productMarket.includes(',')) {
+      const markets = productMarket.split(',').map(m => m.trim().toLowerCase());
+      return markets.includes(selectedMarket.toLowerCase());
     }
     
-    // Check if product region contains the selected region (for partial matches)
-    if (productRegion.toLowerCase().includes(selectedRegion.toLowerCase())) return true;
+    // Check if product market contains the selected market (for partial matches)
+    if (productMarket.toLowerCase().includes(selectedMarket.toLowerCase())) return true;
     
-    // If product has a specific region and it doesn't match, hide it
+    // If product has a specific market and it doesn't match, hide it
     return false;
   }
   
