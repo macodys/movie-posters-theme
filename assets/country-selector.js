@@ -79,6 +79,13 @@ class CountrySelector {
     // Store fallback countries for reference
     this.fallbackCountries = this.countries;
     
+    // Your actual markets - UPDATE THIS LIST with your real markets
+    this.yourActualMarkets = [
+      { code: 'US', market: 'us', name: 'United States', currency: 'USD' },
+      { code: 'GB', market: 'gb', name: 'United Kingdom', currency: 'GBP' }
+      // Add more markets here as you create them in Shopify
+    ];
+    
     // Market catalog configuration - based on your actual Shopify catalog settings
     this.marketCatalogConfig = {
       'us': { hasProducts: true, productCount: 21 },
@@ -144,8 +151,13 @@ class CountrySelector {
       'sv': { hasProducts: true, productCount: 0 }
     };
     
-    // Initialize countries from Shopify data or use fallback
+    // Initialize countries from your actual markets only
     this.countries = this.initializeCountries();
+    
+    // Add your actual markets
+    this.yourActualMarkets.forEach(market => {
+      this.addSpecificMarket(market);
+    });
     
     // Detect current market from URL first
     const currentMarket = this.getCurrentMarket();
@@ -296,30 +308,14 @@ class CountrySelector {
         this.addMarketIfNotExists(window.ShopifyTheme.market);
       }
       
-      // Method 5: Try common market codes
-      const commonMarkets = ['us', 'gb', 'ca', 'au', 'de', 'fr', 'it', 'es', 'jp', 'br', 'mx'];
-      commonMarkets.forEach(market => {
-        this.addMarketIfNotExists(market);
-      });
+      // Method 5: Only add markets that we can verify exist
+      // Only add markets that are confirmed to exist in your Shopify setup
+      const confirmedMarkets = ['us', 'gb']; // Start with only confirmed markets
       
-      // Method 6: Add your specific markets (update this list with your actual markets)
-      const yourMarkets = [
-        { code: 'US', market: 'us', name: 'United States', currency: 'USD' },
-        { code: 'GB', market: 'gb', name: 'United Kingdom', currency: 'GBP' },
-        { code: 'CA', market: 'ca', name: 'Canada', currency: 'CAD' },
-        { code: 'AU', market: 'au', name: 'Australia', currency: 'AUD' },
-        { code: 'DE', market: 'de', name: 'Germany', currency: 'EUR' },
-        { code: 'FR', market: 'fr', name: 'France', currency: 'EUR' },
-        { code: 'IT', market: 'it', name: 'Italy', currency: 'EUR' },
-        { code: 'ES', market: 'es', name: 'Spain', currency: 'EUR' },
-        { code: 'JP', market: 'jp', name: 'Japan', currency: 'JPY' },
-        { code: 'BR', market: 'br', name: 'Brazil', currency: 'BRL' },
-        { code: 'MX', market: 'mx', name: 'Mexico', currency: 'MXN' }
-      ];
-      
-      yourMarkets.forEach(market => {
-        this.addSpecificMarket(market);
-      });
+      // Try to verify each market exists before adding
+      for (const market of confirmedMarkets) {
+        await this.verifyMarketExists(market);
+      }
       
     } catch (error) {
       console.error('Error loading markets from Shopify:', error);
@@ -367,6 +363,29 @@ class CountrySelector {
       
       // Update the UI if it's already rendered
       this.renderCountries();
+    }
+  }
+  
+  async verifyMarketExists(marketCode) {
+    try {
+      // Try to access a market-specific URL to see if it exists
+      const testUrl = `/markets/${marketCode}/`;
+      const response = await fetch(testUrl, {
+        method: 'HEAD',
+        credentials: 'same-origin'
+      });
+      
+      if (response.ok) {
+        console.log(`Market ${marketCode} exists, adding to selector`);
+        this.addMarketIfNotExists(marketCode);
+        return true;
+      } else {
+        console.log(`Market ${marketCode} does not exist (${response.status})`);
+        return false;
+      }
+    } catch (error) {
+      console.log(`Could not verify market ${marketCode}:`, error.message);
+      return false;
     }
   }
   
@@ -1376,40 +1395,46 @@ class CountrySelector {
     localStorage.setItem('selectedMarket', country.market);
     localStorage.setItem('selectedCountry', countryCode);
     
-    // Use Shopify's proper localization approach
-    // Create a form to submit to Shopify's localization endpoint
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/localization';
-    form.style.display = 'none';
+    // Use URL parameter approach instead of /localization endpoint
+    const currentUrl = new URL(window.location.href);
     
-    // Add the country parameter (using ISO code as recommended in the guide)
-    const countryInput = document.createElement('input');
-    countryInput.type = 'hidden';
-    countryInput.name = 'country_code';
-    countryInput.value = countryCode;
-    form.appendChild(countryInput);
-    
-    // Add the return URL
-    const returnInput = document.createElement('input');
-    returnInput.type = 'hidden';
-    returnInput.name = 'return_to';
-    returnInput.value = window.location.pathname + window.location.search;
-    form.appendChild(returnInput);
-    
-    // Add CSRF token if available
-    const csrfToken = document.querySelector('meta[name="csrf-token"]');
-    if (csrfToken) {
-      const csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = 'authenticity_token';
-      csrfInput.value = csrfToken.getAttribute('content');
-      form.appendChild(csrfInput);
+    // Check if we're already on the correct market
+    const currentMarket = this.getCurrentMarket();
+    if (currentMarket === country.market) {
+      console.log('Already on correct market:', country.market);
+      return;
     }
     
-    // Submit the form to change the localization context
-    document.body.appendChild(form);
-    form.submit();
+    // Try different URL patterns for market switching
+    let newUrl;
+    
+    // Method 1: Try /markets/ URL pattern
+    if (window.location.pathname.startsWith('/markets/')) {
+      // Replace existing market
+      newUrl = window.location.pathname.replace(/^\/markets\/[^\/]+/, `/markets/${country.market}`);
+    } else {
+      // Add market to URL
+      newUrl = `/markets/${country.market}${window.location.pathname}`;
+    }
+    
+    // Add query parameters
+    if (currentUrl.search) {
+      newUrl += currentUrl.search;
+    }
+    
+    // Add market parameter as backup
+    const urlObj = new URL(newUrl, window.location.origin);
+    urlObj.searchParams.set('market', country.market);
+    
+    console.log('Redirecting to:', urlObj.toString());
+    
+    // Show loading state
+    this.showMarketNotification(country);
+    
+    // Redirect after a short delay to show the notification
+    setTimeout(() => {
+      window.location.href = urlObj.toString();
+    }, 1000);
   }
 
   getCurrentMarket() {
