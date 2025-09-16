@@ -830,9 +830,16 @@ class CountrySelector {
         this.updateSelectedCountry();
         this.storeCountry(countryCode);
         
-        // Always redirect to the detected country's market
-        console.log('Redirecting to detected country market...');
-        this.redirectToMarket(countryCode);
+        // Only redirect if we're not already on the correct market
+        const currentMarket = this.getCurrentMarket();
+        const detectedMarket = this.countries.find(c => c.code === countryCode)?.market;
+        
+        if (currentMarket !== detectedMarket) {
+          console.log('Redirecting to detected country market...');
+          this.redirectToMarket(countryCode);
+        } else {
+          console.log('Already on correct market, no redirect needed');
+        }
       } else {
         console.log('Country detection failed or country not supported, using US fallback');
         // Fallback to US if detection fails
@@ -840,8 +847,11 @@ class CountrySelector {
         this.updateSelectedCountry();
         this.storeCountry('US');
         
-        // Redirect to US market
-        this.redirectToMarket('US');
+        // Only redirect to US if we're not already on US market
+        const currentMarket = this.getCurrentMarket();
+        if (currentMarket !== 'us') {
+          this.redirectToMarket('US');
+        }
       }
     } catch (error) {
       console.warn('Country detection failed:', error);
@@ -849,8 +859,11 @@ class CountrySelector {
       this.updateSelectedCountry();
       this.storeCountry('US');
       
-      // Redirect to US market as fallback
-      this.redirectToMarket('US');
+      // Only redirect to US if we're not already on US market
+      const currentMarket = this.getCurrentMarket();
+      if (currentMarket !== 'us') {
+        this.redirectToMarket('US');
+      }
     } finally {
       this.isDetecting = false;
       this.updateButtonState();
