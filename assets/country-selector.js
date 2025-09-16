@@ -6,6 +6,7 @@ class CountrySelector {
     this.countryList = document.getElementById('countryList');
     this.selectedCountry = document.getElementById('selectedCountry');
     this.selectedCurrency = document.getElementById('selectedCurrency');
+    this.selectedFlag = document.getElementById('selectedFlag');
     this.countrySelector = document.querySelector('.country-selector');
     
     // Initialize countries from Shopify data or fallback to static list
@@ -1114,6 +1115,11 @@ class CountrySelector {
       if (this.selectedCurrency) {
         // Use currency symbol if available, otherwise use currency code
         this.selectedCurrency.textContent = country.currencySymbol || country.currency;
+      }
+      
+      // Update the flag
+      if (this.selectedFlag) {
+        this.selectedFlag.textContent = country.flag || '🌍';
       }
     }
   }
