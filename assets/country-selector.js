@@ -155,11 +155,32 @@ class CountrySelector {
     this.isDetecting = false;
     
     this.init();
+    
+    // Debug: Log what markets are available
+    this.debugMarkets();
+  }
+  
+  debugMarkets() {
+    console.log('=== MARKET DEBUG INFO ===');
+    console.log('Current market:', this.currentMarket);
+    console.log('Current country:', this.currentCountry);
+    console.log('Available countries:', this.countries.length);
+    console.log('Countries list:', this.countries.map(c => `${c.name} (${c.code}) - ${c.market}`));
+    
+    if (window.ShopifyTheme) {
+      console.log('ShopifyTheme.availableMarkets:', window.ShopifyTheme.availableMarkets);
+      console.log('ShopifyTheme.debug:', window.ShopifyTheme.debug);
+    }
+    console.log('========================');
   }
   
   initializeCountries() {
-    // Use Shopify's actual market data following localization best practices
-    if (window.ShopifyTheme && window.ShopifyTheme.availableMarkets) {
+    console.log('Initializing countries with Shopify data...');
+    console.log('ShopifyTheme:', window.ShopifyTheme);
+    
+    // Try to use Shopify's actual market data following localization best practices
+    if (window.ShopifyTheme && window.ShopifyTheme.availableMarkets && window.ShopifyTheme.availableMarkets.length > 0) {
+      console.log('Using availableMarkets:', window.ShopifyTheme.availableMarkets);
       return window.ShopifyTheme.availableMarkets.map(market => ({
         code: market.country,
         name: market.countryName, // Use localized country name
@@ -171,8 +192,53 @@ class CountrySelector {
       }));
     }
     
+    // Try debug markets as fallback
+    if (window.ShopifyTheme && window.ShopifyTheme.debug && window.ShopifyTheme.debug.allMarkets && window.ShopifyTheme.debug.allMarkets.length > 0) {
+      console.log('Using debug allMarkets:', window.ShopifyTheme.debug.allMarkets);
+      return window.ShopifyTheme.debug.allMarkets.map(market => ({
+        code: market.country,
+        name: market.countryName,
+        flag: this.getFlagForCountry(market.country),
+        market: market.handle,
+        currency: market.currency,
+        currencySymbol: market.currencySymbol,
+        region: this.getRegionForCountry(market.country)
+      }));
+    }
+    
+    console.log('Falling back to static list');
     // Fallback to static list
     return this.fallbackCountries;
+  }
+  
+  async fetchMarketsFromAPI() {
+    try {
+      console.log('Attempting to fetch markets from Shopify API...');
+      const response = await fetch('/collections/all/products.json?limit=1', {
+        credentials: 'same-origin'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('API response:', data);
+        
+        // Try to extract market information from response headers or data
+        const markets = [];
+        
+        // Check if there's market information in the response
+        if (data.products && data.products.length > 0) {
+          // This is a basic fallback - in practice, you'd need to make specific API calls
+          // to get market information, but this gives us a starting point
+          console.log('Found products, but no direct market info in API response');
+        }
+        
+        return markets;
+      }
+    } catch (error) {
+      console.error('Error fetching markets from API:', error);
+    }
+    
+    return [];
   }
   
   getFlagForCountry(countryCode) {

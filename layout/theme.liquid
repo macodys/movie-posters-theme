@@ -39,7 +39,25 @@
             currencySymbol: '{{ market.currency.symbol }}'
           }{% unless forloop.last %},{% endunless %}
           {% endfor %}
-        ]
+        ],
+        // Debug information
+        debug: {
+          availableMarketsCount: {{ localization.available_markets.size }},
+          currentMarket: '{{ localization.market.handle }}',
+          currentCountry: '{{ localization.country.iso_code }}',
+          allMarkets: [
+            {% for market in shop.metafields.shopify_markets %}
+            {
+              handle: '{{ market.value.handle }}',
+              name: '{{ market.value.name }}',
+              country: '{{ market.value.country.iso_code }}',
+              countryName: '{{ market.value.country.name }}',
+              currency: '{{ market.value.currency.iso_code }}',
+              currencySymbol: '{{ market.value.currency.symbol }}'
+            }{% unless forloop.last %},{% endunless %}
+            {% endfor %}
+          ]
+        }
       };
     </script>
   </head>
