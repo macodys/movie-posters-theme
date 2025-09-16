@@ -815,34 +815,42 @@ class CountrySelector {
   }
   
   async detectCountryFromIP() {
-    // Skip if user has already manually selected a country
-    if (this.getStoredCountry()) {
-      return;
-    }
-    
     this.isDetecting = true;
     this.updateButtonState('Detecting...');
     
     try {
+      console.log('Starting country detection...');
+      
       // Try multiple IP geolocation services for better reliability
       const countryCode = await this.getCountryFromIP();
       
       if (countryCode && this.countries.find(c => c.code === countryCode)) {
+        console.log('Country detected:', countryCode);
         this.currentCountry = countryCode;
         this.updateSelectedCountry();
         this.storeCountry(countryCode);
         
-        // Redirect to appropriate market if different from current
+        // Always redirect to the detected country's market
+        console.log('Redirecting to detected country market...');
         this.redirectToMarket(countryCode);
       } else {
+        console.log('Country detection failed or country not supported, using US fallback');
         // Fallback to US if detection fails
         this.currentCountry = 'US';
         this.updateSelectedCountry();
+        this.storeCountry('US');
+        
+        // Redirect to US market
+        this.redirectToMarket('US');
       }
     } catch (error) {
       console.warn('Country detection failed:', error);
       this.currentCountry = 'US';
       this.updateSelectedCountry();
+      this.storeCountry('US');
+      
+      // Redirect to US market as fallback
+      this.redirectToMarket('US');
     } finally {
       this.isDetecting = false;
       this.updateButtonState();
@@ -1135,9 +1143,27 @@ class CountrySelector {
   storeCountry(countryCode) {
     try {
       localStorage.setItem('selectedCountry', countryCode);
+      console.log('Stored country selection:', countryCode);
     } catch (e) {
       console.warn('Could not store country selection');
     }
+  }
+  
+  clearStoredCountry() {
+    try {
+      localStorage.removeItem('selectedCountry');
+      localStorage.removeItem('selectedMarket');
+      console.log('Cleared stored country preferences');
+    } catch (e) {
+      console.warn('Could not clear stored country preferences');
+    }
+  }
+  
+  // Force country detection (useful for testing)
+  forceCountryDetection() {
+    console.log('Forcing country detection...');
+    this.clearStoredCountry();
+    this.detectCountryFromIP();
   }
   
   getCurrentCountry() {
@@ -1482,9 +1508,20 @@ class CountrySelector {
     this.bindEvents();
     this.renderCountries();
     
-    // Auto-detect country if not already set
-    if (!this.getStoredCountry()) {
+    // Always try to auto-detect country on first visit
+    // Check if this is a first visit (no stored country) or if we're on a fresh page load
+    const isFirstVisit = !this.getStoredCountry();
+    const hasUrlParams = new URLSearchParams(window.location.search).has('country') || 
+                        new URLSearchParams(window.location.search).has('market') || 
+                        new URLSearchParams(window.location.search).has('region');
+    
+    if (isFirstVisit && !hasUrlParams) {
+      console.log('First visit detected - auto-detecting country...');
       this.detectCountryFromIP();
+    } else if (isFirstVisit && hasUrlParams) {
+      console.log('URL parameters detected - skipping auto-detection');
+    } else {
+      console.log('Returning visitor - using stored country preference');
     }
   }
   
@@ -1630,5 +1667,13 @@ class CountrySelector {
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  new CountrySelector();
+  const countrySelector = new CountrySelector();
+  
+  // Expose country selector globally for testing and debugging
+  window.countrySelector = countrySelector;
+  
+  // Add some helpful global methods for testing
+  window.detectCountry = () => countrySelector.forceCountryDetection();
+  window.clearCountry = () => countrySelector.clearStoredCountry();
+  window.getCurrentCountry = () => countrySelector.getCurrentCountry();
 });
