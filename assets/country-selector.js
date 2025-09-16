@@ -158,14 +158,15 @@ class CountrySelector {
   }
   
   initializeCountries() {
-    // Try to use Shopify's actual market data
+    // Use Shopify's actual market data following localization best practices
     if (window.ShopifyTheme && window.ShopifyTheme.availableMarkets) {
       return window.ShopifyTheme.availableMarkets.map(market => ({
         code: market.country,
-        name: market.name,
+        name: market.countryName, // Use localized country name
         flag: this.getFlagForCountry(market.country),
         market: market.handle,
         currency: market.currency,
+        currencySymbol: market.currencySymbol,
         region: this.getRegionForCountry(market.country)
       }));
     }
@@ -796,9 +797,11 @@ class CountrySelector {
   updateSelectedCountry() {
     const country = this.countries.find(c => c.code === this.currentCountry);
     if (country) {
-      this.selectedCountry.textContent = country.code;
+      // Use localized country name if available, otherwise use code
+      this.selectedCountry.textContent = country.name || country.code;
       if (this.selectedCurrency) {
-        this.selectedCurrency.textContent = country.currency;
+        // Use currency symbol if available, otherwise use currency code
+        this.selectedCurrency.textContent = country.currencySymbol || country.currency;
       }
     }
   }
@@ -862,15 +865,17 @@ class CountrySelector {
   }
   
   updateCurrencyDisplay(currency) {
-    // Update currency display in header
+    const country = this.countries.find(c => c.code === this.currentCountry);
+    
+    // Update currency display in header - use symbol if available
     if (this.selectedCurrency) {
-      this.selectedCurrency.textContent = currency;
+      this.selectedCurrency.textContent = country?.currencySymbol || currency;
     }
     
     // Update currency symbols throughout the page
     const currencyElements = document.querySelectorAll('.currency-symbol, .price-currency');
     currencyElements.forEach(element => {
-      element.textContent = this.getCurrencySymbol(currency);
+      element.textContent = country?.currencySymbol || this.getCurrencySymbol(currency);
     });
   }
   
@@ -1099,55 +1104,44 @@ class CountrySelector {
     const country = this.countries.find(c => c.code === countryCode);
     if (!country || !country.market) return;
     
-    // Store the selected market
+    // Store the selected market and country
     localStorage.setItem('selectedMarket', country.market);
     localStorage.setItem('selectedCountry', countryCode);
     
-    // Try different approaches for market switching
-    const currentUrl = new URL(window.location.href);
-    const currentPath = currentUrl.pathname;
+    // Use Shopify's proper localization approach
+    // Create a form to submit to Shopify's localization endpoint
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/localization';
+    form.style.display = 'none';
     
-    // Approach 1: Try to use Shopify's market URL structure
-    // Check if we're already on a market URL
-    if (currentPath.startsWith('/markets/')) {
-      // Replace the existing market
-      const newPath = currentPath.replace(/^\/markets\/[^\/]+/, `/markets/${country.market}`);
-      window.location.href = newPath + currentUrl.search;
-      return;
+    // Add the country parameter (using ISO code as recommended in the guide)
+    const countryInput = document.createElement('input');
+    countryInput.type = 'hidden';
+    countryInput.name = 'country_code';
+    countryInput.value = countryCode;
+    form.appendChild(countryInput);
+    
+    // Add the return URL
+    const returnInput = document.createElement('input');
+    returnInput.type = 'hidden';
+    returnInput.name = 'return_to';
+    returnInput.value = window.location.pathname + window.location.search;
+    form.appendChild(returnInput);
+    
+    // Add CSRF token if available
+    const csrfToken = document.querySelector('meta[name="csrf-token"]');
+    if (csrfToken) {
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = 'authenticity_token';
+      csrfInput.value = csrfToken.getAttribute('content');
+      form.appendChild(csrfInput);
     }
     
-    // Approach 2: Try to redirect to market-specific URL
-    // Build the new URL with market prefix
-    let newPath = currentPath;
-    if (!newPath.startsWith('/')) {
-      newPath = '/' + newPath;
-    }
-    
-    // Try the /markets/ approach first
-    const marketUrl = `/markets/${country.market}${newPath}`;
-    
-    // Test if the market URL exists by making a HEAD request
-    fetch(marketUrl, { 
-      method: 'HEAD',
-      credentials: 'same-origin'
-    })
-    .then(response => {
-      if (response.ok) {
-        // Market URL exists, redirect to it
-        window.location.href = marketUrl + currentUrl.search;
-      } else {
-        // Fallback: try with market parameter
-        const fallbackUrl = new URL(window.location.href);
-        fallbackUrl.searchParams.set('market', country.market);
-        window.location.href = fallbackUrl.toString();
-      }
-    })
-    .catch(() => {
-      // If fetch fails, try the parameter approach
-      const fallbackUrl = new URL(window.location.href);
-      fallbackUrl.searchParams.set('market', country.market);
-      window.location.href = fallbackUrl.toString();
-    });
+    // Submit the form to change the localization context
+    document.body.appendChild(form);
+    form.submit();
   }
 
   getCurrentMarket() {
