@@ -1420,9 +1420,6 @@ class CountrySelector {
     localStorage.setItem('selectedMarket', country.market);
     localStorage.setItem('selectedCountry', countryCode);
     
-    // Use URL parameter approach instead of /localization endpoint
-    const currentUrl = new URL(window.location.href);
-    
     // Check if we're already on the correct market
     const currentMarket = this.getCurrentMarket();
     if (currentMarket === country.market) {
@@ -1430,35 +1427,34 @@ class CountrySelector {
       return;
     }
     
-    // Try different URL patterns for market switching
-    let newUrl;
+    // Use a simpler approach - redirect to the same page with market parameter
+    const currentUrl = new URL(window.location.href);
     
-    // Method 1: Try /markets/ URL pattern
-    if (window.location.pathname.startsWith('/markets/')) {
-      // Replace existing market
-      newUrl = window.location.pathname.replace(/^\/markets\/[^\/]+/, `/markets/${country.market}`);
-    } else {
-      // Add market to URL
-      newUrl = `/markets/${country.market}${window.location.pathname}`;
+    // Remove any existing market prefix and parameters
+    let cleanPath = currentUrl.pathname.replace(/^\/markets\/[^\/]+/, '');
+    if (!cleanPath.startsWith('/')) {
+      cleanPath = '/' + cleanPath;
     }
     
-    // Add query parameters
-    if (currentUrl.search) {
-      newUrl += currentUrl.search;
-    }
+    // Build new URL with market parameter
+    const newUrl = new URL(cleanPath, window.location.origin);
+    newUrl.searchParams.set('market', country.market);
     
-    // Add market parameter as backup
-    const urlObj = new URL(newUrl, window.location.origin);
-    urlObj.searchParams.set('market', country.market);
+    // Preserve other query parameters
+    currentUrl.searchParams.forEach((value, key) => {
+      if (key !== 'market') {
+        newUrl.searchParams.set(key, value);
+      }
+    });
     
-    console.log('Redirecting to:', urlObj.toString());
+    console.log('Redirecting to:', newUrl.toString());
     
     // Show loading state
     this.showMarketNotification(country);
     
     // Redirect after a short delay to show the notification
     setTimeout(() => {
-      window.location.href = urlObj.toString();
+      window.location.href = newUrl.toString();
     }, 1000);
   }
 
