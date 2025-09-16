@@ -192,10 +192,10 @@ class CountrySelector {
       }));
     }
     
-    // Try debug markets as fallback
-    if (window.ShopifyTheme && window.ShopifyTheme.debug && window.ShopifyTheme.debug.allMarkets && window.ShopifyTheme.debug.allMarkets.length > 0) {
-      console.log('Using debug allMarkets:', window.ShopifyTheme.debug.allMarkets);
-      return window.ShopifyTheme.debug.allMarkets.map(market => ({
+    // Try fallback markets from theme
+    if (window.ShopifyTheme && window.ShopifyTheme.fallbackMarkets && window.ShopifyTheme.fallbackMarkets.length > 0) {
+      console.log('Using fallback markets:', window.ShopifyTheme.fallbackMarkets);
+      return window.ShopifyTheme.fallbackMarkets.map(market => ({
         code: market.country,
         name: market.countryName,
         flag: this.getFlagForCountry(market.country),
