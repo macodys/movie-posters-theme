@@ -1427,9 +1427,27 @@ class CountrySelector {
   // Handle market parameter in URL to sync with Shopify's system
   handleMarketParameter() {
     const urlParams = new URLSearchParams(window.location.search);
+    const countryParam = urlParams.get('country');
     const marketParam = urlParams.get('market') || urlParams.get('region');
     
-    if (marketParam) {
+    if (countryParam) {
+      console.log('Found country parameter in URL:', countryParam);
+      
+      // Find the country that matches this country code
+      const country = this.countries.find(c => c.code === countryParam);
+      if (country) {
+        console.log('Updating country selector to match country:', country.name);
+        this.currentCountry = country.code;
+        this.updateSelectedCountry();
+        this.storeCountry(country.code);
+        
+        // Filter products for this market
+        this.filterProductsByRegion(country.code);
+        
+        // Update pricing for this market
+        this.updatePricingForCountry(country);
+      }
+    } else if (marketParam) {
       console.log('Found market/region parameter in URL:', marketParam);
       
       // Find the country that matches this market
@@ -1491,14 +1509,15 @@ class CountrySelector {
       cleanPath = '/' + cleanPath;
     }
     
-    // Build new URL with market and region parameters
+    // Build new URL with Shopify's official country parameter
     const newUrl = new URL(cleanPath, window.location.origin);
-    newUrl.searchParams.set('market', country.market);
+    newUrl.searchParams.set('country', country.code); // Official Shopify parameter
+    newUrl.searchParams.set('market', country.market); // Keep for compatibility
     newUrl.searchParams.set('region', country.market); // Keep for compatibility
     
     // Preserve other query parameters
     currentUrl.searchParams.forEach((value, key) => {
-      if (key !== 'market' && key !== 'region') {
+      if (key !== 'country' && key !== 'market' && key !== 'region') {
         newUrl.searchParams.set(key, value);
       }
     });
@@ -1515,25 +1534,33 @@ class CountrySelector {
   }
 
   getCurrentMarket() {
-    // Method 1: Check URL parameter first (most reliable for our implementation)
+    // Method 1: Check Shopify's official country parameter first
     const urlParams = new URLSearchParams(window.location.search);
+    const countryParam = urlParams.get('country');
+    if (countryParam) {
+      // Find the market for this country
+      const country = this.countries.find(c => c.code === countryParam);
+      return country ? country.market : countryParam;
+    }
+    
+    // Method 2: Check market/region parameters (fallback)
     const marketParam = urlParams.get('market') || urlParams.get('region');
     if (marketParam) {
       return marketParam;
     }
     
-    // Method 2: Check market path prefix
+    // Method 3: Check market path prefix
     const pathMatch = window.location.pathname.match(/^\/markets\/([^\/]+)/);
     if (pathMatch) {
       return pathMatch[1];
     }
     
-    // Method 3: Try to get from Shopify theme context
+    // Method 4: Try to get from Shopify theme context
     if (window.ShopifyTheme && window.ShopifyTheme.market) {
       return window.ShopifyTheme.market;
     }
     
-    // Method 4: Try to get market from Shopify's localization object
+    // Method 5: Try to get market from Shopify's localization object
     if (window.Shopify && window.Shopify.locale) {
       // Extract market from locale (e.g., 'en-us' -> 'us')
       const locale = window.Shopify.locale;
@@ -1543,7 +1570,7 @@ class CountrySelector {
       }
     }
     
-    // Method 5: Fallback to stored market
+    // Method 6: Fallback to stored market
     return localStorage.getItem('selectedMarket') || 'us';
   }
 
