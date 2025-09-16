@@ -28,7 +28,28 @@
         market: '{{ localization.market.handle | default: "us" }}',
         countryName: '{{ localization.country.name | default: "United States" }}',
         currencySymbol: '{{ cart.currency.symbol | default: "$" }}',
-        availableMarkets: [],
+        availableMarkets: [
+          {% for market in localization.available_markets %}
+          {
+            handle: '{{ market.handle }}',
+            name: '{{ market.name }}',
+            country: '{{ market.country.iso_code }}',
+            countryName: '{{ market.country.name }}',
+            currency: '{{ market.currency.iso_code }}',
+            currencySymbol: '{{ market.currency.symbol }}'
+          }{% unless forloop.last %},{% endunless %}
+          {% endfor %}
+        ],
+        availableCountries: [
+          {% for country in localization.available_countries %}
+          {
+            code: '{{ country.iso_code }}',
+            name: '{{ country.name }}',
+            currency: '{{ country.currency.iso_code }}',
+            currencySymbol: '{{ country.currency.symbol }}'
+          }{% unless forloop.last %},{% endunless %}
+          {% endfor %}
+        ],
         debug: {
           availableMarketsCount: {{ localization.available_markets.size | default: 0 }},
           currentMarket: '{{ localization.market.handle | default: "us" }}',

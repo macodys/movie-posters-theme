@@ -79,12 +79,8 @@ class CountrySelector {
     // Store fallback countries for reference
     this.fallbackCountries = this.countries;
     
-    // Your actual markets - UPDATE THIS LIST with your real markets
-    this.yourActualMarkets = [
-      { code: 'US', market: 'us', name: 'United States', currency: 'USD' },
-      { code: 'GB', market: 'gb', name: 'United Kingdom', currency: 'GBP' }
-      // Add more markets here as you create them in Shopify
-    ];
+    // Markets are now loaded dynamically from Shopify's localization data
+    // No need for manual configuration
     
     // Market catalog configuration - based on your actual Shopify catalog settings
     this.marketCatalogConfig = {
@@ -154,10 +150,7 @@ class CountrySelector {
     // Initialize countries from your actual markets only
     this.countries = this.initializeCountries();
     
-    // Add your actual markets
-    this.yourActualMarkets.forEach(market => {
-      this.addSpecificMarket(market);
-    });
+    // Markets are loaded dynamically from Shopify's localization data
     
     // Detect current market from URL first
     const currentMarket = this.getCurrentMarket();
@@ -168,8 +161,8 @@ class CountrySelector {
     
     this.init();
     
-    // Try to load markets from Shopify API
-    this.loadMarketsFromShopify();
+    // Markets are now loaded dynamically from Shopify's localization data
+    // No need for additional API calls
     
     // Debug: Log what markets are available
     this.debugMarkets();
@@ -193,12 +186,12 @@ class CountrySelector {
     console.log('Initializing countries with Shopify data...');
     console.log('ShopifyTheme:', window.ShopifyTheme);
     
-    // Try to use Shopify's actual market data following localization best practices
+    // Method 1: Use Shopify's available markets (preferred)
     if (window.ShopifyTheme && window.ShopifyTheme.availableMarkets && window.ShopifyTheme.availableMarkets.length > 0) {
-      console.log('Using availableMarkets:', window.ShopifyTheme.availableMarkets);
+      console.log('Using Shopify availableMarkets:', window.ShopifyTheme.availableMarkets);
       return window.ShopifyTheme.availableMarkets.map(market => ({
         code: market.country,
-        name: market.countryName, // Use localized country name
+        name: market.countryName,
         flag: this.getFlagForCountry(market.country),
         market: market.handle,
         currency: market.currency,
@@ -207,7 +200,21 @@ class CountrySelector {
       }));
     }
     
-    // Try fallback markets from theme
+    // Method 2: Use Shopify's available countries as fallback
+    if (window.ShopifyTheme && window.ShopifyTheme.availableCountries && window.ShopifyTheme.availableCountries.length > 0) {
+      console.log('Using Shopify availableCountries:', window.ShopifyTheme.availableCountries);
+      return window.ShopifyTheme.availableCountries.map(country => ({
+        code: country.code,
+        name: country.name,
+        flag: this.getFlagForCountry(country.code),
+        market: this.getMarketFromCountry(country.code),
+        currency: country.currency,
+        currencySymbol: country.currencySymbol,
+        region: this.getRegionForCountry(country.code)
+      }));
+    }
+    
+    // Method 3: Use fallback markets from theme
     if (window.ShopifyTheme && window.ShopifyTheme.fallbackMarkets && window.ShopifyTheme.fallbackMarkets.length > 0) {
       console.log('Using fallback markets:', window.ShopifyTheme.fallbackMarkets);
       return window.ShopifyTheme.fallbackMarkets.map(market => ({
@@ -224,6 +231,24 @@ class CountrySelector {
     console.log('Falling back to static list');
     // Fallback to static list
     return this.fallbackCountries || [];
+  }
+  
+  getMarketFromCountry(countryCode) {
+    // Map country codes to market handles
+    const countryToMarket = {
+      'US': 'us',
+      'GB': 'gb', 
+      'CA': 'ca',
+      'AU': 'au',
+      'DE': 'de',
+      'FR': 'fr',
+      'IT': 'it',
+      'ES': 'es',
+      'JP': 'jp',
+      'BR': 'br',
+      'MX': 'mx'
+    };
+    return countryToMarket[countryCode] || countryCode.toLowerCase();
   }
   
   async fetchMarketsFromAPI() {
