@@ -79,3 +79,5 @@ The theme includes several customizable settings:
 ## License
 
 This theme is created for commercial use.
+
+

@@ -1041,50 +1041,63 @@ class CountrySelector {
     const country = this.countries.find(c => c.code === countryCode);
     if (!country || !country.market) return;
     
-    // Use Shopify's built-in market switching mechanism
-    // This creates a form and submits it to change the market
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/localization';
+    // Store the selected market
+    localStorage.setItem('selectedMarket', country.market);
+    localStorage.setItem('selectedCountry', countryCode);
     
-    // Add the market parameter
-    const marketInput = document.createElement('input');
-    marketInput.type = 'hidden';
-    marketInput.name = 'market';
-    marketInput.value = country.market;
-    form.appendChild(marketInput);
+    // Try different approaches for market switching
+    const currentUrl = new URL(window.location.href);
+    const currentPath = currentUrl.pathname;
     
-    // Add the return URL (current page)
-    const returnInput = document.createElement('input');
-    returnInput.type = 'hidden';
-    returnInput.name = 'return_to';
-    returnInput.value = window.location.pathname + window.location.search;
-    form.appendChild(returnInput);
-    
-    // Add CSRF token if available
-    const csrfToken = document.querySelector('meta[name="csrf-token"]');
-    if (csrfToken) {
-      const csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = 'authenticity_token';
-      csrfInput.value = csrfToken.getAttribute('content');
-      form.appendChild(csrfInput);
+    // Approach 1: Try to use Shopify's market URL structure
+    // Check if we're already on a market URL
+    if (currentPath.startsWith('/markets/')) {
+      // Replace the existing market
+      const newPath = currentPath.replace(/^\/markets\/[^\/]+/, `/markets/${country.market}`);
+      window.location.href = newPath + currentUrl.search;
+      return;
     }
     
-    // Submit the form
-    document.body.appendChild(form);
-    form.submit();
+    // Approach 2: Try to redirect to market-specific URL
+    // Build the new URL with market prefix
+    let newPath = currentPath;
+    if (!newPath.startsWith('/')) {
+      newPath = '/' + newPath;
+    }
+    
+    // Try the /markets/ approach first
+    const marketUrl = `/markets/${country.market}${newPath}`;
+    
+    // Test if the market URL exists by making a HEAD request
+    fetch(marketUrl, { 
+      method: 'HEAD',
+      credentials: 'same-origin'
+    })
+    .then(response => {
+      if (response.ok) {
+        // Market URL exists, redirect to it
+        window.location.href = marketUrl + currentUrl.search;
+      } else {
+        // Fallback: try with market parameter
+        const fallbackUrl = new URL(window.location.href);
+        fallbackUrl.searchParams.set('market', country.market);
+        window.location.href = fallbackUrl.toString();
+      }
+    })
+    .catch(() => {
+      // If fetch fails, try the parameter approach
+      const fallbackUrl = new URL(window.location.href);
+      fallbackUrl.searchParams.set('market', country.market);
+      window.location.href = fallbackUrl.toString();
+    });
   }
 
   getCurrentMarket() {
-    // Try to get market from Shopify's localization object
-    if (window.Shopify && window.Shopify.locale) {
-      // Extract market from locale (e.g., 'en-us' -> 'us')
-      const locale = window.Shopify.locale;
-      const marketMatch = locale.match(/-([a-z]{2})$/);
-      if (marketMatch) {
-        return marketMatch[1];
-      }
+    // Try to get from URL parameter first (most reliable)
+    const urlParams = new URLSearchParams(window.location.search);
+    const marketParam = urlParams.get('market');
+    if (marketParam) {
+      return marketParam;
     }
     
     // Try to get from URL path
@@ -1094,11 +1107,14 @@ class CountrySelector {
       return pathMatch[1];
     }
     
-    // Try to get from URL parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const marketParam = urlParams.get('market');
-    if (marketParam) {
-      return marketParam;
+    // Try to get market from Shopify's localization object
+    if (window.Shopify && window.Shopify.locale) {
+      // Extract market from locale (e.g., 'en-us' -> 'us')
+      const locale = window.Shopify.locale;
+      const marketMatch = locale.match(/-([a-z]{2})$/);
+      if (marketMatch) {
+        return marketMatch[1];
+      }
     }
     
     // Fallback to stored market
