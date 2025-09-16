@@ -149,9 +149,9 @@ class CountrySelector {
     
     // Detect current market from URL first
     const currentMarket = this.getCurrentMarket();
-    const marketCountry = this.countries.find(c => c.market === currentMarket);
+    const marketCountry = this.countries && this.countries.length > 0 ? this.countries.find(c => c.market === currentMarket) : null;
     this.currentCountry = marketCountry ? marketCountry.code : (this.getStoredCountry() || 'US');
-    this.filteredCountries = [...this.countries];
+    this.filteredCountries = this.countries ? [...this.countries] : [];
     this.isDetecting = false;
     
     this.init();
@@ -208,7 +208,7 @@ class CountrySelector {
     
     console.log('Falling back to static list');
     // Fallback to static list
-    return this.fallbackCountries;
+    return this.fallbackCountries || [];
   }
   
   async fetchMarketsFromAPI() {
