@@ -1427,10 +1427,10 @@ class CountrySelector {
   // Handle market parameter in URL to sync with Shopify's system
   handleMarketParameter() {
     const urlParams = new URLSearchParams(window.location.search);
-    const marketParam = urlParams.get('market');
+    const marketParam = urlParams.get('market') || urlParams.get('region');
     
     if (marketParam) {
-      console.log('Found market parameter in URL:', marketParam);
+      console.log('Found market/region parameter in URL:', marketParam);
       
       // Find the country that matches this market
       const country = this.countries.find(c => c.market === marketParam);
@@ -1491,13 +1491,14 @@ class CountrySelector {
       cleanPath = '/' + cleanPath;
     }
     
-    // Build new URL with market parameter
+    // Build new URL with market and region parameters
     const newUrl = new URL(cleanPath, window.location.origin);
     newUrl.searchParams.set('market', country.market);
+    newUrl.searchParams.set('region', country.market); // Keep for compatibility
     
     // Preserve other query parameters
     currentUrl.searchParams.forEach((value, key) => {
-      if (key !== 'market') {
+      if (key !== 'market' && key !== 'region') {
         newUrl.searchParams.set(key, value);
       }
     });
@@ -1516,7 +1517,7 @@ class CountrySelector {
   getCurrentMarket() {
     // Method 1: Check URL parameter first (most reliable for our implementation)
     const urlParams = new URLSearchParams(window.location.search);
-    const marketParam = urlParams.get('market');
+    const marketParam = urlParams.get('market') || urlParams.get('region');
     if (marketParam) {
       return marketParam;
     }
