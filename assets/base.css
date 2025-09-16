@@ -171,9 +171,11 @@ main#MainContent {
 .logo-text { font-weight: 700; letter-spacing: 1px; font-size: 16px; }
 /* Main Navigation - Collection Style Buttons */
 .main-nav {
-  display: flex;
+  display: flex !important;
   gap: 12px;
   align-items: center;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .nav-button {
@@ -187,6 +189,9 @@ main#MainContent {
   font-weight: 500;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
+  display: inline-block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .nav-button:hover {
