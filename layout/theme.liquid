@@ -19,6 +19,24 @@
         colorPurple: '{{ settings.color_purple | default: "#8b5cf6" }}',
         colorAccent: '{{ settings.color_accent | default: "#00d4aa" }}'
       };
+      
+      // Shopify theme context
+      window.ShopifyTheme = {
+        locale: '{{ request.locale.iso_code }}',
+        country: '{{ localization.country.iso_code }}',
+        currency: '{{ cart.currency.iso_code }}',
+        market: '{{ localization.market.handle }}',
+        availableMarkets: [
+          {% for market in localization.available_markets %}
+          {
+            handle: '{{ market.handle }}',
+            name: '{{ market.name }}',
+            country: '{{ market.country.iso_code }}',
+            currency: '{{ market.currency.iso_code }}'
+          }{% unless forloop.last %},{% endunless %}
+          {% endfor %}
+        ]
+      };
     </script>
   </head>
   <body class="theme-body">

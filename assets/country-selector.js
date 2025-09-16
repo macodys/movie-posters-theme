@@ -8,8 +8,11 @@ class CountrySelector {
     this.selectedCurrency = document.getElementById('selectedCurrency');
     this.countrySelector = document.querySelector('.country-selector');
     
-    // Countries with Shopify market mapping and regions
-    this.countries = [
+    // Initialize countries from Shopify data or fallback to static list
+    this.countries = this.initializeCountries();
+    
+    // Fallback countries if Shopify data is not available
+    this.fallbackCountries = [
       { code: 'US', name: 'United States', flag: '🇺🇸', market: 'us', currency: 'USD', region: 'north-america' },
       { code: 'GB', name: 'United Kingdom', flag: '🇬🇧', market: 'gb', currency: 'GBP', region: 'europe' },
       { code: 'CA', name: 'Canada', flag: '🇨🇦', market: 'ca', currency: 'CAD', region: 'north-america' },
@@ -72,6 +75,9 @@ class CountrySelector {
       { code: 'NI', name: 'Nicaragua', flag: '🇳🇮', market: 'ni', currency: 'NIO', region: 'central-america' },
       { code: 'SV', name: 'El Salvador', flag: '🇸🇻', market: 'sv', currency: 'USD', region: 'central-america' }
     ];
+    
+    // Store fallback countries for reference
+    this.fallbackCountries = this.countries;
     
     // Market catalog configuration - based on your actual Shopify catalog settings
     this.marketCatalogConfig = {
@@ -138,6 +144,9 @@ class CountrySelector {
       'sv': { hasProducts: true, productCount: 0 }
     };
     
+    // Initialize countries from Shopify data or use fallback
+    this.countries = this.initializeCountries();
+    
     // Detect current market from URL first
     const currentMarket = this.getCurrentMarket();
     const marketCountry = this.countries.find(c => c.market === currentMarket);
@@ -146,6 +155,55 @@ class CountrySelector {
     this.isDetecting = false;
     
     this.init();
+  }
+  
+  initializeCountries() {
+    // Try to use Shopify's actual market data
+    if (window.ShopifyTheme && window.ShopifyTheme.availableMarkets) {
+      return window.ShopifyTheme.availableMarkets.map(market => ({
+        code: market.country,
+        name: market.name,
+        flag: this.getFlagForCountry(market.country),
+        market: market.handle,
+        currency: market.currency,
+        region: this.getRegionForCountry(market.country)
+      }));
+    }
+    
+    // Fallback to static list
+    return this.fallbackCountries;
+  }
+  
+  getFlagForCountry(countryCode) {
+    const flags = {
+      'US': '🇺🇸', 'GB': '🇬🇧', 'CA': '🇨🇦', 'AU': '🇦🇺', 'DE': '🇩🇪',
+      'FR': '🇫🇷', 'IT': '🇮🇹', 'ES': '🇪🇸', 'JP': '🇯🇵', 'BR': '🇧🇷',
+      'MX': '🇲🇽', 'IN': '🇮🇳', 'NL': '🇳🇱', 'SE': '🇸🇪', 'NO': '🇳🇴',
+      'DK': '🇩🇰', 'FI': '🇫🇮', 'CH': '🇨🇭', 'AT': '🇦🇹', 'BE': '🇧🇪',
+      'PL': '🇵🇱', 'CZ': '🇨🇿', 'HU': '🇭🇺', 'PT': '🇵🇹', 'GR': '🇬🇷',
+      'RU': '🇷🇺', 'CN': '🇨🇳', 'KR': '🇰🇷', 'TH': '🇹🇭', 'SG': '🇸🇬',
+      'MY': '🇲🇾', 'ID': '🇮🇩', 'PH': '🇵🇭', 'VN': '🇻🇳', 'ZA': '🇿🇦',
+      'EG': '🇪🇬', 'NG': '🇳🇬', 'KE': '🇰🇪'
+    };
+    return flags[countryCode] || '🌍';
+  }
+  
+  getRegionForCountry(countryCode) {
+    const regions = {
+      'US': 'north-america', 'CA': 'north-america', 'MX': 'north-america',
+      'GB': 'europe', 'DE': 'europe', 'FR': 'europe', 'IT': 'europe',
+      'ES': 'europe', 'NL': 'europe', 'SE': 'europe', 'NO': 'europe',
+      'DK': 'europe', 'FI': 'europe', 'CH': 'europe', 'AT': 'europe',
+      'BE': 'europe', 'PL': 'europe', 'CZ': 'europe', 'HU': 'europe',
+      'PT': 'europe', 'GR': 'europe', 'RU': 'europe',
+      'JP': 'asia', 'CN': 'asia', 'KR': 'asia', 'TH': 'asia',
+      'SG': 'asia', 'MY': 'asia', 'ID': 'asia', 'PH': 'asia',
+      'VN': 'asia', 'IN': 'asia',
+      'AU': 'oceania',
+      'BR': 'south-america',
+      'ZA': 'africa', 'EG': 'africa', 'NG': 'africa', 'KE': 'africa'
+    };
+    return regions[countryCode] || 'global';
   }
   
   async fetchMarketAwareProducts() {
@@ -1093,7 +1151,12 @@ class CountrySelector {
   }
 
   getCurrentMarket() {
-    // Try to get from URL parameter first (most reliable)
+    // Try to get from Shopify theme context first
+    if (window.ShopifyTheme && window.ShopifyTheme.market) {
+      return window.ShopifyTheme.market;
+    }
+    
+    // Try to get from URL parameter
     const urlParams = new URLSearchParams(window.location.search);
     const marketParam = urlParams.get('market');
     if (marketParam) {
