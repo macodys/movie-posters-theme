@@ -20,37 +20,22 @@
         colorAccent: '{{ settings.color_accent | default: "#00d4aa" }}'
       };
       
-      // Shopify theme context - following Shopify's localization best practices
+      // Shopify theme context - simplified and robust
       window.ShopifyTheme = {
-        locale: '{{ request.locale.iso_code }}',
-        country: '{{ localization.country.iso_code }}',
-        currency: '{{ cart.currency.iso_code }}',
-        market: '{{ localization.market.handle }}',
-        countryName: '{{ localization.country.name }}',
-        currencySymbol: '{{ cart.currency.symbol }}',
-        availableMarkets: [
-          {% if localization.available_markets.size > 0 %}
-            {% for market in localization.available_markets %}
-            {
-              handle: '{{ market.handle }}',
-              name: '{{ market.name }}',
-              country: '{{ market.country.iso_code }}',
-              countryName: '{{ market.country.name }}',
-              currency: '{{ market.currency.iso_code }}',
-              currencySymbol: '{{ market.currency.symbol }}'
-            }{% unless forloop.last %},{% endunless %}
-            {% endfor %}
-          {% endif %}
-        ],
-        // Debug information
+        locale: '{{ request.locale.iso_code | default: "en" }}',
+        country: '{{ localization.country.iso_code | default: "US" }}',
+        currency: '{{ cart.currency.iso_code | default: "USD" }}',
+        market: '{{ localization.market.handle | default: "us" }}',
+        countryName: '{{ localization.country.name | default: "United States" }}',
+        currencySymbol: '{{ cart.currency.symbol | default: "$" }}',
+        availableMarkets: [],
         debug: {
-          availableMarketsCount: {{ localization.available_markets.size }},
-          currentMarket: '{{ localization.market.handle }}',
-          currentCountry: '{{ localization.country.iso_code }}',
-          hasAvailableMarkets: {{ localization.available_markets.size > 0 }},
-          availableMarketsEmpty: {{ localization.available_markets.size == 0 }}
+          availableMarketsCount: {{ localization.available_markets.size | default: 0 }},
+          currentMarket: '{{ localization.market.handle | default: "us" }}',
+          currentCountry: '{{ localization.country.iso_code | default: "US" }}',
+          hasAvailableMarkets: false,
+          availableMarketsEmpty: true
         },
-        // Fallback markets if none are available
         fallbackMarkets: [
           {
             handle: 'us',

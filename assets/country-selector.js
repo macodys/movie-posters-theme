@@ -156,6 +156,9 @@ class CountrySelector {
     
     this.init();
     
+    // Try to load markets from Shopify API
+    this.loadMarketsFromShopify();
+    
     // Debug: Log what markets are available
     this.debugMarkets();
   }
@@ -239,6 +242,118 @@ class CountrySelector {
     }
     
     return [];
+  }
+  
+  async loadMarketsFromShopify() {
+    try {
+      console.log('Attempting to load markets from Shopify...');
+      
+      // Try to get markets from Shopify's localization endpoint
+      const response = await fetch('/localization', {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.text();
+        console.log('Localization response:', data);
+        
+        // Try to parse as JSON
+        try {
+          const jsonData = JSON.parse(data);
+          console.log('Parsed localization data:', jsonData);
+        } catch (e) {
+          console.log('Localization response is not JSON, trying to extract market info...');
+        }
+      }
+      
+      // Alternative: Try to get market info from the current page context
+      if (window.Shopify && window.Shopify.locale) {
+        console.log('Found Shopify.locale:', window.Shopify.locale);
+        // Extract market from locale if available
+        const localeMatch = window.Shopify.locale.match(/-([a-z]{2})$/);
+        if (localeMatch) {
+          const marketCode = localeMatch[1];
+          console.log('Extracted market from locale:', marketCode);
+          
+          // Add this market to our countries if not already present
+          const existingMarket = this.countries.find(c => c.market === marketCode);
+          if (!existingMarket) {
+            const newCountry = {
+              code: marketCode.toUpperCase(),
+              name: this.getCountryNameFromCode(marketCode.toUpperCase()),
+              flag: this.getFlagForCountry(marketCode.toUpperCase()),
+              market: marketCode,
+              currency: this.getCurrencyFromMarket(marketCode),
+              currencySymbol: this.getCurrencySymbolFromMarket(marketCode),
+              region: this.getRegionForCountry(marketCode.toUpperCase())
+            };
+            
+            this.countries.push(newCountry);
+            this.filteredCountries = [...this.countries];
+            console.log('Added market from locale:', newCountry);
+          }
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error loading markets from Shopify:', error);
+    }
+  }
+  
+  getCountryNameFromCode(countryCode) {
+    const names = {
+      'US': 'United States',
+      'GB': 'United Kingdom',
+      'CA': 'Canada',
+      'AU': 'Australia',
+      'DE': 'Germany',
+      'FR': 'France',
+      'IT': 'Italy',
+      'ES': 'Spain',
+      'JP': 'Japan',
+      'BR': 'Brazil',
+      'MX': 'Mexico'
+    };
+    return names[countryCode] || countryCode;
+  }
+  
+  getCurrencyFromMarket(marketCode) {
+    const currencies = {
+      'us': 'USD',
+      'gb': 'GBP',
+      'ca': 'CAD',
+      'au': 'AUD',
+      'de': 'EUR',
+      'fr': 'EUR',
+      'it': 'EUR',
+      'es': 'EUR',
+      'jp': 'JPY',
+      'br': 'BRL',
+      'mx': 'MXN'
+    };
+    return currencies[marketCode] || 'USD';
+  }
+  
+  getCurrencySymbolFromMarket(marketCode) {
+    const symbols = {
+      'us': '$',
+      'gb': '£',
+      'ca': 'C$',
+      'au': 'A$',
+      'de': '€',
+      'fr': '€',
+      'it': '€',
+      'es': '€',
+      'jp': '¥',
+      'br': 'R$',
+      'mx': '$'
+    };
+    return symbols[marketCode] || '$';
   }
   
   getFlagForCountry(countryCode) {
