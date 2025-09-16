@@ -1029,11 +1029,11 @@ class CountrySelector {
     });
     
     // Country selection
-    this.countryList.addEventListener('click', (e) => {
+    this.countryList.addEventListener('click', async (e) => {
       const countryItem = e.target.closest('.country-item');
       if (countryItem) {
         const countryCode = countryItem.dataset.code;
-        this.selectCountry(countryCode);
+        await this.selectCountry(countryCode);
       }
     });
     
@@ -1093,11 +1093,24 @@ class CountrySelector {
     `).join('');
   }
   
-  selectCountry(countryCode) {
+  async selectCountry(countryCode) {
     this.currentCountry = countryCode;
     this.updateSelectedCountry();
     this.storeCountry(countryCode);
     this.closeDropdown();
+    
+    // Check if we're on a product page and if the product is available in the selected country
+    if (this.isOnProductPage()) {
+      const productHandle = this.getCurrentProductHandle();
+      if (productHandle) {
+        const isAvailable = await this.isProductAvailableInCountry(productHandle, countryCode);
+        if (!isAvailable) {
+          console.log(`Product ${productHandle} not available in ${countryCode}, redirecting to 404`);
+          this.redirectTo404();
+          return;
+        }
+      }
+    }
     
     // Filter products by region
     this.filterProductsByRegion(countryCode);
@@ -1164,6 +1177,112 @@ class CountrySelector {
     console.log('Forcing country detection...');
     this.clearStoredCountry();
     this.detectCountryFromIP();
+  }
+  
+  // Check if we're currently on a product page
+  isOnProductPage() {
+    return window.location.pathname.includes('/products/');
+  }
+  
+  // Get the current product handle from the URL
+  getCurrentProductHandle() {
+    const pathMatch = window.location.pathname.match(/\/products\/([^\/\?]+)/);
+    return pathMatch ? pathMatch[1] : null;
+  }
+  
+  // Check if a product is available in a specific country
+  async isProductAvailableInCountry(productHandle, countryCode) {
+    try {
+      // Get the market for the country
+      const country = this.countries.find(c => c.code === countryCode);
+      if (!country || !country.market) {
+        return false;
+      }
+      
+      // Try to fetch the product data for the specific market
+      const marketUrl = `/?view=market-products-json&market=${country.market}`;
+      const response = await fetch(marketUrl, {
+        headers: { 'Accept': 'application/json' },
+        credentials: 'same-origin'
+      });
+      
+      if (!response.ok) {
+        console.log('Market product data not available, assuming product is not available');
+        return false;
+      }
+      
+      const data = await response.json();
+      if (data && Array.isArray(data.products)) {
+        const productHandles = data.products.map(p => p.handle);
+        return productHandles.includes(productHandle);
+      }
+      
+      return false;
+    } catch (error) {
+      console.warn('Error checking product availability:', error);
+      return false;
+    }
+  }
+  
+  // Redirect to 404 page
+  redirectTo404() {
+    // Show a brief notification before redirecting
+    this.show404Notification();
+    
+    // Redirect to 404 page after a short delay
+    setTimeout(() => {
+      window.location.href = '/404';
+    }, 1500);
+  }
+  
+  // Show 404 notification
+  show404Notification() {
+    const notification = document.createElement('div');
+    notification.className = 'product-unavailable-notification';
+    notification.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(220, 38, 38, 0.95);
+      color: white;
+      padding: 20px 24px;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      z-index: 10000;
+      font-size: 16px;
+      font-weight: 500;
+      text-align: center;
+      max-width: 400px;
+      animation: fadeInScale 0.3s ease-out;
+    `;
+    
+    notification.innerHTML = `
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 12px;">
+        <div style="font-size: 24px;">🚫</div>
+        <div>This product is not available in your selected country</div>
+        <div style="font-size: 14px; opacity: 0.8;">Redirecting to 404 page...</div>
+      </div>
+    `;
+    
+    // Add animation keyframes
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeInScale {
+        from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+        to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after redirect
+    setTimeout(() => {
+      notification.remove();
+      style.remove();
+    }, 2000);
   }
   
   getCurrentCountry() {
