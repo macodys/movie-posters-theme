@@ -1412,6 +1412,58 @@ class CountrySelector {
     }
   }
   
+  // Initialize the country selector
+  init() {
+    this.setupEventListeners();
+    this.updateSelectedCountry();
+    this.loadProductRegionsFromCatalog();
+    this.updatePricingForCountry(this.getCurrentCountry());
+    this.debugMarkets();
+    
+    // Listen for market changes from URL parameters
+    this.handleMarketParameter();
+  }
+  
+  // Handle market parameter in URL to sync with Shopify's system
+  handleMarketParameter() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const marketParam = urlParams.get('market');
+    
+    if (marketParam) {
+      console.log('Found market parameter in URL:', marketParam);
+      
+      // Find the country that matches this market
+      const country = this.countries.find(c => c.market === marketParam);
+      if (country) {
+        console.log('Updating country selector to match market:', country.name);
+        this.currentCountry = country.code;
+        this.updateSelectedCountry();
+        this.storeCountry(country.code);
+        
+        // Filter products for this market
+        this.filterProductsByRegion(country.code);
+        
+        // Update pricing for this market
+        this.updatePricingForCountry(country);
+      }
+    }
+  }
+  
+  setupEventListeners() {
+    if (!this.countryButton || !this.countryDropdown || !this.countrySearch || !this.countryList) {
+      console.warn('Country selector elements not found');
+      return;
+    }
+    
+    this.bindEvents();
+    this.renderCountries();
+    
+    // Auto-detect country if not already set
+    if (!this.getStoredCountry()) {
+      this.detectCountryFromIP();
+    }
+  }
+  
   redirectToMarket(countryCode) {
     const country = this.countries.find(c => c.code === countryCode);
     if (!country || !country.market) return;
@@ -1424,13 +1476,16 @@ class CountrySelector {
     const currentMarket = this.getCurrentMarket();
     if (currentMarket === country.market) {
       console.log('Already on correct market:', country.market);
+      // Even if we're on the same market, refresh to ensure proper context
+      window.location.reload();
       return;
     }
     
-    // Use a simpler approach - redirect to the same page with market parameter
+    // Simple approach: reload the page with the market parameter
+    // This ensures Shopify's server-side market context is properly set
     const currentUrl = new URL(window.location.href);
     
-    // Remove any existing market prefix and parameters
+    // Clean the path of any existing market prefixes
     let cleanPath = currentUrl.pathname.replace(/^\/markets\/[^\/]+/, '');
     if (!cleanPath.startsWith('/')) {
       cleanPath = '/' + cleanPath;
@@ -1447,38 +1502,37 @@ class CountrySelector {
       }
     });
     
-    console.log('Redirecting to:', newUrl.toString());
+    console.log('Redirecting to market URL:', newUrl.toString());
     
     // Show loading state
     this.showMarketNotification(country);
     
-    // Redirect after a short delay to show the notification
+    // Redirect with a short delay to show the notification
     setTimeout(() => {
       window.location.href = newUrl.toString();
-    }, 1000);
+    }, 800);
   }
 
   getCurrentMarket() {
-    // Try to get from Shopify theme context first
-    if (window.ShopifyTheme && window.ShopifyTheme.market) {
-      return window.ShopifyTheme.market;
-    }
-    
-    // Try to get from URL parameter
+    // Method 1: Check URL parameter first (most reliable for our implementation)
     const urlParams = new URLSearchParams(window.location.search);
     const marketParam = urlParams.get('market');
     if (marketParam) {
       return marketParam;
     }
     
-    // Try to get from URL path
-    const currentUrl = new URL(window.location.href);
-    const pathMatch = currentUrl.pathname.match(/^\/markets\/([^\/]+)/);
+    // Method 2: Check market path prefix
+    const pathMatch = window.location.pathname.match(/^\/markets\/([^\/]+)/);
     if (pathMatch) {
       return pathMatch[1];
     }
     
-    // Try to get market from Shopify's localization object
+    // Method 3: Try to get from Shopify theme context
+    if (window.ShopifyTheme && window.ShopifyTheme.market) {
+      return window.ShopifyTheme.market;
+    }
+    
+    // Method 4: Try to get market from Shopify's localization object
     if (window.Shopify && window.Shopify.locale) {
       // Extract market from locale (e.g., 'en-us' -> 'us')
       const locale = window.Shopify.locale;
@@ -1488,7 +1542,7 @@ class CountrySelector {
       }
     }
     
-    // Fallback to stored market
+    // Method 5: Fallback to stored market
     return localStorage.getItem('selectedMarket') || 'us';
   }
 
