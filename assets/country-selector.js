@@ -248,30 +248,37 @@ class CountrySelector {
     try {
       console.log('Attempting to load markets from Shopify...');
       
-      // Try to get markets from Shopify's localization endpoint
-      const response = await fetch('/localization', {
-        method: 'GET',
-        credentials: 'same-origin',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.text();
-        console.log('Localization response:', data);
+      // Method 1: Try to get markets from Shopify's localization endpoint
+      try {
+        const response = await fetch('/localization', {
+          method: 'GET',
+          credentials: 'same-origin',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
         
-        // Try to parse as JSON
-        try {
-          const jsonData = JSON.parse(data);
-          console.log('Parsed localization data:', jsonData);
-        } catch (e) {
-          console.log('Localization response is not JSON, trying to extract market info...');
+        if (response.ok) {
+          const data = await response.text();
+          console.log('Localization response:', data);
+          
+          // Try to parse as JSON
+          try {
+            const jsonData = JSON.parse(data);
+            console.log('Parsed localization data:', jsonData);
+          } catch (e) {
+            console.log('Localization response is not JSON, trying to extract market info...');
+          }
         }
+      } catch (e) {
+        console.log('Localization endpoint not available');
       }
       
-      // Alternative: Try to get market info from the current page context
+      // Method 2: Try to detect markets from URL patterns
+      this.detectMarketsFromURL();
+      
+      // Method 3: Try to get market info from the current page context
       if (window.Shopify && window.Shopify.locale) {
         console.log('Found Shopify.locale:', window.Shopify.locale);
         // Extract market from locale if available
@@ -279,29 +286,109 @@ class CountrySelector {
         if (localeMatch) {
           const marketCode = localeMatch[1];
           console.log('Extracted market from locale:', marketCode);
-          
-          // Add this market to our countries if not already present
-          const existingMarket = this.countries.find(c => c.market === marketCode);
-          if (!existingMarket) {
-            const newCountry = {
-              code: marketCode.toUpperCase(),
-              name: this.getCountryNameFromCode(marketCode.toUpperCase()),
-              flag: this.getFlagForCountry(marketCode.toUpperCase()),
-              market: marketCode,
-              currency: this.getCurrencyFromMarket(marketCode),
-              currencySymbol: this.getCurrencySymbolFromMarket(marketCode),
-              region: this.getRegionForCountry(marketCode.toUpperCase())
-            };
-            
-            this.countries.push(newCountry);
-            this.filteredCountries = [...this.countries];
-            console.log('Added market from locale:', newCountry);
-          }
+          this.addMarketIfNotExists(marketCode);
         }
       }
       
+      // Method 4: Try to detect from current market context
+      if (window.ShopifyTheme && window.ShopifyTheme.market) {
+        console.log('Found current market from theme:', window.ShopifyTheme.market);
+        this.addMarketIfNotExists(window.ShopifyTheme.market);
+      }
+      
+      // Method 5: Try common market codes
+      const commonMarkets = ['us', 'gb', 'ca', 'au', 'de', 'fr', 'it', 'es', 'jp', 'br', 'mx'];
+      commonMarkets.forEach(market => {
+        this.addMarketIfNotExists(market);
+      });
+      
+      // Method 6: Add your specific markets (update this list with your actual markets)
+      const yourMarkets = [
+        { code: 'US', market: 'us', name: 'United States', currency: 'USD' },
+        { code: 'GB', market: 'gb', name: 'United Kingdom', currency: 'GBP' },
+        { code: 'CA', market: 'ca', name: 'Canada', currency: 'CAD' },
+        { code: 'AU', market: 'au', name: 'Australia', currency: 'AUD' },
+        { code: 'DE', market: 'de', name: 'Germany', currency: 'EUR' },
+        { code: 'FR', market: 'fr', name: 'France', currency: 'EUR' },
+        { code: 'IT', market: 'it', name: 'Italy', currency: 'EUR' },
+        { code: 'ES', market: 'es', name: 'Spain', currency: 'EUR' },
+        { code: 'JP', market: 'jp', name: 'Japan', currency: 'JPY' },
+        { code: 'BR', market: 'br', name: 'Brazil', currency: 'BRL' },
+        { code: 'MX', market: 'mx', name: 'Mexico', currency: 'MXN' }
+      ];
+      
+      yourMarkets.forEach(market => {
+        this.addSpecificMarket(market);
+      });
+      
     } catch (error) {
       console.error('Error loading markets from Shopify:', error);
+    }
+  }
+  
+  detectMarketsFromURL() {
+    // Try to detect markets from URL patterns
+    const currentUrl = window.location.href;
+    console.log('Analyzing URL for market patterns:', currentUrl);
+    
+    // Check for /markets/ pattern
+    const marketMatch = currentUrl.match(/\/markets\/([a-z]{2,3})/);
+    if (marketMatch) {
+      const marketCode = marketMatch[1];
+      console.log('Found market in URL:', marketCode);
+      this.addMarketIfNotExists(marketCode);
+    }
+    
+    // Check for market parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const marketParam = urlParams.get('market');
+    if (marketParam) {
+      console.log('Found market parameter:', marketParam);
+      this.addMarketIfNotExists(marketParam);
+    }
+  }
+  
+  addMarketIfNotExists(marketCode) {
+    const existingMarket = this.countries.find(c => c.market === marketCode);
+    if (!existingMarket) {
+      const newCountry = {
+        code: marketCode.toUpperCase(),
+        name: this.getCountryNameFromCode(marketCode.toUpperCase()),
+        flag: this.getFlagForCountry(marketCode.toUpperCase()),
+        market: marketCode,
+        currency: this.getCurrencyFromMarket(marketCode),
+        currencySymbol: this.getCurrencySymbolFromMarket(marketCode),
+        region: this.getRegionForCountry(marketCode.toUpperCase())
+      };
+      
+      this.countries.push(newCountry);
+      this.filteredCountries = [...this.countries];
+      console.log('Added market:', newCountry);
+      
+      // Update the UI if it's already rendered
+      this.renderCountries();
+    }
+  }
+  
+  addSpecificMarket(marketData) {
+    const existingMarket = this.countries.find(c => c.market === marketData.market);
+    if (!existingMarket) {
+      const newCountry = {
+        code: marketData.code,
+        name: marketData.name,
+        flag: this.getFlagForCountry(marketData.code),
+        market: marketData.market,
+        currency: marketData.currency,
+        currencySymbol: this.getCurrencySymbolFromMarket(marketData.market),
+        region: this.getRegionForCountry(marketData.code)
+      };
+      
+      this.countries.push(newCountry);
+      this.filteredCountries = [...this.countries];
+      console.log('Added specific market:', newCountry);
+      
+      // Update the UI if it's already rendered
+      this.renderCountries();
     }
   }
   
