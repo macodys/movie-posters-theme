@@ -2382,6 +2382,13 @@ main#MainContent {
   transition: all 0.3s ease !important;
 }
 
+/* Override reveal animation for poster cards */
+.poster-card.reveal {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: all 0.3s ease !important;
+}
+
 /* Subtle 3D Floating Effect for Product Image */
 @keyframes subtleFloat {
   0%, 100% {
