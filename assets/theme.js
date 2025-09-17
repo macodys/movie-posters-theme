@@ -228,4 +228,79 @@
     root.style.setProperty('--purple', window.themeSettings.colorPurple);
     root.style.setProperty('--accent', window.themeSettings.colorAccent);
   }
+
+  // Subcategory filtering for TV & Movies collection
+  const subcategoryButtons = document.querySelectorAll('.subcategory-btn');
+  const productCards = document.querySelectorAll('.product-card, .collection-item');
+  
+  subcategoryButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      // Remove active class from all subcategory buttons
+      subcategoryButtons.forEach(btn => btn.classList.remove('active'));
+      
+      // Add active class to clicked button
+      button.classList.add('active');
+      
+      const subcategory = button.getAttribute('data-subcategory');
+      console.log('Filtering by subcategory:', subcategory);
+      
+      // Filter products based on subcategory
+      productCards.forEach(card => {
+        const productTitle = card.querySelector('.product-title, .card-title, h3')?.textContent.toLowerCase() || '';
+        const productTags = card.getAttribute('data-tags')?.toLowerCase() || '';
+        const productType = card.getAttribute('data-type')?.toLowerCase() || '';
+        
+        let shouldShow = false;
+        
+        if (subcategory === 'marvel') {
+          shouldShow = productTitle.includes('marvel') || productTags.includes('marvel') || 
+                      productTitle.includes('avengers') || productTitle.includes('spider-man') ||
+                      productTitle.includes('iron man') || productTitle.includes('thor') ||
+                      productTitle.includes('captain america') || productTitle.includes('hulk');
+        } else if (subcategory === 'dc') {
+          shouldShow = productTitle.includes('dc') || productTags.includes('dc') || 
+                      productTitle.includes('batman') || productTitle.includes('superman') ||
+                      productTitle.includes('wonder woman') || productTitle.includes('flash') ||
+                      productTitle.includes('aquaman') || productTitle.includes('justice league');
+        } else if (subcategory === 'star-wars') {
+          shouldShow = productTitle.includes('star wars') || productTags.includes('star-wars') || 
+                      productTitle.includes('starwars') || productTitle.includes('jedi') ||
+                      productTitle.includes('sith') || productTitle.includes('yoda') ||
+                      productTitle.includes('darth vader') || productTitle.includes('luke skywalker');
+        } else if (subcategory === 'anime') {
+          shouldShow = productTitle.includes('anime') || productTags.includes('anime') || 
+                      productTitle.includes('naruto') || productTitle.includes('dragon ball') ||
+                      productTitle.includes('one piece') || productTitle.includes('attack on titan') ||
+                      productTitle.includes('demon slayer') || productTitle.includes('my hero academia');
+        }
+        
+        if (shouldShow) {
+          card.style.display = 'block';
+          card.classList.remove('hidden');
+        } else {
+          card.style.display = 'none';
+          card.classList.add('hidden');
+        }
+      });
+      
+      // Update URL with subcategory parameter
+      const url = new URL(window.location);
+      if (subcategory) {
+        url.searchParams.set('subcategory', subcategory);
+      } else {
+        url.searchParams.delete('subcategory');
+      }
+      window.history.pushState({}, '', url);
+    });
+  });
+  
+  // Handle subcategory from URL on page load
+  const urlParams = new URLSearchParams(window.location.search);
+  const subcategoryParam = urlParams.get('subcategory');
+  if (subcategoryParam) {
+    const matchingButton = document.querySelector(`[data-subcategory="${subcategoryParam}"]`);
+    if (matchingButton) {
+      matchingButton.click();
+    }
+  }
 })();
