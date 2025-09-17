@@ -176,6 +176,8 @@ main#MainContent {
   align-items: center;
   opacity: 1 !important;
   visibility: visible !important;
+  position: relative !important;
+  z-index: 100 !important;
 }
 
 .nav-button {
@@ -192,6 +194,9 @@ main#MainContent {
   display: inline-block !important;
   opacity: 1 !important;
   visibility: visible !important;
+  position: relative !important;
+  z-index: 101 !important;
+  transform: none !important;
 }
 
 .nav-button:hover {
@@ -2369,6 +2374,13 @@ main#MainContent {
 /* Animations */
 .reveal { opacity: 0; transform: translateY(12px); transition: opacity .6s ease, transform .6s ease; }
 .reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* Override reveal animation for navigation */
+.main-nav .nav-button {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: all 0.3s ease !important;
+}
 
 /* Subtle 3D Floating Effect for Product Image */
 @keyframes subtleFloat {
