@@ -2124,19 +2124,19 @@ main#MainContent {
 }
 
 /* Additional specificity for games controller */
-.poster-card:nth-child(2)[href*="games"] .poster-image {
+.poster-card:nth-child(2) .poster-image {
   background: transparent !important;
   background-image: none !important;
 }
 
-.poster-card:nth-child(2)[href*="games"] .poster-image::before {
+.poster-card:nth-child(2) .poster-image::before {
   content: '';
   position: absolute;
   top: 50%;
   left: 50%;
   width: 280px;
   height: 190px;
-  background-image: url('games-controller-icon.png');
+  background-image: url('neon-gamepad-glow.png');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
