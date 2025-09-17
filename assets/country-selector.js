@@ -657,10 +657,9 @@ class CountrySelector {
   }
   
   applyProductFiltering(visibleProductHandles, currentMarket) {
-    // Find all possible product card selectors
+    // Find all possible product card selectors (excluding poster cards)
     const productCardSelectors = [
       '.product-card',
-      '.poster-card', 
       '[data-product-region]',
       '.product-item',
       '.collection-item',
@@ -700,6 +699,15 @@ class CountrySelector {
       }
     });
     
+    // Ensure poster cards are always visible (they're navigation, not products)
+    const posterCards = document.querySelectorAll('.poster-card');
+    posterCards.forEach(card => {
+      card.style.display = 'block';
+      card.classList.remove('region-hidden');
+    });
+    
+    console.log(`Poster cards: ${posterCards.length} (always visible)`);
+    
     console.log(`Market ${currentMarket}: ${visibleCount} visible, ${hiddenCount} hidden products`);
   }
 
@@ -708,7 +716,6 @@ class CountrySelector {
     
     const productCardSelectors = [
       '.product-card',
-      '.poster-card', 
       '[data-product-region]',
       '.product-item',
       '.collection-item',
@@ -729,6 +736,15 @@ class CountrySelector {
       card.style.display = 'none';
       card.classList.add('region-hidden');
     });
+    
+    // Ensure poster cards are always visible (they're navigation, not products)
+    const posterCards = document.querySelectorAll('.poster-card');
+    posterCards.forEach(card => {
+      card.style.display = 'block';
+      card.classList.remove('region-hidden');
+    });
+    
+    console.log(`Poster cards: ${posterCards.length} (always visible)`);
     
     console.log(`Hidden ${allProductCards.length} product cards`);
   }
