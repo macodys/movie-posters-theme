@@ -2124,13 +2124,11 @@ main#MainContent {
 }
 
 /* Additional specificity for games controller */
-.poster-card:nth-child(2)[href*="soccer"] .poster-image,
 .poster-card:nth-child(2)[href*="games"] .poster-image {
   background: transparent !important;
   background-image: none !important;
 }
 
-.poster-card:nth-child(2)[href*="soccer"] .poster-image::before,
 .poster-card:nth-child(2)[href*="games"] .poster-image::before {
   content: '';
   position: absolute;
