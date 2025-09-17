@@ -2385,8 +2385,13 @@ main#MainContent {
 /* Override reveal animation for poster cards */
 .poster-card.reveal {
   opacity: 1 !important;
-  transform: none !important;
+  transform: translateY(0) !important;
   transition: all 0.3s ease !important;
+}
+
+/* Allow hover transforms for poster cards */
+.poster-card.reveal:hover {
+  transform: translateY(-8px) rotateX(calc(5deg + var(--rotate-x, 0deg))) rotateY(calc(5deg + var(--rotate-y, 0deg))) scale(1.02) !important;
 }
 
 /* Subtle 3D Floating Effect for Product Image */

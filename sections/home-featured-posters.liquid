@@ -10,7 +10,7 @@
         <div class="poster-category">{{ settings.poster_1_category | default: "TV & Movies" }}</div>
       </a>
       
-      <a href="{{ settings.poster_2_link | default: '/collections/soccer' }}" class="poster-card poster-large reveal" data-tilt="center">
+      <a href="{{ settings.poster_2_link | default: '/collections/games' }}" class="poster-card poster-large reveal" data-tilt="center">
         <div class="poster-image" style="background-image: {% if settings.poster_2_image %}{{ settings.poster_2_image | image_url: width: 800 }}{% else %}linear-gradient(135deg, #667eea, #764ba2){% endif %};">
           <div class="poster-overlay">
             <h3>{{ settings.poster_2_title | default: "BEYOND EARTH" }}</h3>
