@@ -1503,8 +1503,8 @@ class CountrySelector {
       link.href = url.toString();
     });
     
-    // Update collection links in product cards
-    const productLinks = document.querySelectorAll('a[href*="/collections/"]');
+    // Update collection links in product cards (exclude poster cards)
+    const productLinks = document.querySelectorAll('a[href*="/collections/"]:not(.poster-card)');
     productLinks.forEach(link => {
       const url = new URL(link.href);
       url.searchParams.set('market', market);
