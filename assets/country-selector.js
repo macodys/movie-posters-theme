@@ -1610,9 +1610,17 @@ class CountrySelector {
   
   // Setup protection for Games button to always go to /collections/games
   setupGamesButtonProtection() {
+    console.log('Setting up Games button protection...');
     const gamesButton = document.querySelector('[data-games-button="true"]');
+    const allPosterCards = document.querySelectorAll('.poster-card');
+    
+    console.log('Games button found:', !!gamesButton);
+    console.log('All poster cards found:', allPosterCards.length);
+    
     if (gamesButton) {
+      console.log('Games button href before protection:', gamesButton.href);
       console.log('Setting up Games button protection');
+      
       gamesButton.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1628,6 +1636,28 @@ class CountrySelector {
           gamesButton.href = '/collections/games';
         }
       }, 1000);
+    } else {
+      console.log('Games button not found! Looking for alternatives...');
+      allPosterCards.forEach((card, index) => {
+        console.log(`Poster card ${index}:`, card.href, 'has data-games-button:', card.hasAttribute('data-games-button'));
+      });
+      
+      // Fallback: Target the second poster card directly (Games button)
+      const secondPosterCard = document.querySelector('.poster-card:nth-child(2)');
+      if (secondPosterCard) {
+        console.log('Found second poster card, setting up protection:', secondPosterCard.href);
+        secondPosterCard.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('Second poster card clicked - redirecting to /collections/games');
+          window.location.href = '/collections/games';
+          return false;
+        });
+        
+        // Force the href to be correct
+        secondPosterCard.href = '/collections/games';
+        console.log('Set second poster card href to:', secondPosterCard.href);
+      }
     }
   }
 
