@@ -1505,11 +1505,22 @@ class CountrySelector {
     
     // Update collection links in product cards (exclude poster cards and navigation)
     const productLinks = document.querySelectorAll('a[href*="/collections/"]:not(.poster-card):not([data-poster-nav])');
+    console.log('Updating collection URLs for market:', market);
+    console.log('Found product links to update:', productLinks.length);
     productLinks.forEach(link => {
+      const originalHref = link.href;
       const url = new URL(link.href);
       url.searchParams.set('market', market);
       url.searchParams.set('region', market); // Keep for compatibility
       link.href = url.toString();
+      console.log('Updated link:', originalHref, '->', link.href);
+    });
+    
+    // Debug: Check poster cards are not being modified
+    const posterCards = document.querySelectorAll('.poster-card[data-poster-nav]');
+    console.log('Poster cards found:', posterCards.length);
+    posterCards.forEach(card => {
+      console.log('Poster card href:', card.href);
     });
   }
   
