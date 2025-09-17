@@ -2502,6 +2502,56 @@ main#MainContent {
   display: none;
 }
 
+/* Special Marvel hover effect with GIF */
+.subcategory-btn[data-subcategory="marvel"] {
+  position: relative;
+  overflow: visible;
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.1), rgba(255, 107, 0, 0.1));
+  border-color: rgba(255, 0, 0, 0.3);
+  animation: marvelPulse 3s ease-in-out infinite;
+}
+
+@keyframes marvelPulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+  }
+}
+
+.subcategory-btn[data-subcategory="marvel"]::after {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background-image: url('marvel.gif');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  border-radius: 30px;
+  pointer-events: none;
+}
+
+.subcategory-btn[data-subcategory="marvel"]:hover::after {
+  opacity: 0.8;
+}
+
+.subcategory-btn[data-subcategory="marvel"]:hover {
+  background: linear-gradient(135deg, #ff0000, #ff6b00, #ff0000);
+  border-color: #ff0000;
+  color: #ffffff;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(255, 0, 0, 0.6), 0 0 20px rgba(255, 107, 0, 0.4);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  font-weight: 700;
+}
+
 /* Responsive subcategory buttons */
 @media (max-width: 768px) {
   .subcategory-buttons {
@@ -2531,6 +2581,14 @@ main#MainContent {
   }
   
   .subcategory-btn::before {
+    display: none;
+  }
+  
+  .subcategory-btn[data-subcategory="marvel"] {
+    animation: none;
+  }
+  
+  .subcategory-btn[data-subcategory="marvel"]::after {
     display: none;
   }
 }
