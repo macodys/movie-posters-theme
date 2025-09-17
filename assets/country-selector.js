@@ -1518,9 +1518,14 @@ class CountrySelector {
     
     // Debug: Check poster cards are not being modified
     const posterCards = document.querySelectorAll('.poster-card[data-poster-nav]');
-    console.log('Poster cards found:', posterCards.length);
+    const allPosterCards = document.querySelectorAll('.poster-card');
+    console.log('Poster cards with data-poster-nav:', posterCards.length);
+    console.log('All poster cards:', allPosterCards.length);
     posterCards.forEach(card => {
       console.log('Poster card href:', card.href);
+    });
+    allPosterCards.forEach(card => {
+      console.log('All poster card href:', card.href, 'has data-poster-nav:', card.hasAttribute('data-poster-nav'));
     });
   }
   
@@ -1603,6 +1608,29 @@ class CountrySelector {
     }
   }
   
+  // Setup protection for Games button to always go to /collections/games
+  setupGamesButtonProtection() {
+    const gamesButton = document.querySelector('[data-games-button="true"]');
+    if (gamesButton) {
+      console.log('Setting up Games button protection');
+      gamesButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Games button clicked - redirecting to /collections/games');
+        window.location.href = '/collections/games';
+        return false;
+      });
+      
+      // Also override the href periodically to ensure it stays correct
+      setInterval(() => {
+        if (gamesButton.href !== window.location.origin + '/collections/games') {
+          console.log('Fixing Games button href from', gamesButton.href, 'to /collections/games');
+          gamesButton.href = '/collections/games';
+        }
+      }, 1000);
+    }
+  }
+
   // Initialize the country selector
   init() {
     this.setupEventListeners();
@@ -1613,6 +1641,7 @@ class CountrySelector {
     
     // Listen for market changes from URL parameters
     this.handleMarketParameter();
+    this.setupGamesButtonProtection();
   }
   
   // Handle market parameter in URL to sync with Shopify's system
