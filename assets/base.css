@@ -2413,6 +2413,9 @@ main#MainContent {
   margin-top: 24px;
   padding-top: 24px;
   border-top: 1px solid var(--border);
+  display: block;
+  width: 100%;
+  clear: both;
 }
 
 .subcategory-title {
@@ -2425,13 +2428,20 @@ main#MainContent {
 }
 
 .subcategory-buttons {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
   flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 8px;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .subcategory-btn {
+  display: inline-block !important;
   padding: 8px 16px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2444,6 +2454,12 @@ main#MainContent {
   backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+  vertical-align: middle;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 2;
 }
 
 .subcategory-btn::before {
