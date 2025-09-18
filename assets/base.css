@@ -2756,7 +2756,7 @@ main#MainContent {
 }
 
 .poster-card {
-  flex: 0 0 160px;
+  flex: 0 0 200px;
   height: 200px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2858,12 +2858,12 @@ main#MainContent {
   }
   
   .poster-card {
-    flex: 0 0 140px;
-    height: 180px;
+    flex: 0 0 160px;
+    height: 160px;
   }
   
   .poster-image {
-    height: 140px;
+    height: 120px;
   }
 }
 
@@ -2891,12 +2891,12 @@ main#MainContent {
   }
   
   .poster-card {
-    flex: 0 0 120px;
-    height: 160px;
+    flex: 0 0 140px;
+    height: 140px;
   }
   
   .poster-image {
-    height: 120px;
+    height: 100px;
   }
 }
 
