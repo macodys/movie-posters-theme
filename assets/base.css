@@ -2739,8 +2739,8 @@ main#MainContent {
 }
 
 .poster-card {
-  min-width: 250px;
-  height: 300px;
+  min-width: 300px;
+  height: 400px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
@@ -2772,6 +2772,9 @@ main#MainContent {
   overflow: hidden;
   background-size: cover;
   background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .poster-image img {
@@ -2779,6 +2782,7 @@ main#MainContent {
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
+  display: block;
 }
 
 .poster-card:hover .poster-image img {
@@ -2904,12 +2908,12 @@ main#MainContent {
   }
   
   .poster-card {
-    min-width: 200px;
-    height: 240px;
+    min-width: 250px;
+    height: 320px;
   }
   
   .poster-image {
-    height: 200px;
+    height: 250px;
   }
 }
 
@@ -2937,12 +2941,12 @@ main#MainContent {
   }
   
   .poster-card {
-    min-width: 180px;
-    height: 220px;
+    min-width: 220px;
+    height: 280px;
   }
   
   .poster-image {
-    height: 180px;
+    height: 220px;
   }
 }
 

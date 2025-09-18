@@ -27,9 +27,9 @@
             <a href="{{ product.url }}" class="poster-link">
               <div class="poster-image">
                 {% if product.featured_image %}
-                  <img src="{{ product.featured_image | image_url: width: 300 }}" alt="{{ product.title }}" loading="lazy">
+                  <img src="{{ product.featured_image | image_url: width: 400 }}" alt="{{ product.title }}" loading="lazy">
                 {% else %}
-                  <div class="placeholder-image"></div>
+                  <div class="placeholder-image">No Image</div>
                 {% endif %}
                 <div class="poster-overlay">
                   <h3>{{ product.title | truncate: 30 }}</h3>
@@ -71,9 +71,9 @@
             <a href="{{ product.url }}" class="poster-link">
               <div class="poster-image">
                 {% if product.featured_image %}
-                  <img src="{{ product.featured_image | image_url: width: 300 }}" alt="{{ product.title }}" loading="lazy">
+                  <img src="{{ product.featured_image | image_url: width: 400 }}" alt="{{ product.title }}" loading="lazy">
                 {% else %}
-                  <div class="placeholder-image"></div>
+                  <div class="placeholder-image">No Image</div>
                 {% endif %}
                 <div class="poster-overlay">
                   <h3>{{ product.title | truncate: 30 }}</h3>
@@ -115,9 +115,9 @@
             <a href="{{ product.url }}" class="poster-link">
               <div class="poster-image">
                 {% if product.featured_image %}
-                  <img src="{{ product.featured_image | image_url: width: 300 }}" alt="{{ product.title }}" loading="lazy">
+                  <img src="{{ product.featured_image | image_url: width: 400 }}" alt="{{ product.title }}" loading="lazy">
                 {% else %}
-                  <div class="placeholder-image"></div>
+                  <div class="placeholder-image">No Image</div>
                 {% endif %}
                 <div class="poster-overlay">
                   <h3>{{ product.title | truncate: 30 }}</h3>
