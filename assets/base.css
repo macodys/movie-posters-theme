@@ -2568,6 +2568,338 @@ main#MainContent {
   }
 }
 
+/* Wolt-style Homepage Layout */
+.home-navigation {
+  padding: 24px 20px;
+  background: var(--bg);
+}
+
+.nav-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.nav-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.6s ease;
+  z-index: 1;
+}
+
+.nav-card:hover::before {
+  left: 100%;
+}
+
+.nav-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 212, 170, 0.2);
+}
+
+.nav-icon {
+  margin-bottom: 12px;
+  z-index: 2;
+  position: relative;
+}
+
+.nav-label {
+  font-size: 16px;
+  font-weight: 600;
+  z-index: 2;
+  position: relative;
+}
+
+/* Category-specific colors */
+.nav-card.tv-movies {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1));
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.nav-card.tv-movies:hover {
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);
+}
+
+.nav-card.games {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1));
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.nav-card.games:hover {
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+}
+
+.nav-card.music {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.1), rgba(147, 51, 234, 0.1));
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.nav-card.music:hover {
+  box-shadow: 0 8px 25px rgba(168, 85, 247, 0.3);
+}
+
+.nav-card.sports {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.nav-card.sports:hover {
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+}
+
+/* Collections Carousel */
+.collections-carousel {
+  padding: 0 20px 40px;
+  background: var(--bg);
+}
+
+.carousel-section {
+  margin-bottom: 48px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.section-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.see-all-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.see-all-link:hover {
+  color: var(--text);
+}
+
+.carousel-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.carousel-btn {
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 50%;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.carousel-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: scale(1.1);
+}
+
+.carousel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.carousel-container {
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 16px;
+  transition: transform 0.5s ease;
+  padding: 4px 0;
+}
+
+.poster-card {
+  flex: 0 0 200px;
+  height: 280px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  position: relative;
+}
+
+.poster-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(0, 212, 170, 0.2);
+  border-color: var(--accent);
+}
+
+.poster-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.poster-image {
+  width: 100%;
+  height: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+.poster-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.poster-card:hover .poster-image img {
+  transform: scale(1.05);
+}
+
+.placeholder-image {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.poster-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  padding: 16px;
+  color: white;
+}
+
+.poster-overlay h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.poster-price {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .nav-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .nav-card {
+    padding: 20px 12px;
+  }
+  
+  .nav-label {
+    font-size: 14px;
+  }
+  
+  .section-title {
+    font-size: 24px;
+  }
+  
+  .carousel-track {
+    gap: 12px;
+  }
+  
+  .poster-card {
+    flex: 0 0 160px;
+    height: 240px;
+  }
+  
+  .poster-image {
+    height: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-navigation {
+    padding: 16px;
+  }
+  
+  .collections-carousel {
+    padding: 0 16px 32px;
+  }
+  
+  .nav-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .nav-card {
+    padding: 16px 8px;
+  }
+  
+  .nav-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .poster-card {
+    flex: 0 0 140px;
+    height: 200px;
+  }
+  
+  .poster-image {
+    height: 140px;
+  }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .parallax-hero .parallax-layer, .parallax-hero::before, .parallax-hero .content { transition: none !important; transform: none !important; }
@@ -2590,5 +2922,21 @@ main#MainContent {
   
   .subcategory-btn[data-subcategory="marvel"]::after {
     display: none;
+  }
+  
+  .nav-card::before {
+    display: none;
+  }
+  
+  .carousel-track {
+    transition: none;
+  }
+  
+  .poster-card:hover {
+    transform: none;
+  }
+  
+  .poster-image img {
+    transition: none;
   }
 }

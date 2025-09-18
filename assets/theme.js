@@ -303,4 +303,196 @@
       matchingButton.click();
     }
   }
+
+  // Carousel functionality
+  class CarouselController {
+    constructor() {
+      this.carousels = new Map();
+      this.init();
+    }
+
+    init() {
+      // Initialize all carousels
+      const carouselContainers = document.querySelectorAll('.carousel-container');
+      carouselContainers.forEach(container => {
+        const track = container.querySelector('.carousel-track');
+        const prevBtn = document.querySelector(`[data-target="${container.id}"]`);
+        const nextBtn = document.querySelector(`[data-target="${container.id}"]`);
+        
+        if (track) {
+          this.carousels.set(container.id, {
+            container,
+            track,
+            currentIndex: 0,
+            itemWidth: 216, // 200px + 16px gap
+            visibleItems: this.getVisibleItems(container),
+            totalItems: track.children.length
+          });
+        }
+      });
+
+      // Add event listeners
+      this.addEventListeners();
+    }
+
+    getVisibleItems(container) {
+      const containerWidth = container.offsetWidth;
+      return Math.floor(containerWidth / 216); // 200px card + 16px gap
+    }
+
+    addEventListeners() {
+      // Carousel navigation buttons
+      document.querySelectorAll('.carousel-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const target = e.target.closest('.carousel-btn').getAttribute('data-target');
+          const direction = e.target.closest('.carousel-btn').classList.contains('prev') ? -1 : 1;
+          this.navigate(target, direction);
+        });
+      });
+
+      // Touch/swipe support
+      document.querySelectorAll('.carousel-track').forEach(track => {
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+
+        track.addEventListener('touchstart', (e) => {
+          startX = e.touches[0].clientX;
+          isDragging = true;
+        });
+
+        track.addEventListener('touchmove', (e) => {
+          if (!isDragging) return;
+          currentX = e.touches[0].clientX;
+        });
+
+        track.addEventListener('touchend', (e) => {
+          if (!isDragging) return;
+          isDragging = false;
+          
+          const diffX = startX - currentX;
+          const threshold = 50;
+          
+          if (Math.abs(diffX) > threshold) {
+            const direction = diffX > 0 ? 1 : -1;
+            const carouselId = track.closest('.carousel-container').id;
+            this.navigate(carouselId, direction);
+          }
+        });
+      });
+
+      // Mouse drag support
+      document.querySelectorAll('.carousel-track').forEach(track => {
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+
+        track.addEventListener('mousedown', (e) => {
+          startX = e.clientX;
+          isDragging = true;
+          track.style.cursor = 'grabbing';
+        });
+
+        track.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          currentX = e.clientX;
+        });
+
+        track.addEventListener('mouseup', (e) => {
+          if (!isDragging) return;
+          isDragging = false;
+          track.style.cursor = 'grab';
+          
+          const diffX = startX - currentX;
+          const threshold = 50;
+          
+          if (Math.abs(diffX) > threshold) {
+            const direction = diffX > 0 ? 1 : -1;
+            const carouselId = track.closest('.carousel-container').id;
+            this.navigate(carouselId, direction);
+          }
+        });
+
+        track.addEventListener('mouseleave', () => {
+          isDragging = false;
+          track.style.cursor = 'grab';
+        });
+      });
+
+      // Keyboard navigation
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+          const activeCarousel = document.querySelector('.carousel-container:focus-within');
+          if (activeCarousel) {
+            e.preventDefault();
+            const direction = e.key === 'ArrowLeft' ? -1 : 1;
+            this.navigate(activeCarousel.id, direction);
+          }
+        }
+      });
+    }
+
+    navigate(carouselId, direction) {
+      const carousel = this.carousels.get(carouselId);
+      if (!carousel) return;
+
+      const maxIndex = Math.max(0, carousel.totalItems - carousel.visibleItems);
+      const newIndex = Math.max(0, Math.min(maxIndex, carousel.currentIndex + direction));
+      
+      if (newIndex !== carousel.currentIndex) {
+        carousel.currentIndex = newIndex;
+        this.updateCarousel(carousel);
+        this.updateButtons(carouselId);
+      }
+    }
+
+    updateCarousel(carousel) {
+      const translateX = -carousel.currentIndex * carousel.itemWidth;
+      carousel.track.style.transform = `translateX(${translateX}px)`;
+    }
+
+    updateButtons(carouselId) {
+      const carousel = this.carousels.get(carouselId);
+      if (!carousel) return;
+
+      const prevBtn = document.querySelector(`[data-target="${carouselId}"].prev`);
+      const nextBtn = document.querySelector(`[data-target="${carouselId}"].next`);
+
+      if (prevBtn) {
+        prevBtn.disabled = carousel.currentIndex === 0;
+      }
+      if (nextBtn) {
+        nextBtn.disabled = carousel.currentIndex >= carousel.totalItems - carousel.visibleItems;
+      }
+    }
+
+    // Update carousel on window resize
+    updateOnResize() {
+      this.carousels.forEach((carousel, id) => {
+        carousel.visibleItems = this.getVisibleItems(carousel.container);
+        this.updateButtons(id);
+      });
+    }
+  }
+
+  // Initialize carousel when DOM is loaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      new CarouselController();
+    });
+  } else {
+    new CarouselController();
+  }
+
+  // Update carousel on window resize
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      const carouselController = window.carouselController;
+      if (carouselController) {
+        carouselController.updateOnResize();
+      }
+    }, 250);
+  });
 })();

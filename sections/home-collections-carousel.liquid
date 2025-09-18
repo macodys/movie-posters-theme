@@ -1,0 +1,141 @@
+<section class="collections-carousel">
+  <!-- Hot Collections Section -->
+  <div class="carousel-section">
+    <div class="section-header">
+      <h2 class="section-title">Hot Collections</h2>
+      <div class="section-actions">
+        <a href="/collections/bestsellers" class="see-all-link">See all</a>
+        <div class="carousel-controls">
+          <button class="carousel-btn prev" data-target="hot-collections">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15,18 9,12 15,6"></polyline>
+            </svg>
+          </button>
+          <button class="carousel-btn next" data-target="hot-collections">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9,18 15,12 9,6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="carousel-container" id="hot-collections">
+      <div class="carousel-track">
+        {% for product in collections.bestsellers.products limit: 10 %}
+          <div class="poster-card">
+            <a href="{{ product.url }}" class="poster-link">
+              <div class="poster-image">
+                {% if product.featured_image %}
+                  <img src="{{ product.featured_image | image_url: width: 300 }}" alt="{{ product.title }}" loading="lazy">
+                {% else %}
+                  <div class="placeholder-image"></div>
+                {% endif %}
+                <div class="poster-overlay">
+                  <h3>{{ product.title | truncate: 30 }}</h3>
+                  <div class="poster-price">{{ product.price | money }}</div>
+                </div>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- New Collections Section -->
+  <div class="carousel-section">
+    <div class="section-header">
+      <h2 class="section-title">New</h2>
+      <div class="section-actions">
+        <a href="/collections/new" class="see-all-link">See all</a>
+        <div class="carousel-controls">
+          <button class="carousel-btn prev" data-target="new-collections">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15,18 9,12 15,6"></polyline>
+            </svg>
+          </button>
+          <button class="carousel-btn next" data-target="new-collections">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9,18 15,12 9,6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="carousel-container" id="new-collections">
+      <div class="carousel-track">
+        {% for product in collections.new.products limit: 10 %}
+          <div class="poster-card">
+            <a href="{{ product.url }}" class="poster-link">
+              <div class="poster-image">
+                {% if product.featured_image %}
+                  <img src="{{ product.featured_image | image_url: width: 300 }}" alt="{{ product.title }}" loading="lazy">
+                {% else %}
+                  <div class="placeholder-image"></div>
+                {% endif %}
+                <div class="poster-overlay">
+                  <h3>{{ product.title | truncate: 30 }}</h3>
+                  <div class="poster-price">{{ product.price | money }}</div>
+                </div>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Trending Collections Section -->
+  <div class="carousel-section">
+    <div class="section-header">
+      <h2 class="section-title">Trending</h2>
+      <div class="section-actions">
+        <a href="/collections/trending" class="see-all-link">See all</a>
+        <div class="carousel-controls">
+          <button class="carousel-btn prev" data-target="trending-collections">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15,18 9,12 15,6"></polyline>
+            </svg>
+          </button>
+          <button class="carousel-btn next" data-target="trending-collections">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9,18 15,12 9,6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="carousel-container" id="trending-collections">
+      <div class="carousel-track">
+        {% for product in collections.all.products limit: 10 %}
+          <div class="poster-card">
+            <a href="{{ product.url }}" class="poster-link">
+              <div class="poster-image">
+                {% if product.featured_image %}
+                  <img src="{{ product.featured_image | image_url: width: 300 }}" alt="{{ product.title }}" loading="lazy">
+                {% else %}
+                  <div class="placeholder-image"></div>
+                {% endif %}
+                <div class="poster-overlay">
+                  <h3>{{ product.title | truncate: 30 }}</h3>
+                  <div class="poster-price">{{ product.price | money }}</div>
+                </div>
+              </div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collections Carousel",
+  "settings": [],
+  "presets": [{"name": "Collections Carousel"}]
+}
+{% endschema %}
