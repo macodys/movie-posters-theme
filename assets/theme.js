@@ -304,8 +304,8 @@
     }
   }
 
-  // Carousel functionality
-  class CarouselController {
+  // Stylish Movie Carousel functionality
+  class StylishCarouselController {
     constructor() {
       this.carousels = new Map();
       this.init();
@@ -316,17 +316,17 @@
       const carouselContainers = document.querySelectorAll('.carousel-container');
       carouselContainers.forEach(container => {
         const track = container.querySelector('.carousel-track');
-        const prevBtn = document.querySelector(`[data-target="${container.id}"]`);
-        const nextBtn = document.querySelector(`[data-target="${container.id}"]`);
+        const prevBtn = container.querySelector('.carousel-btn.prev');
+        const nextBtn = container.querySelector('.carousel-btn.next');
         
         if (track) {
           this.carousels.set(container.id, {
             container,
             track,
-            currentIndex: 0,
-            itemWidth: 216, // 200px + 16px gap
-            visibleItems: this.getVisibleItems(container),
-            totalItems: track.children.length
+            prevBtn,
+            nextBtn,
+            scrollAmount: 300,
+            isScrolling: false
           });
         }
       });
@@ -335,87 +335,71 @@
       this.addEventListeners();
     }
 
-    getVisibleItems(container) {
-      const containerWidth = container.offsetWidth;
-      return Math.floor(containerWidth / 216); // 200px card + 16px gap
-    }
-
     addEventListeners() {
       // Carousel navigation buttons
-      document.querySelectorAll('.carousel-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const target = e.target.closest('.carousel-btn').getAttribute('data-target');
-          const direction = e.target.closest('.carousel-btn').classList.contains('prev') ? -1 : 1;
-          this.navigate(target, direction);
-        });
-      });
+      this.carousels.forEach((carousel, carouselId) => {
+        if (carousel.prevBtn) {
+          carousel.prevBtn.addEventListener('click', () => this.scroll(carouselId, -1));
+        }
+        if (carousel.nextBtn) {
+          carousel.nextBtn.addEventListener('click', () => this.scroll(carouselId, 1));
+        }
 
-      // Touch/swipe support
-      document.querySelectorAll('.carousel-track').forEach(track => {
-        let startX = 0;
-        let currentX = 0;
-        let isDragging = false;
+        // Touch/swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
 
-        track.addEventListener('touchstart', (e) => {
-          startX = e.touches[0].clientX;
-          isDragging = true;
+        carousel.track.addEventListener('touchstart', (e) => {
+          touchStartX = e.changedTouches[0].screenX;
         });
 
-        track.addEventListener('touchmove', (e) => {
-          if (!isDragging) return;
-          currentX = e.touches[0].clientX;
-        });
-
-        track.addEventListener('touchend', (e) => {
-          if (!isDragging) return;
-          isDragging = false;
-          
-          const diffX = startX - currentX;
-          const threshold = 50;
-          
-          if (Math.abs(diffX) > threshold) {
-            const direction = diffX > 0 ? 1 : -1;
-            const carouselId = track.closest('.carousel-container').id;
-            this.navigate(carouselId, direction);
+        carousel.track.addEventListener('touchend', (e) => {
+          touchEndX = e.changedTouches[0].screenX;
+          if (touchStartX - touchEndX > 50) {
+            this.scroll(carouselId, 1);
+          } else if (touchEndX - touchStartX > 50) {
+            this.scroll(carouselId, -1);
           }
         });
-      });
 
-      // Mouse drag support
-      document.querySelectorAll('.carousel-track').forEach(track => {
+        // Prevent default touch behavior
+        carousel.track.addEventListener('touchmove', (e) => {
+          e.preventDefault();
+        }, { passive: false });
+
+        // Mouse drag support
         let startX = 0;
         let currentX = 0;
         let isDragging = false;
 
-        track.addEventListener('mousedown', (e) => {
+        carousel.track.addEventListener('mousedown', (e) => {
           startX = e.clientX;
           isDragging = true;
-          track.style.cursor = 'grabbing';
+          carousel.track.style.cursor = 'grabbing';
         });
 
-        track.addEventListener('mousemove', (e) => {
+        carousel.track.addEventListener('mousemove', (e) => {
           if (!isDragging) return;
           currentX = e.clientX;
         });
 
-        track.addEventListener('mouseup', (e) => {
+        carousel.track.addEventListener('mouseup', (e) => {
           if (!isDragging) return;
           isDragging = false;
-          track.style.cursor = 'grab';
+          carousel.track.style.cursor = 'grab';
           
           const diffX = startX - currentX;
           const threshold = 50;
           
           if (Math.abs(diffX) > threshold) {
             const direction = diffX > 0 ? 1 : -1;
-            const carouselId = track.closest('.carousel-container').id;
-            this.navigate(carouselId, direction);
+            this.scroll(carouselId, direction);
           }
         });
 
-        track.addEventListener('mouseleave', () => {
+        carousel.track.addEventListener('mouseleave', () => {
           isDragging = false;
-          track.style.cursor = 'grab';
+          carousel.track.style.cursor = 'grab';
         });
       });
 
@@ -426,73 +410,51 @@
           if (activeCarousel) {
             e.preventDefault();
             const direction = e.key === 'ArrowLeft' ? -1 : 1;
-            this.navigate(activeCarousel.id, direction);
+            this.scroll(activeCarousel.id, direction);
           }
         }
       });
     }
 
-    navigate(carouselId, direction) {
-      const carousel = this.carousels.get(carouselId);
-      if (!carousel) return;
+    smoothScroll(element, target, duration) {
+      const start = element.scrollLeft;
+      const change = target - start;
+      let startTime = null;
 
-      const maxIndex = Math.max(0, carousel.totalItems - carousel.visibleItems);
-      const newIndex = Math.max(0, Math.min(maxIndex, carousel.currentIndex + direction));
+      const animation = (currentTime) => {
+        if (startTime === null) startTime = currentTime;
+        const timeElapsed = currentTime - startTime;
+        const run = this.ease(timeElapsed, start, change, duration);
+        element.scrollLeft = run;
+        if (timeElapsed < duration) requestAnimationFrame(animation);
+        else this.carousels.get(element.closest('.carousel-container').id).isScrolling = false;
+      };
+      requestAnimationFrame(animation);
+    }
+
+    ease(t, b, c, d) {
+      t /= d / 2;
+      if (t < 1) return c / 2 * t * t + b;
+      t--;
+      return -c / 2 * (t * (t - 2) - 1) + b;
+    }
+
+    scroll(carouselId, direction) {
+      const carousel = this.carousels.get(carouselId);
+      if (!carousel || carousel.isScrolling) return;
       
-      if (newIndex !== carousel.currentIndex) {
-        carousel.currentIndex = newIndex;
-        this.updateCarousel(carousel);
-        this.updateButtons(carouselId);
-      }
-    }
-
-    updateCarousel(carousel) {
-      const translateX = -carousel.currentIndex * carousel.itemWidth;
-      carousel.track.style.transform = `translateX(${translateX}px)`;
-    }
-
-    updateButtons(carouselId) {
-      const carousel = this.carousels.get(carouselId);
-      if (!carousel) return;
-
-      const prevBtn = document.querySelector(`[data-target="${carouselId}"].prev`);
-      const nextBtn = document.querySelector(`[data-target="${carouselId}"].next`);
-
-      if (prevBtn) {
-        prevBtn.disabled = carousel.currentIndex === 0;
-      }
-      if (nextBtn) {
-        nextBtn.disabled = carousel.currentIndex >= carousel.totalItems - carousel.visibleItems;
-      }
-    }
-
-    // Update carousel on window resize
-    updateOnResize() {
-      this.carousels.forEach((carousel, id) => {
-        carousel.visibleItems = this.getVisibleItems(carousel.container);
-        this.updateButtons(id);
-      });
+      carousel.isScrolling = true;
+      const scrollTarget = carousel.track.scrollLeft + (direction * carousel.scrollAmount);
+      this.smoothScroll(carousel.track, scrollTarget, 500);
     }
   }
 
   // Initialize carousel when DOM is loaded
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      new CarouselController();
+      new StylishCarouselController();
     });
   } else {
-    new CarouselController();
+    new StylishCarouselController();
   }
-
-  // Update carousel on window resize
-  let resizeTimeout;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      const carouselController = window.carouselController;
-      if (carouselController) {
-        carouselController.updateOnResize();
-      }
-    }, 250);
-  });
 })();
