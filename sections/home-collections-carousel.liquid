@@ -22,14 +22,21 @@
     
     <div class="carousel-container" id="hot-collections">
       <div class="carousel-track">
-        {% for product in collections.bestsellers.products limit: 10 %}
+        {% assign hot_products = collections.bestsellers.products %}
+        {% if hot_products.size == 0 %}
+          {% assign hot_products = collections.all.products %}
+        {% endif %}
+        {% if hot_products.size == 0 %}
+          {% assign hot_products = collections.products %}
+        {% endif %}
+        {% for product in hot_products limit: 10 %}
           <div class="poster-card">
             <a href="{{ product.url }}" class="poster-link">
               <div class="poster-image">
                 {% if product.featured_image %}
                   <img src="{{ product.featured_image | image_url: width: 400 }}" alt="{{ product.title }}" loading="lazy">
                 {% else %}
-                  <div class="placeholder-image">No Image</div>
+                  <div class="placeholder-image">{{ product.title | truncate: 15 }}</div>
                 {% endif %}
                 <div class="poster-overlay">
                   <h3>{{ product.title | truncate: 30 }}</h3>
@@ -37,6 +44,35 @@
                 </div>
               </div>
             </a>
+          </div>
+        {% else %}
+          <!-- Fallback if no products -->
+          <div class="poster-card">
+            <div class="poster-image">
+              <div class="placeholder-image">Sample Movie 1</div>
+              <div class="poster-overlay">
+                <h3>Sample Movie 1</h3>
+                <div class="poster-price">$29.99</div>
+              </div>
+            </div>
+          </div>
+          <div class="poster-card">
+            <div class="poster-image">
+              <div class="placeholder-image">Sample Movie 2</div>
+              <div class="poster-overlay">
+                <h3>Sample Movie 2</h3>
+                <div class="poster-price">$24.99</div>
+              </div>
+            </div>
+          </div>
+          <div class="poster-card">
+            <div class="poster-image">
+              <div class="placeholder-image">Sample Movie 3</div>
+              <div class="poster-overlay">
+                <h3>Sample Movie 3</h3>
+                <div class="poster-price">$19.99</div>
+              </div>
+            </div>
           </div>
         {% endfor %}
       </div>
@@ -66,14 +102,21 @@
     
     <div class="carousel-container" id="new-collections">
       <div class="carousel-track">
-        {% for product in collections.new.products limit: 10 %}
+        {% assign new_products = collections.new.products %}
+        {% if new_products.size == 0 %}
+          {% assign new_products = collections.all.products %}
+        {% endif %}
+        {% if new_products.size == 0 %}
+          {% assign new_products = collections.products %}
+        {% endif %}
+        {% for product in new_products limit: 10 %}
           <div class="poster-card">
             <a href="{{ product.url }}" class="poster-link">
               <div class="poster-image">
                 {% if product.featured_image %}
                   <img src="{{ product.featured_image | image_url: width: 400 }}" alt="{{ product.title }}" loading="lazy">
                 {% else %}
-                  <div class="placeholder-image">No Image</div>
+                  <div class="placeholder-image">{{ product.title | truncate: 15 }}</div>
                 {% endif %}
                 <div class="poster-overlay">
                   <h3>{{ product.title | truncate: 30 }}</h3>
@@ -81,6 +124,26 @@
                 </div>
               </div>
             </a>
+          </div>
+        {% else %}
+          <!-- Fallback if no products -->
+          <div class="poster-card">
+            <div class="poster-image">
+              <div class="placeholder-image">New Movie 1</div>
+              <div class="poster-overlay">
+                <h3>New Movie 1</h3>
+                <div class="poster-price">$34.99</div>
+              </div>
+            </div>
+          </div>
+          <div class="poster-card">
+            <div class="poster-image">
+              <div class="placeholder-image">New Movie 2</div>
+              <div class="poster-overlay">
+                <h3>New Movie 2</h3>
+                <div class="poster-price">$27.99</div>
+              </div>
+            </div>
           </div>
         {% endfor %}
       </div>
@@ -110,14 +173,18 @@
     
     <div class="carousel-container" id="trending-collections">
       <div class="carousel-track">
-        {% for product in collections.all.products limit: 10 %}
+        {% assign trending_products = collections.all.products %}
+        {% if trending_products.size == 0 %}
+          {% assign trending_products = collections.products %}
+        {% endif %}
+        {% for product in trending_products limit: 10 %}
           <div class="poster-card">
             <a href="{{ product.url }}" class="poster-link">
               <div class="poster-image">
                 {% if product.featured_image %}
                   <img src="{{ product.featured_image | image_url: width: 400 }}" alt="{{ product.title }}" loading="lazy">
                 {% else %}
-                  <div class="placeholder-image">No Image</div>
+                  <div class="placeholder-image">{{ product.title | truncate: 15 }}</div>
                 {% endif %}
                 <div class="poster-overlay">
                   <h3>{{ product.title | truncate: 30 }}</h3>
@@ -125,6 +192,35 @@
                 </div>
               </div>
             </a>
+          </div>
+        {% else %}
+          <!-- Fallback if no products -->
+          <div class="poster-card">
+            <div class="poster-image">
+              <div class="placeholder-image">Trending 1</div>
+              <div class="poster-overlay">
+                <h3>Trending Movie 1</h3>
+                <div class="poster-price">$39.99</div>
+              </div>
+            </div>
+          </div>
+          <div class="poster-card">
+            <div class="poster-image">
+              <div class="placeholder-image">Trending 2</div>
+              <div class="poster-overlay">
+                <h3>Trending Movie 2</h3>
+                <div class="poster-price">$32.99</div>
+              </div>
+            </div>
+          </div>
+          <div class="poster-card">
+            <div class="poster-image">
+              <div class="placeholder-image">Trending 3</div>
+              <div class="poster-overlay">
+                <h3>Trending Movie 3</h3>
+                <div class="poster-price">$29.99</div>
+              </div>
+            </div>
           </div>
         {% endfor %}
       </div>
