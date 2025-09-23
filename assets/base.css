@@ -1682,7 +1682,8 @@ main#MainContent {
   letter-spacing: 0.5px;
 }
 
-.collection-badge.new {
+.collection-badge.new,
+.product-badge.new {
   background: var(--purple);
 }
 

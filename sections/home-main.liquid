@@ -189,7 +189,7 @@
     </div>
   </div>
 
-  <!-- New Collections -->
+  <!-- New Products -->
   <div class="collections-section new">
     <div class="section-header">
       <h2 class="section-title">New</h2>
@@ -212,13 +212,14 @@
 
     <div class="carousel-container">
       <div class="carousel-track" data-carousel="new">
-        {% for collection in collections limit: 8 %}
-          {% if collection.products_count > 0 %}
-            <div class="collection-card">
-              <a href="{{ collection.url }}" class="collection-link">
-                <div class="collection-image">
-                  {% if collection.featured_image %}
-                    <img src="{{ collection.featured_image | image_url: width: 300 }}" alt="{{ collection.title }}" loading="lazy">
+        {% assign new_collection = collections.new %}
+        {% if new_collection and new_collection.products_count > 0 %}
+          {% for product in new_collection.products limit: 8 %}
+            <div class="product-card">
+              <a href="{{ product.url }}" class="product-link">
+                <div class="product-image">
+                  {% if product.featured_image %}
+                    <img src="{{ product.featured_image | image_url: width: 300 }}" alt="{{ product.title }}" loading="lazy">
                   {% else %}
                     <div class="placeholder-image">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -228,22 +229,69 @@
                       </svg>
                     </div>
                   {% endif %}
-                  <div class="collection-overlay">
-                    <div class="collection-badge new">New</div>
+                  <div class="product-overlay">
+                    <div class="product-badge new">New</div>
                   </div>
                 </div>
-                <div class="collection-info">
-                  <h3 class="collection-title">{{ collection.title | truncate: 30 }}</h3>
-                  <p class="collection-count">{{ collection.products_count }} items</p>
-                  <div class="collection-rating">
+                <div class="product-info">
+                  <h3 class="product-title">{{ product.title | truncate: 30 }}</h3>
+                  <div class="product-price">
+                    {% if product.compare_at_price > product.price %}
+                      <span class="price-sale">{{ product.price | money }}</span>
+                      <span class="price-compare">{{ product.compare_at_price | money }}</span>
+                    {% else %}
+                      <span class="price">{{ product.price | money }}</span>
+                    {% endif %}
+                  </div>
+                  <div class="product-rating">
                     <span class="rating-stars">★★★★★</span>
                     <span class="rating-value">4.9</span>
                   </div>
                 </div>
               </a>
             </div>
-          {% endif %}
-        {% endfor %}
+          {% endfor %}
+        {% else %}
+          <!-- Fallback: Show recently added products from all collections -->
+          {% assign recent_products = collections.all.products | sort: 'created_at' | reverse %}
+          {% for product in recent_products limit: 8 %}
+            <div class="product-card">
+              <a href="{{ product.url }}" class="product-link">
+                <div class="product-image">
+                  {% if product.featured_image %}
+                    <img src="{{ product.featured_image | image_url: width: 300 }}" alt="{{ product.title }}" loading="lazy">
+                  {% else %}
+                    <div class="placeholder-image">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21,15 16,10 5,21"/>
+                      </svg>
+                    </div>
+                  {% endif %}
+                  <div class="product-overlay">
+                    <div class="product-badge new">New</div>
+                  </div>
+                </div>
+                <div class="product-info">
+                  <h3 class="product-title">{{ product.title | truncate: 30 }}</h3>
+                  <div class="product-price">
+                    {% if product.compare_at_price > product.price %}
+                      <span class="price-sale">{{ product.price | money }}</span>
+                      <span class="price-compare">{{ product.compare_at_price | money }}</span>
+                    {% else %}
+                      <span class="price">{{ product.price | money }}</span>
+                    {% endif %}
+                  </div>
+                  <div class="product-rating">
+                    <span class="rating-stars">★★★★★</span>
+                    <span class="rating-value">4.9</span>
+                  </div>
+                </div>
+              </a>
+            </div>
+          {% endfor %}
+        {% endif %}
       </div>
     </div>
   </div>
@@ -260,3 +308,4 @@
   ]
 }
 {% endschema %}
+
