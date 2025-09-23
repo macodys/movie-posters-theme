@@ -179,7 +179,7 @@ main#MainContent {
 }
 .logo-text { font-weight: 700; letter-spacing: 1px; font-size: 16px; }
 
-/* Header Search */
+/* Header Search - CodePen Style */
 .header-search {
   position: absolute;
   left: 50%;
@@ -188,43 +188,157 @@ main#MainContent {
 }
 
 .search-container {
-  position: relative;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 25px;
-  padding: 8px 16px;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-  min-width: 300px;
+  justify-content: space-between;
+  padding: 1.5em 2em;
+  background: #201c29;
+  border: 1px solid #28242f;
+  border-radius: 0.35em;
+  box-shadow: 0 10px 60px #070509;
+  min-width: 500px;
+  position: relative;
 }
 
-.search-container:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+.search-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="%23ff8a00" stroke-width="0.5" opacity="0.1"/></svg>');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: 70% 50%;
+  pointer-events: none;
 }
 
-.search-icon {
-  width: 18px;
-  height: 18px;
-  color: var(--muted);
-  margin-right: 8px;
-  flex-shrink: 0;
+.tags {
+  display: flex;
+  align-items: center;
+  margin: 0;
 }
 
-.search-input {
-  background: none;
-  border: none;
+.tags span {
+  margin-right: 1em;
+  padding: 1em;
+  text-transform: uppercase;
+  transform: rotate(180deg);
+  writing-mode: vertical-rl;
+  border-left: 3px solid #28242f;
+  background: linear-gradient(to right, #ff8a00, #da1b60);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.tag {
+  display: block;
+  padding: 0.3em 0.85em;
+  margin: 0.5em;
+  text-transform: uppercase;
+  border: 3px solid #28242f;
+  border-radius: 2em;
+  color: #a1a1af;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: transform 0.2s;
+  transition-timing-function: cubic-bezier(0.45, -0.85, 0.55, -0.45);
+}
+
+.tag:hover {
+  transform: scale(1.2);
+  background: linear-gradient(to right, #ff8a00, #da1b60);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tag.active {
+  background: linear-gradient(to right, #ff8a00, #da1b60);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  border-color: #ff8a00;
+}
+
+.more {
+  margin-left: 0.5em;
+  color: #a1a1af;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.more:hover {
+  color: white;
+}
+
+.search-label {
+  position: relative;
+  white-space: nowrap;
+  display: flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: flex-end;
+  border: 3px solid transparent;
+  border-radius: 2em;
+  background-color: #17141d;
+  background-image: radial-gradient(circle at 50%, #ff8a00, #da1b60);
+  transition: all 250ms ease-in-out;
+}
+
+.search-label::before {
+  position: absolute;
+  right: 0;
+  bottom: -20px;
+  z-index: 0;
+  transform: rotate(-35deg);
+  width: 4px;
+  height: 25px;
+  content: "";
+  border-radius: 2px;
+  background-image: linear-gradient(to top, #ff8a00, #da1b60);
+  transition: all 250ms ease-in-out;
+}
+
+.tag_search {
+  position: relative;
+  z-index: 1;
+  display: block;
+  padding-left: 1.75em;
+  width: 42px;
+  height: 42px;
+  font-size: 1rem;
+  border: 0;
+  border-radius: inherit;
+  background-color: #17141d;
+  color: white;
+  transition: width 250ms ease-in-out;
+}
+
+.tag_search:focus {
   outline: none;
-  color: var(--text);
-  font-size: 14px;
-  width: 100%;
-  padding: 4px 0;
 }
 
-.search-input::placeholder {
-  color: var(--muted);
+.search-label:hover {
+  width: 20%;
+}
+
+.search-label:hover::before {
+  height: 30px;
+  transform: rotate(-90deg) translate(28px, 15px);
+}
+
+.search-label:hover .tag_search {
+  width: 100%;
+  padding-right: 1em;
+  padding-left: 1em;
 }
 /* Main Navigation - Collection Style Buttons */
 .main-nav {
@@ -1817,11 +1931,23 @@ main#MainContent {
 /* Responsive */
 @media (max-width: 768px) {
   .search-container {
-    min-width: 250px;
+    min-width: 400px;
+    padding: 1em 1.5em;
   }
   
-  .search-input {
-    font-size: 13px;
+  .tags span {
+    font-size: 0.9rem;
+    padding: 0.8em;
+  }
+  
+  .tag {
+    font-size: 0.9rem;
+    padding: 0.25em 0.7em;
+    margin: 0.4em;
+  }
+  
+  .more {
+    font-size: 0.9rem;
   }
   .discovery-nav {
     padding: 16px 20px 0;
@@ -3454,16 +3580,30 @@ main#MainContent {
 
 @media (max-width: 480px) {
   .search-container {
-    min-width: 200px;
+    min-width: 300px;
+    padding: 0.8em 1em;
+    background-image: none;
   }
   
-  .search-input {
-    font-size: 12px;
+  .search-label {
+    pointer-events: none;
+    visibility: hidden;
+    opacity: 0;
   }
   
-  .search-icon {
-    width: 16px;
-    height: 16px;
+  .tags span {
+    font-size: 0.8rem;
+    padding: 0.6em;
+  }
+  
+  .tag {
+    font-size: 0.8rem;
+    padding: 0.2em 0.6em;
+    margin: 0.3em;
+  }
+  
+  .more {
+    font-size: 0.8rem;
   }
   
   .discovery-nav {
