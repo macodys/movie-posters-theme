@@ -179,76 +179,6 @@ main#MainContent {
 }
 .logo-text { font-weight: 700; letter-spacing: 1px; font-size: 16px; }
 
-/* Header Search - CodePen Style (Search Only) */
-.header-search {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-}
-
-.search-label {
-  position: relative;
-  white-space: nowrap;
-  display: flex;
-  width: 48px;
-  height: 48px;
-  align-items: center;
-  justify-content: flex-end;
-  border: 3px solid transparent;
-  border-radius: 2em;
-  background-color: #17141d;
-  background-image: radial-gradient(circle at 50%, #ff8a00, #da1b60);
-  transition: all 250ms ease-in-out;
-}
-
-.search-label::before {
-  position: absolute;
-  right: 0;
-  bottom: -20px;
-  z-index: 0;
-  transform: rotate(-35deg);
-  width: 4px;
-  height: 25px;
-  content: "";
-  border-radius: 2px;
-  background-image: linear-gradient(to top, #ff8a00, #da1b60);
-  transition: all 250ms ease-in-out;
-}
-
-.tag_search {
-  position: relative;
-  z-index: 1;
-  display: block;
-  padding-left: 1.75em;
-  width: 42px;
-  height: 42px;
-  font-size: 1rem;
-  border: 0;
-  border-radius: inherit;
-  background-color: #17141d;
-  color: white;
-  transition: width 250ms ease-in-out;
-}
-
-.tag_search:focus {
-  outline: none;
-}
-
-.search-label:hover {
-  width: 20%;
-}
-
-.search-label:hover::before {
-  height: 30px;
-  transform: rotate(-90deg) translate(28px, 15px);
-}
-
-.search-label:hover .tag_search {
-  width: 100%;
-  padding-right: 1em;
-  padding-left: 1em;
-}
 /* Main Navigation - Collection Style Buttons */
 .main-nav {
   display: flex !important;
@@ -1839,9 +1769,6 @@ main#MainContent {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .search-label:hover {
-    width: 15%;
-  }
   .discovery-nav {
     padding: 16px 20px 0;
   }
@@ -3472,20 +3399,6 @@ main#MainContent {
 }
 
 @media (max-width: 480px) {
-  .search-label {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .search-label:hover {
-    width: 12%;
-  }
-  
-  .tag_search {
-    width: 36px;
-    height: 36px;
-    font-size: 0.9rem;
-  }
   
   .discovery-nav {
     padding: 12px 16px 0;
