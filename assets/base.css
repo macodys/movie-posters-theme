@@ -1398,6 +1398,101 @@ main#MainContent {
   height: 20px;
 }
 
+/* Category Cards */
+.category-cards {
+  display: flex;
+  gap: 16px;
+  padding: 32px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.category-cards::-webkit-scrollbar {
+  display: none;
+}
+
+.category-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 280px;
+  min-width: 280px;
+}
+
+.category-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.category-card:hover::before {
+  opacity: 1;
+}
+
+.category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border-color: rgba(0, 212, 170, 0.3);
+}
+
+.category-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  color: var(--accent);
+}
+
+.category-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.category-content h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--text);
+}
+
+.category-content p {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Category-specific colors */
+.category-card.tv-movies:hover {
+  border-color: rgba(255, 99, 99, 0.3);
+}
+
+.category-card.games:hover {
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.category-card.music:hover {
+  border-color: rgba(168, 85, 247, 0.3);
+}
+
+.category-card.sports:hover {
+  border-color: rgba(34, 197, 94, 0.3);
+}
 
 /* Collections Sections */
 .collections-section {
@@ -1676,7 +1771,27 @@ main#MainContent {
     font-size: 14px;
   }
   
+  .category-cards {
+    gap: 12px;
+    padding: 24px 20px;
+  }
   
+  .category-card {
+    padding: 20px;
+    flex: 0 0 240px;
+    min-width: 240px;
+  }
+  
+  .category-icon {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 12px;
+  }
+  
+  .category-content h3 {
+    font-size: 18px;
+  }
+
   .collections-section {
     padding: 32px 20px;
   }
@@ -3291,7 +3406,31 @@ main#MainContent {
     height: 16px;
   }
   
+  .category-cards {
+    gap: 8px;
+    padding: 20px 16px;
+  }
   
+  .category-card {
+    padding: 16px;
+    flex: 0 0 200px;
+    min-width: 200px;
+  }
+  
+  .category-icon {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 10px;
+  }
+  
+  .category-content h3 {
+    font-size: 16px;
+  }
+  
+  .category-content p {
+    font-size: 13px;
+  }
+
   .collections-section {
     padding: 24px 16px;
   }
