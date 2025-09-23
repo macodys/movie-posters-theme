@@ -1400,12 +1400,18 @@ main#MainContent {
 
 /* Category Cards */
 .category-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
+  display: flex;
+  gap: 16px;
   padding: 32px 24px;
   max-width: 1200px;
   margin: 0 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.category-cards::-webkit-scrollbar {
+  display: none;
 }
 
 .category-card {
@@ -1419,6 +1425,8 @@ main#MainContent {
   backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
+  flex: 0 0 280px;
+  min-width: 280px;
 }
 
 .category-card::before {
@@ -1764,13 +1772,14 @@ main#MainContent {
   }
   
   .category-cards {
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 16px;
+    gap: 12px;
     padding: 24px 20px;
   }
   
   .category-card {
     padding: 20px;
+    flex: 0 0 240px;
+    min-width: 240px;
   }
   
   .category-icon {
@@ -3398,13 +3407,14 @@ main#MainContent {
   }
   
   .category-cards {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 8px;
     padding: 20px 16px;
   }
   
   .category-card {
     padding: 16px;
+    flex: 0 0 200px;
+    min-width: 200px;
   }
   
   .category-icon {
