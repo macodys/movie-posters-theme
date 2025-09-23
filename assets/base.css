@@ -167,8 +167,65 @@ main#MainContent {
 
 /* Header */
 .site-header { position: sticky; top: 0; z-index: 50; background: rgba(10,10,10,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
-.header-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+.header-inner { 
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between; 
+  gap: 20px; 
+  padding: 20px 24px; 
+  max-width: 1400px; 
+  margin: 0 auto; 
+  position: relative;
+}
 .logo-text { font-weight: 700; letter-spacing: 1px; font-size: 16px; }
+
+/* Header Search */
+.header-search {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+}
+
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 25px;
+  padding: 8px 16px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  min-width: 300px;
+}
+
+.search-container:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0, 212, 170, 0.2);
+}
+
+.search-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.search-input {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 14px;
+  width: 100%;
+  padding: 4px 0;
+}
+
+.search-input::placeholder {
+  color: var(--muted);
+}
 /* Main Navigation - Collection Style Buttons */
 .main-nav {
   display: flex !important;
@@ -1759,6 +1816,13 @@ main#MainContent {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .search-container {
+    min-width: 250px;
+  }
+  
+  .search-input {
+    font-size: 13px;
+  }
   .discovery-nav {
     padding: 16px 20px 0;
   }
@@ -3389,6 +3453,19 @@ main#MainContent {
 }
 
 @media (max-width: 480px) {
+  .search-container {
+    min-width: 200px;
+  }
+  
+  .search-input {
+    font-size: 12px;
+  }
+  
+  .search-icon {
+    width: 16px;
+    height: 16px;
+  }
+  
   .discovery-nav {
     padding: 12px 16px 0;
   }
