@@ -32,7 +32,16 @@ class SearchController {
   openSearch() {
     this.isSearchOpen = true;
     this.createSearchOverlay();
-    this.searchInput.focus();
+    
+    // Use setTimeout to ensure the DOM is ready
+    setTimeout(() => {
+      if (this.searchInput) {
+        this.searchInput.focus();
+        // Ensure the input is properly visible
+        this.searchInput.style.color = 'white';
+        this.searchInput.style.opacity = '1';
+      }
+    }, 100);
   }
 
   closeSearch() {
@@ -79,6 +88,15 @@ class SearchController {
     const searchClose = document.getElementById('searchClose');
     const searchResults = document.getElementById('searchResults');
 
+    // Force input styling to ensure text is visible
+    if (this.searchInput) {
+      this.searchInput.style.setProperty('color', 'white', 'important');
+      this.searchInput.style.setProperty('opacity', '1', 'important');
+      this.searchInput.style.setProperty('background', 'none', 'important');
+      this.searchInput.style.setProperty('border', 'none', 'important');
+      this.searchInput.style.setProperty('outline', 'none', 'important');
+    }
+
     // Add event listeners
     searchClose.addEventListener('click', () => this.closeSearch());
     this.searchOverlay.addEventListener('click', (e) => {
@@ -89,6 +107,7 @@ class SearchController {
 
     // Search functionality
     this.searchInput.addEventListener('input', (e) => {
+      console.log('Input value:', e.target.value); // Debug log
       this.performSearch(e.target.value);
     });
 
@@ -97,6 +116,17 @@ class SearchController {
       if (e.key === 'Enter') {
         this.submitSearch(e.target.value);
       }
+    });
+
+    // Additional event listeners to ensure text shows
+    this.searchInput.addEventListener('keyup', (e) => {
+      console.log('Keyup value:', e.target.value); // Debug log
+    });
+
+    // Force text visibility
+    this.searchInput.addEventListener('focus', () => {
+      this.searchInput.style.color = 'white';
+      this.searchInput.style.opacity = '1';
     });
   }
 
