@@ -1361,6 +1361,7 @@ main#MainContent {
   display: flex;
   gap: 32px;
   margin-bottom: 24px;
+  justify-content: center;
 }
 
 .nav-tab {
@@ -1765,6 +1766,7 @@ main#MainContent {
   .nav-tabs {
     gap: 24px;
     margin-bottom: 20px;
+    justify-content: center;
   }
   
   .nav-tab {
@@ -3394,6 +3396,7 @@ main#MainContent {
   .nav-tabs {
     gap: 16px;
     margin-bottom: 16px;
+    justify-content: center;
   }
   
   .nav-tab {
