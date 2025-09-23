@@ -179,103 +179,12 @@ main#MainContent {
 }
 .logo-text { font-weight: 700; letter-spacing: 1px; font-size: 16px; }
 
-/* Header Search - CodePen Style */
+/* Header Search - CodePen Style (Search Only) */
 .header-search {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
-}
-
-.search-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5em 2em;
-  background: #201c29;
-  border: 1px solid #28242f;
-  border-radius: 0.35em;
-  box-shadow: 0 10px 60px #070509;
-  min-width: 500px;
-  position: relative;
-}
-
-.search-container::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="%23ff8a00" stroke-width="0.5" opacity="0.1"/></svg>');
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: 70% 50%;
-  pointer-events: none;
-}
-
-.tags {
-  display: flex;
-  align-items: center;
-  margin: 0;
-}
-
-.tags span {
-  margin-right: 1em;
-  padding: 1em;
-  text-transform: uppercase;
-  transform: rotate(180deg);
-  writing-mode: vertical-rl;
-  border-left: 3px solid #28242f;
-  background: linear-gradient(to right, #ff8a00, #da1b60);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.tag {
-  display: block;
-  padding: 0.3em 0.85em;
-  margin: 0.5em;
-  text-transform: uppercase;
-  border: 3px solid #28242f;
-  border-radius: 2em;
-  color: #a1a1af;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: transform 0.2s;
-  transition-timing-function: cubic-bezier(0.45, -0.85, 0.55, -0.45);
-}
-
-.tag:hover {
-  transform: scale(1.2);
-  background: linear-gradient(to right, #ff8a00, #da1b60);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.tag.active {
-  background: linear-gradient(to right, #ff8a00, #da1b60);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  border-color: #ff8a00;
-}
-
-.more {
-  margin-left: 0.5em;
-  color: #a1a1af;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.more:hover {
-  color: white;
 }
 
 .search-label {
@@ -1930,24 +1839,8 @@ main#MainContent {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .search-container {
-    min-width: 400px;
-    padding: 1em 1.5em;
-  }
-  
-  .tags span {
-    font-size: 0.9rem;
-    padding: 0.8em;
-  }
-  
-  .tag {
-    font-size: 0.9rem;
-    padding: 0.25em 0.7em;
-    margin: 0.4em;
-  }
-  
-  .more {
-    font-size: 0.9rem;
+  .search-label:hover {
+    width: 15%;
   }
   .discovery-nav {
     padding: 16px 20px 0;
@@ -3579,31 +3472,19 @@ main#MainContent {
 }
 
 @media (max-width: 480px) {
-  .search-container {
-    min-width: 300px;
-    padding: 0.8em 1em;
-    background-image: none;
-  }
-  
   .search-label {
-    pointer-events: none;
-    visibility: hidden;
-    opacity: 0;
+    width: 40px;
+    height: 40px;
   }
   
-  .tags span {
-    font-size: 0.8rem;
-    padding: 0.6em;
+  .search-label:hover {
+    width: 12%;
   }
   
-  .tag {
-    font-size: 0.8rem;
-    padding: 0.2em 0.6em;
-    margin: 0.3em;
-  }
-  
-  .more {
-    font-size: 0.8rem;
+  .tag_search {
+    width: 36px;
+    height: 36px;
+    font-size: 0.9rem;
   }
   
   .discovery-nav {
