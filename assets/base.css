@@ -190,13 +190,14 @@ main#MainContent {
 .search-box {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;
-  padding: 10px 16px;
+  padding: 12px 20px;
   backdrop-filter: blur(10px);
   transition: all 0.2s ease;
-  width: 350px;
+  width: 450px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .search-box:focus-within {
@@ -1818,8 +1819,8 @@ main#MainContent {
 /* Responsive */
 @media (max-width: 768px) {
   .search-box {
-    width: 280px;
-    padding: 8px 12px;
+    width: 350px;
+    padding: 10px 16px;
   }
   
   .search-icon {
@@ -3462,8 +3463,8 @@ main#MainContent {
 
 @media (max-width: 480px) {
   .search-box {
-    width: 220px;
-    padding: 6px 10px;
+    width: 280px;
+    padding: 8px 12px;
   }
   
   .search-icon {
