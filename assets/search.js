@@ -308,6 +308,13 @@ class ModernSearchController {
 
     const resultsHTML = products.map((product, index) => {
       console.log('Product data:', product); // Debug log
+      console.log('Product price info:', {
+        title: product.title,
+        price: product.price,
+        variants: product.variants,
+        variantPrice: product.variants?.[0]?.price,
+        variantComparePrice: product.variants?.[0]?.compare_at_price
+      }); // Debug price info
       
       // Get the best available image - handle different Shopify image formats
       let productImage = null;
@@ -326,11 +333,40 @@ class ModernSearchController {
       
       if (product.variants && product.variants.length > 0) {
         variant = product.variants[0];
-        price = variant.price ? (variant.price / 100).toFixed(2) : '0.00';
-        comparePrice = variant.compare_at_price ? (variant.compare_at_price / 100).toFixed(2) : null;
+        // Check if price is already in dollars (less than 100) or in cents (100 or more)
+        const rawPrice = variant.price;
+        if (rawPrice && rawPrice < 100) {
+          // Price is already in dollars
+          price = rawPrice.toFixed(2);
+        } else if (rawPrice) {
+          // Price is in cents, convert to dollars
+          price = (rawPrice / 100).toFixed(2);
+        }
+        
+        const rawComparePrice = variant.compare_at_price;
+        if (rawComparePrice) {
+          if (rawComparePrice < 100) {
+            comparePrice = rawComparePrice.toFixed(2);
+          } else {
+            comparePrice = (rawComparePrice / 100).toFixed(2);
+          }
+        }
       } else if (product.price) {
-        price = (product.price / 100).toFixed(2);
-        comparePrice = product.compare_at_price ? (product.compare_at_price / 100).toFixed(2) : null;
+        const rawPrice = product.price;
+        if (rawPrice < 100) {
+          price = rawPrice.toFixed(2);
+        } else {
+          price = (rawPrice / 100).toFixed(2);
+        }
+        
+        const rawComparePrice = product.compare_at_price;
+        if (rawComparePrice) {
+          if (rawComparePrice < 100) {
+            comparePrice = rawComparePrice.toFixed(2);
+          } else {
+            comparePrice = (rawComparePrice / 100).toFixed(2);
+          }
+        }
       }
       
       // Build proper product URL
