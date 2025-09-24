@@ -15,6 +15,12 @@ class ModernSearchController {
       this.searchButton.addEventListener('click', () => this.toggleSearch());
     }
     
+    // Also handle clicks on the search icon
+    const searchIcon = document.querySelector('.search-icon');
+    if (searchIcon) {
+      searchIcon.addEventListener('click', () => this.toggleSearch());
+    }
+    
     // Close search on escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && this.isSearchOpen) {

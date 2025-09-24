@@ -185,12 +185,15 @@ main#MainContent {
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .search-button {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   background: #282828;
   border: none;
   border-radius: 24px;
@@ -217,9 +220,13 @@ main#MainContent {
   height: 20px;
   color: white;
   flex-shrink: 0;
-  order: 2;
-  position: relative;
-  z-index: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-icon:hover {
+  color: #ff8a00;
+  transform: scale(1.1);
 }
 
 .search-placeholder-text {
@@ -228,7 +235,6 @@ main#MainContent {
   font-family: inherit;
   pointer-events: none;
   user-select: none;
-  order: 1;
 }
 
 /* Modern Search Overlay */
@@ -4242,14 +4248,10 @@ main#MainContent {
   .search-icon {
     width: 18px;
     height: 18px;
-    order: 2;
-    position: relative;
-    z-index: 1;
   }
   
   .search-placeholder-text {
     font-size: 14px;
-    order: 1;
   }
 }
 
@@ -4263,14 +4265,10 @@ main#MainContent {
   .search-icon {
     width: 16px;
     height: 16px;
-    order: 2;
-    position: relative;
-    z-index: 1;
   }
   
   .search-placeholder-text {
     font-size: 13px;
-    order: 1;
   }
 }
 
