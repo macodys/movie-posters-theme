@@ -33,15 +33,12 @@ class SearchController {
     this.isSearchOpen = true;
     this.createSearchOverlay();
     
-    // Use setTimeout to ensure the DOM is ready
+    // Focus the input after a short delay
     setTimeout(() => {
       if (this.searchInput) {
         this.searchInput.focus();
-        // Ensure the input is properly visible
-        this.searchInput.style.color = 'white';
-        this.searchInput.style.opacity = '1';
       }
-    }, 100);
+    }, 50);
   }
 
   closeSearch() {
@@ -64,7 +61,7 @@ class SearchController {
               <circle cx="11" cy="11" r="8"/>
               <path d="m21 21-4.35-4.35"/>
             </svg>
-            <input type="text" placeholder="Search posters..." class="search-input" id="searchInput">
+            <input type="text" placeholder="Search posters..." class="search-input" id="searchInput" style="color: white; background: none; border: none; outline: none; width: 100%; font-size: 16px;">
           </div>
           <button class="search-close" id="searchClose">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -88,22 +85,6 @@ class SearchController {
     const searchClose = document.getElementById('searchClose');
     const searchResults = document.getElementById('searchResults');
 
-    // Force input styling to ensure text is visible and properly positioned
-    if (this.searchInput) {
-      this.searchInput.style.setProperty('color', 'white', 'important');
-      this.searchInput.style.setProperty('opacity', '1', 'important');
-      this.searchInput.style.setProperty('background', 'none', 'important');
-      this.searchInput.style.setProperty('border', 'none', 'important');
-      this.searchInput.style.setProperty('outline', 'none', 'important');
-      this.searchInput.style.setProperty('position', 'relative', 'important');
-      this.searchInput.style.setProperty('z-index', '2', 'important');
-      this.searchInput.style.setProperty('display', 'block', 'important');
-      this.searchInput.style.setProperty('visibility', 'visible', 'important');
-      this.searchInput.style.setProperty('width', '100%', 'important');
-      this.searchInput.style.setProperty('height', 'auto', 'important');
-      this.searchInput.style.setProperty('line-height', 'normal', 'important');
-    }
-
     // Add event listeners
     searchClose.addEventListener('click', () => this.closeSearch());
     this.searchOverlay.addEventListener('click', (e) => {
@@ -114,7 +95,6 @@ class SearchController {
 
     // Search functionality
     this.searchInput.addEventListener('input', (e) => {
-      console.log('Input value:', e.target.value); // Debug log
       this.performSearch(e.target.value);
     });
 
@@ -123,21 +103,6 @@ class SearchController {
       if (e.key === 'Enter') {
         this.submitSearch(e.target.value);
       }
-    });
-
-    // Additional event listeners to ensure text shows
-    this.searchInput.addEventListener('keyup', (e) => {
-      console.log('Keyup value:', e.target.value); // Debug log
-    });
-
-    // Force text visibility and positioning
-    this.searchInput.addEventListener('focus', () => {
-      this.searchInput.style.setProperty('color', 'white', 'important');
-      this.searchInput.style.setProperty('opacity', '1', 'important');
-      this.searchInput.style.setProperty('position', 'relative', 'important');
-      this.searchInput.style.setProperty('z-index', '2', 'important');
-      this.searchInput.style.setProperty('display', 'block', 'important');
-      this.searchInput.style.setProperty('visibility', 'visible', 'important');
     });
   }
 
