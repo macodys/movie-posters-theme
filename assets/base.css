@@ -190,6 +190,7 @@ main#MainContent {
 .search-button {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   background: #282828;
   border: none;
   border-radius: 24px;
@@ -199,6 +200,7 @@ main#MainContent {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   min-width: 200px;
   height: 48px;
+  position: relative;
 }
 
 .search-button:hover {
@@ -214,9 +216,10 @@ main#MainContent {
   width: 20px;
   height: 20px;
   color: white;
-  margin-left: 12px;
   flex-shrink: 0;
   order: 2;
+  position: relative;
+  z-index: 1;
 }
 
 .search-placeholder-text {
@@ -4239,8 +4242,9 @@ main#MainContent {
   .search-icon {
     width: 18px;
     height: 18px;
-    margin-left: 10px;
     order: 2;
+    position: relative;
+    z-index: 1;
   }
   
   .search-placeholder-text {
@@ -4259,8 +4263,9 @@ main#MainContent {
   .search-icon {
     width: 16px;
     height: 16px;
-    margin-left: 8px;
     order: 2;
+    position: relative;
+    z-index: 1;
   }
   
   .search-placeholder-text {
