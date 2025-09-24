@@ -88,13 +88,20 @@ class SearchController {
     const searchClose = document.getElementById('searchClose');
     const searchResults = document.getElementById('searchResults');
 
-    // Force input styling to ensure text is visible
+    // Force input styling to ensure text is visible and properly positioned
     if (this.searchInput) {
       this.searchInput.style.setProperty('color', 'white', 'important');
       this.searchInput.style.setProperty('opacity', '1', 'important');
       this.searchInput.style.setProperty('background', 'none', 'important');
       this.searchInput.style.setProperty('border', 'none', 'important');
       this.searchInput.style.setProperty('outline', 'none', 'important');
+      this.searchInput.style.setProperty('position', 'relative', 'important');
+      this.searchInput.style.setProperty('z-index', '2', 'important');
+      this.searchInput.style.setProperty('display', 'block', 'important');
+      this.searchInput.style.setProperty('visibility', 'visible', 'important');
+      this.searchInput.style.setProperty('width', '100%', 'important');
+      this.searchInput.style.setProperty('height', 'auto', 'important');
+      this.searchInput.style.setProperty('line-height', 'normal', 'important');
     }
 
     // Add event listeners
@@ -123,10 +130,14 @@ class SearchController {
       console.log('Keyup value:', e.target.value); // Debug log
     });
 
-    // Force text visibility
+    // Force text visibility and positioning
     this.searchInput.addEventListener('focus', () => {
-      this.searchInput.style.color = 'white';
-      this.searchInput.style.opacity = '1';
+      this.searchInput.style.setProperty('color', 'white', 'important');
+      this.searchInput.style.setProperty('opacity', '1', 'important');
+      this.searchInput.style.setProperty('position', 'relative', 'important');
+      this.searchInput.style.setProperty('z-index', '2', 'important');
+      this.searchInput.style.setProperty('display', 'block', 'important');
+      this.searchInput.style.setProperty('visibility', 'visible', 'important');
     });
   }
 

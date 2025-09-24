@@ -240,6 +240,8 @@ main#MainContent {
   max-height: 80vh;
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  position: relative;
+  z-index: 1001;
 }
 
 .search-header {
@@ -259,6 +261,9 @@ main#MainContent {
   margin-right: 12px;
   border: 1px solid transparent;
   transition: border-color 0.2s ease;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
 }
 
 .search-input-container:focus-within {
@@ -288,6 +293,11 @@ main#MainContent {
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
   appearance: none !important;
+  position: relative !important;
+  z-index: 1 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .search-input::placeholder {
