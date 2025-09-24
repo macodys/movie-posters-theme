@@ -273,6 +273,7 @@ main#MainContent {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
 }
 
 .search-input-container {
@@ -287,6 +288,7 @@ main#MainContent {
   position: relative;
   overflow: hidden;
   flex-direction: row;
+  justify-content: flex-start;
 }
 
 .search-input-container:focus-within {
@@ -302,6 +304,7 @@ main#MainContent {
   margin-right: 16px;
   flex-shrink: 0;
   transition: color 0.3s ease;
+  order: 1;
 }
 
 .search-input-container:focus-within .search-icon {
@@ -327,6 +330,7 @@ main#MainContent {
   opacity: 1 !important;
   visibility: visible !important;
   display: block !important;
+  order: 2;
 }
 
 .search-input::placeholder {
