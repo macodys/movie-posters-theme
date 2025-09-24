@@ -193,14 +193,38 @@ class ModernSearchController {
       // Show loading state with animation
       this.showLoading();
 
-      // Search products from Shopify
-      const response = await fetch('/collections/all/products.json');
-      const data = await response.json();
+      console.log('Starting search for:', query); // Debug log
+
+      // Search products from Shopify with timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
       
+      const response = await fetch('/collections/all/products.json', {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
       console.log('Shopify API Response:', data); // Debug log
+      
+      // Check if data has products array
+      if (!data || !data.products || !Array.isArray(data.products)) {
+        console.error('Invalid API response structure:', data);
+        this.showError();
+        return;
+      }
+      
+      console.log('Found', data.products.length, 'total products'); // Debug log
       
       // Enhanced search with multiple criteria
       const results = data.products.filter(product => {
+        if (!product || !product.title) return false;
+        
         const searchTerm = query.toLowerCase();
         const title = product.title.toLowerCase();
         const tags = product.tags ? product.tags.map(tag => tag.toLowerCase()) : [];
@@ -212,6 +236,8 @@ class ModernSearchController {
                vendor.includes(searchTerm) ||
                productType.includes(searchTerm);
       });
+
+      console.log('Filtered results:', results.length); // Debug log
 
       // Sort results by relevance (title matches first, then tags)
       results.sort((a, b) => {
@@ -230,7 +256,23 @@ class ModernSearchController {
       }, 200);
     } catch (error) {
       console.error('Search error:', error);
-      this.showError();
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        query: query,
+        name: error.name
+      });
+      
+      // Handle specific error types
+      if (error.name === 'AbortError') {
+        console.error('Search timed out after 10 seconds');
+        this.showError('Search timed out. Please try again.');
+      } else if (error.message.includes('HTTP error')) {
+        console.error('HTTP error occurred');
+        this.showError('Unable to connect to the store. Please check your connection.');
+      } else {
+        this.showError();
+      }
     }
   }
 
@@ -270,7 +312,8 @@ class ModernSearchController {
     `;
   }
 
-  showError() {
+  showError(customMessage = null) {
+    const message = customMessage || "We couldn't complete your search. Please try again.";
     this.searchResults.innerHTML = `
       <div class="search-error">
         <div class="error-icon">
@@ -281,7 +324,7 @@ class ModernSearchController {
           </svg>
         </div>
         <h3>Oops! Something went wrong</h3>
-        <p>We couldn't complete your search. Please try again.</p>
+        <p>${message}</p>
         <button class="retry-button" onclick="location.reload()">Try Again</button>
       </div>
     `;
