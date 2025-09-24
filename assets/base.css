@@ -185,9 +185,6 @@ main#MainContent {
   left: 50%;
   transform: translateX(-50%);
   z-index: 10;
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
 
 .search-button {
@@ -215,19 +212,6 @@ main#MainContent {
   transform: scale(0.95);
 }
 
-.search-icon {
-  width: 20px;
-  height: 20px;
-  color: white;
-  flex-shrink: 0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.search-icon:hover {
-  color: #ff8a00;
-  transform: scale(1.1);
-}
 
 .search-placeholder-text {
   color: #A0A0A0;
@@ -2417,10 +2401,6 @@ main#MainContent {
     height: 44px;
   }
   
-  .search-icon {
-    width: 18px;
-    height: 18px;
-  }
   
   .search-overlay {
     padding-top: 60px;
@@ -4083,10 +4063,6 @@ main#MainContent {
     height: 40px;
   }
   
-  .search-icon {
-    width: 16px;
-    height: 16px;
-  }
   
   .search-overlay {
     padding-top: 40px;
@@ -4245,10 +4221,6 @@ main#MainContent {
     padding: 10px 14px;
   }
   
-  .search-icon {
-    width: 18px;
-    height: 18px;
-  }
   
   .search-placeholder-text {
     font-size: 14px;
@@ -4262,10 +4234,6 @@ main#MainContent {
     padding: 8px 12px;
   }
   
-  .search-icon {
-    width: 16px;
-    height: 16px;
-  }
   
   .search-placeholder-text {
     font-size: 13px;
