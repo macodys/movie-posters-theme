@@ -286,6 +286,7 @@ main#MainContent {
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  flex-direction: row;
 }
 
 .search-input-container:focus-within {
@@ -308,21 +309,24 @@ main#MainContent {
 }
 
 .search-input {
-  background: none;
-  border: none;
-  outline: none;
-  color: #ffffff;
-  font-size: 18px;
-  width: 100%;
-  font-weight: 400;
-  font-family: inherit;
-  line-height: 1.4;
-  padding: 0;
-  margin: 0;
-  box-shadow: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
+  background: none !important;
+  border: none !important;
+  outline: none !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  width: 100% !important;
+  font-weight: 400 !important;
+  font-family: inherit !important;
+  line-height: 1.4 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
 }
 
 .search-input::placeholder {

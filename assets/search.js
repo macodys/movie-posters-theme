@@ -87,6 +87,17 @@ class SearchController {
     const searchClose = document.getElementById('searchClose');
     const searchResults = document.getElementById('searchResults');
 
+    // Force text visibility with inline styles
+    if (this.searchInput) {
+      this.searchInput.style.color = '#ffffff';
+      this.searchInput.style.opacity = '1';
+      this.searchInput.style.visibility = 'visible';
+      this.searchInput.style.display = 'block';
+      this.searchInput.style.background = 'none';
+      this.searchInput.style.border = 'none';
+      this.searchInput.style.outline = 'none';
+    }
+
     // Add event listeners
     searchClose.addEventListener('click', () => this.closeSearch());
     this.searchOverlay.addEventListener('click', (e) => {
@@ -97,6 +108,9 @@ class SearchController {
 
     // Search functionality
     this.searchInput.addEventListener('input', (e) => {
+      // Ensure text stays visible
+      e.target.style.color = '#ffffff';
+      e.target.style.opacity = '1';
       this.performSearch(e.target.value);
     });
 
@@ -105,6 +119,12 @@ class SearchController {
       if (e.key === 'Enter') {
         this.submitSearch(e.target.value);
       }
+    });
+
+    // Additional event to ensure text visibility
+    this.searchInput.addEventListener('keyup', (e) => {
+      e.target.style.color = '#ffffff';
+      e.target.style.opacity = '1';
     });
   }
 
