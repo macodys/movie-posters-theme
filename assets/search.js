@@ -354,9 +354,12 @@ class ModernSearchController {
       console.log('Product price info:', {
         title: product.title,
         price: product.price,
+        priceType: typeof product.price,
         variants: product.variants,
         variantPrice: product.variants?.[0]?.price,
-        variantComparePrice: product.variants?.[0]?.compare_at_price
+        variantPriceType: typeof product.variants?.[0]?.price,
+        variantComparePrice: product.variants?.[0]?.compare_at_price,
+        variantComparePriceType: typeof product.variants?.[0]?.compare_at_price
       }); // Debug price info
       
       // Get the best available image - handle different Shopify image formats
@@ -377,17 +380,19 @@ class ModernSearchController {
       if (product.variants && product.variants.length > 0) {
         variant = product.variants[0];
         // Check if price is already in dollars (less than 100) or in cents (100 or more)
-        const rawPrice = variant.price;
-        if (rawPrice && rawPrice < 100) {
-          // Price is already in dollars
-          price = rawPrice.toFixed(2);
-        } else if (rawPrice) {
-          // Price is in cents, convert to dollars
-          price = (rawPrice / 100).toFixed(2);
+        const rawPrice = parseFloat(variant.price);
+        if (!isNaN(rawPrice)) {
+          if (rawPrice < 100) {
+            // Price is already in dollars
+            price = rawPrice.toFixed(2);
+          } else {
+            // Price is in cents, convert to dollars
+            price = (rawPrice / 100).toFixed(2);
+          }
         }
         
-        const rawComparePrice = variant.compare_at_price;
-        if (rawComparePrice) {
+        const rawComparePrice = parseFloat(variant.compare_at_price);
+        if (!isNaN(rawComparePrice)) {
           if (rawComparePrice < 100) {
             comparePrice = rawComparePrice.toFixed(2);
           } else {
@@ -395,15 +400,17 @@ class ModernSearchController {
           }
         }
       } else if (product.price) {
-        const rawPrice = product.price;
-        if (rawPrice < 100) {
-          price = rawPrice.toFixed(2);
-        } else {
-          price = (rawPrice / 100).toFixed(2);
+        const rawPrice = parseFloat(product.price);
+        if (!isNaN(rawPrice)) {
+          if (rawPrice < 100) {
+            price = rawPrice.toFixed(2);
+          } else {
+            price = (rawPrice / 100).toFixed(2);
+          }
         }
         
-        const rawComparePrice = product.compare_at_price;
-        if (rawComparePrice) {
+        const rawComparePrice = parseFloat(product.compare_at_price);
+        if (!isNaN(rawComparePrice)) {
           if (rawComparePrice < 100) {
             comparePrice = rawComparePrice.toFixed(2);
           } else {
