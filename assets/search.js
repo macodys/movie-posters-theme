@@ -1,9 +1,11 @@
-class SearchController {
+class ModernSearchController {
   constructor() {
     this.searchButton = document.getElementById('searchButton');
     this.searchOverlay = null;
     this.searchInput = null;
     this.isSearchOpen = false;
+    this.searchResults = null;
+    this.animationDuration = 300;
     
     this.init();
   }
@@ -32,49 +34,96 @@ class SearchController {
   openSearch() {
     this.isSearchOpen = true;
     this.createSearchOverlay();
-    
-    // Focus the input after a short delay
-    setTimeout(() => {
-      if (this.searchInput) {
-        this.searchInput.focus();
-      }
-    }, 50);
+    this.animateIn();
   }
 
   closeSearch() {
-    this.isSearchOpen = false;
-    if (this.searchOverlay) {
-      this.searchOverlay.remove();
-      this.searchOverlay = null;
+    this.animateOut(() => {
+      this.isSearchOpen = false;
+      if (this.searchOverlay) {
+        this.searchOverlay.remove();
+        this.searchOverlay = null;
+      }
+    });
+  }
+
+  animateIn() {
+    if (!this.searchOverlay) return;
+    
+    // Initial state
+    this.searchOverlay.style.opacity = '0';
+    this.searchOverlay.style.transform = 'scale(0.8) translateY(-50px)';
+    
+    // Animate in
+    requestAnimationFrame(() => {
+      this.searchOverlay.style.transition = `all ${this.animationDuration}ms cubic-bezier(0.34, 1.56, 0.64, 1)`;
+      this.searchOverlay.style.opacity = '1';
+      this.searchOverlay.style.transform = 'scale(1) translateY(0)';
+      
+      // Focus input after animation
+      setTimeout(() => {
+        if (this.searchInput) {
+          this.searchInput.focus();
+        }
+      }, this.animationDuration / 2);
+    });
+  }
+
+  animateOut(callback) {
+    if (!this.searchOverlay) {
+      callback();
+      return;
     }
+    
+    this.searchOverlay.style.transition = `all ${this.animationDuration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+    this.searchOverlay.style.opacity = '0';
+    this.searchOverlay.style.transform = 'scale(0.8) translateY(-50px)';
+    
+    setTimeout(callback, this.animationDuration);
   }
 
   createSearchOverlay() {
     // Create overlay
     this.searchOverlay = document.createElement('div');
-    this.searchOverlay.className = 'search-overlay';
+    this.searchOverlay.className = 'modern-search-overlay';
     this.searchOverlay.innerHTML = `
-      <div class="search-modal">
+      <div class="modern-search-modal">
         <div class="search-header">
           <div class="search-input-wrapper">
             <div class="search-input-container">
-              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"/>
-                <path d="m21 21-4.35-4.35"/>
-              </svg>
-              <input type="text" placeholder="Search posters..." class="search-input" id="searchInput">
+              <div class="search-icon-wrapper">
+                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.35-4.35"/>
+                </svg>
+              </div>
+              <input type="text" placeholder="Search for amazing posters..." class="modern-search-input" id="searchInput">
+              <div class="search-underline"></div>
             </div>
-            <button class="search-close" id="searchClose">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <button class="modern-search-close" id="searchClose">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
             </button>
           </div>
         </div>
-        <div class="search-results" id="searchResults">
+        <div class="modern-search-results" id="searchResults">
           <div class="search-placeholder">
-            <p>Start typing to search for posters...</p>
+            <div class="placeholder-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+            </div>
+            <h3>Discover Amazing Posters</h3>
+            <p>Start typing to search through our collection of premium movie posters</p>
+            <div class="search-suggestions">
+              <span class="suggestion-tag">Marvel</span>
+              <span class="suggestion-tag">DC</span>
+              <span class="suggestion-tag">Star Wars</span>
+              <span class="suggestion-tag">Anime</span>
+            </div>
           </div>
         </div>
       </div>
@@ -85,18 +134,7 @@ class SearchController {
     // Get elements
     this.searchInput = document.getElementById('searchInput');
     const searchClose = document.getElementById('searchClose');
-    const searchResults = document.getElementById('searchResults');
-
-    // Force text visibility with inline styles
-    if (this.searchInput) {
-      this.searchInput.style.color = '#ffffff';
-      this.searchInput.style.opacity = '1';
-      this.searchInput.style.visibility = 'visible';
-      this.searchInput.style.display = 'block';
-      this.searchInput.style.background = 'none';
-      this.searchInput.style.border = 'none';
-      this.searchInput.style.outline = 'none';
-    }
+    this.searchResults = document.getElementById('searchResults');
 
     // Add event listeners
     searchClose.addEventListener('click', () => this.closeSearch());
@@ -106,12 +144,9 @@ class SearchController {
       }
     });
 
-    // Search functionality
+    // Search functionality with animations
     this.searchInput.addEventListener('input', (e) => {
-      // Ensure text stays visible
-      e.target.style.color = '#ffffff';
-      e.target.style.opacity = '1';
-      this.performSearch(e.target.value);
+      this.handleSearchInput(e.target.value);
     });
 
     // Handle search submission
@@ -121,21 +156,47 @@ class SearchController {
       }
     });
 
-    // Additional event to ensure text visibility
-    this.searchInput.addEventListener('keyup', (e) => {
-      e.target.style.color = '#ffffff';
-      e.target.style.opacity = '1';
-    });
+    // Add suggestion tag click handlers
+    this.addSuggestionHandlers();
   }
 
-  async performSearch(query) {
+  handleSearchInput(query) {
+    // Animate input underline
+    this.animateInputUnderline(query.length > 0);
+    
     if (query.length < 2) {
       this.showPlaceholder();
       return;
     }
 
+    // Debounce search
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.performSearch(query);
+    }, 300);
+  }
+
+  animateInputUnderline(active) {
+    const underline = this.searchOverlay?.querySelector('.search-underline');
+    if (underline) {
+      underline.style.transform = active ? 'scaleX(1)' : 'scaleX(0)';
+    }
+  }
+
+  addSuggestionHandlers() {
+    const suggestionTags = this.searchOverlay?.querySelectorAll('.suggestion-tag');
+    suggestionTags?.forEach(tag => {
+      tag.addEventListener('click', () => {
+        this.searchInput.value = tag.textContent;
+        this.searchInput.focus();
+        this.handleSearchInput(tag.textContent);
+      });
+    });
+  }
+
+  async performSearch(query) {
     try {
-      // Show loading state
+      // Show loading state with animation
       this.showLoading();
 
       // Search products
@@ -147,7 +208,10 @@ class SearchController {
         product.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
       );
 
-      this.displayResults(results, query);
+      // Animate results in
+      setTimeout(() => {
+        this.displayResults(results, query);
+      }, 200);
     } catch (error) {
       console.error('Search error:', error);
       this.showError();
@@ -155,53 +219,84 @@ class SearchController {
   }
 
   showPlaceholder() {
-    const searchResults = document.getElementById('searchResults');
-    searchResults.innerHTML = `
+    this.searchResults.innerHTML = `
       <div class="search-placeholder">
-        <p>Start typing to search for posters...</p>
+        <div class="placeholder-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+        </div>
+        <h3>Discover Amazing Posters</h3>
+        <p>Start typing to search through our collection of premium movie posters</p>
+        <div class="search-suggestions">
+          <span class="suggestion-tag">Marvel</span>
+          <span class="suggestion-tag">DC</span>
+          <span class="suggestion-tag">Star Wars</span>
+          <span class="suggestion-tag">Anime</span>
+        </div>
       </div>
     `;
+    this.addSuggestionHandlers();
   }
 
   showLoading() {
-    const searchResults = document.getElementById('searchResults');
-    searchResults.innerHTML = `
+    this.searchResults.innerHTML = `
       <div class="search-loading">
-        <div class="loading-spinner"></div>
-        <p>Searching...</p>
+        <div class="loading-spinner">
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring"></div>
+          <div class="spinner-ring"></div>
+        </div>
+        <h3>Searching...</h3>
+        <p>Finding the perfect posters for you</p>
       </div>
     `;
   }
 
   showError() {
-    const searchResults = document.getElementById('searchResults');
-    searchResults.innerHTML = `
+    this.searchResults.innerHTML = `
       <div class="search-error">
-        <p>Sorry, there was an error searching. Please try again.</p>
+        <div class="error-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="15" y1="9" x2="9" y2="15"/>
+            <line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+        </div>
+        <h3>Oops! Something went wrong</h3>
+        <p>We couldn't complete your search. Please try again.</p>
+        <button class="retry-button" onclick="location.reload()">Try Again</button>
       </div>
     `;
   }
 
   displayResults(products, query) {
-    const searchResults = document.getElementById('searchResults');
-    
     if (products.length === 0) {
-      searchResults.innerHTML = `
+      this.searchResults.innerHTML = `
         <div class="search-no-results">
-          <p>No results found for "${query}"</p>
+          <div class="no-results-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+              <line x1="8" y1="8" x2="16" y2="16"/>
+            </svg>
+          </div>
+          <h3>No results found</h3>
+          <p>We couldn't find any posters matching "${query}"</p>
           <p>Try different keywords or browse our collections</p>
         </div>
       `;
       return;
     }
 
-    const resultsHTML = products.map(product => `
-      <div class="search-result-item">
-        <a href="${product.url}" class="search-result-link">
-          <div class="search-result-image">
+    const resultsHTML = products.map((product, index) => `
+      <div class="modern-search-result-item" style="animation-delay: ${index * 0.1}s">
+        <a href="${product.url}" class="modern-search-result-link">
+          <div class="result-image-container">
             ${product.featured_image ? 
               `<img src="${product.featured_image}" alt="${product.title}" loading="lazy">` :
-              `<div class="search-result-placeholder">
+              `<div class="result-placeholder">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                   <circle cx="8.5" cy="8.5" r="1.5"/>
@@ -209,10 +304,13 @@ class SearchController {
                 </svg>
               </div>`
             }
+            <div class="result-overlay">
+              <div class="result-badge">View</div>
+            </div>
           </div>
-          <div class="search-result-info">
-            <h3 class="search-result-title">${product.title}</h3>
-            <div class="search-result-price">
+          <div class="result-info">
+            <h3 class="result-title">${product.title}</h3>
+            <div class="result-price">
               ${product.variants[0] ? 
                 `<span class="price">$${(product.variants[0].price / 100).toFixed(2)}</span>` :
                 '<span class="price">Price unavailable</span>'
@@ -223,11 +321,11 @@ class SearchController {
       </div>
     `).join('');
 
-    searchResults.innerHTML = `
-      <div class="search-results-header">
-        <h3>Search Results for "${query}" (${products.length})</h3>
+    this.searchResults.innerHTML = `
+      <div class="results-header">
+        <h3>Found ${products.length} poster${products.length !== 1 ? 's' : ''} for "${query}"</h3>
       </div>
-      <div class="search-results-list">
+      <div class="results-grid">
         ${resultsHTML}
       </div>
     `;
@@ -243,5 +341,5 @@ class SearchController {
 
 // Initialize search when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-  new SearchController();
+  new ModernSearchController();
 });
