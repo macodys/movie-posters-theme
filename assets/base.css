@@ -216,6 +216,7 @@ main#MainContent {
   color: white;
   margin-left: 12px;
   flex-shrink: 0;
+  order: 2;
 }
 
 .search-placeholder-text {
@@ -224,6 +225,7 @@ main#MainContent {
   font-family: inherit;
   pointer-events: none;
   user-select: none;
+  order: 1;
 }
 
 /* Modern Search Overlay */
@@ -4238,10 +4240,12 @@ main#MainContent {
     width: 18px;
     height: 18px;
     margin-left: 10px;
+    order: 2;
   }
   
   .search-placeholder-text {
     font-size: 14px;
+    order: 1;
   }
 }
 
@@ -4256,10 +4260,12 @@ main#MainContent {
     width: 16px;
     height: 16px;
     margin-left: 8px;
+    order: 2;
   }
   
   .search-placeholder-text {
     font-size: 13px;
+    order: 1;
   }
 }
 
