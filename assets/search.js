@@ -91,12 +91,6 @@ class ModernSearchController {
         <div class="search-header">
           <div class="search-input-wrapper">
             <div class="search-input-container">
-              <div class="search-icon-wrapper">
-                <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="11" cy="11" r="8"/>
-                  <path d="m21 21-4.35-4.35"/>
-                </svg>
-              </div>
               <input type="text" placeholder="Search for amazing posters..." class="modern-search-input" id="searchInput">
               <div class="search-underline"></div>
             </div>
