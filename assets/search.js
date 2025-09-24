@@ -193,14 +193,32 @@ class ModernSearchController {
       // Show loading state with animation
       this.showLoading();
 
-      // Search products
+      // Search products from Shopify
       const response = await fetch('/collections/all/products.json');
       const data = await response.json();
       
-      const results = data.products.filter(product => 
-        product.title.toLowerCase().includes(query.toLowerCase()) ||
-        product.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
-      );
+      // Enhanced search with multiple criteria
+      const results = data.products.filter(product => {
+        const searchTerm = query.toLowerCase();
+        const title = product.title.toLowerCase();
+        const tags = product.tags.map(tag => tag.toLowerCase());
+        const vendor = (product.vendor || '').toLowerCase();
+        const productType = (product.product_type || '').toLowerCase();
+        
+        return title.includes(searchTerm) ||
+               tags.some(tag => tag.includes(searchTerm)) ||
+               vendor.includes(searchTerm) ||
+               productType.includes(searchTerm);
+      });
+
+      // Sort results by relevance (title matches first, then tags)
+      results.sort((a, b) => {
+        const aTitle = a.title.toLowerCase().includes(query.toLowerCase());
+        const bTitle = b.title.toLowerCase().includes(query.toLowerCase());
+        if (aTitle && !bTitle) return -1;
+        if (!aTitle && bTitle) return 1;
+        return 0;
+      });
 
       // Animate results in
       setTimeout(() => {
@@ -284,40 +302,65 @@ class ModernSearchController {
       return;
     }
 
-    const resultsHTML = products.map((product, index) => `
-      <div class="modern-search-result-item" style="animation-delay: ${index * 0.1}s">
-        <a href="${product.url}" class="modern-search-result-link">
-          <div class="result-image-container">
-            ${product.featured_image ? 
-              `<img src="${product.featured_image}" alt="${product.title}" loading="lazy">` :
-              `<div class="result-placeholder">
+    const resultsHTML = products.map((product, index) => {
+      // Get the best available image
+      const productImage = product.featured_image || 
+                          (product.images && product.images[0]) || 
+                          null;
+      
+      // Get price information
+      const variant = product.variants && product.variants[0];
+      const price = variant ? (variant.price / 100).toFixed(2) : '0.00';
+      const comparePrice = variant && variant.compare_at_price ? 
+                          (variant.compare_at_price / 100).toFixed(2) : null;
+      
+      // Format image URL with proper size
+      const imageUrl = productImage ? 
+        `${productImage}?width=300&height=450&crop=center` : 
+        null;
+
+      return `
+        <div class="modern-search-result-item" style="animation-delay: ${index * 0.1}s">
+          <a href="${product.url}" class="modern-search-result-link">
+            <div class="result-image-container">
+              ${imageUrl ? 
+                `<img src="${imageUrl}" alt="${product.title}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` :
+                ''
+              }
+              <div class="result-placeholder" style="display: ${imageUrl ? 'none' : 'flex'}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                   <circle cx="8.5" cy="8.5" r="1.5"/>
                   <polyline points="21,15 16,10 5,21"/>
                 </svg>
-              </div>`
-            }
-            <div class="result-overlay">
-              <div class="result-badge">View</div>
-            </div>
-          </div>
-          <div class="result-info">
-            <h3 class="result-title">${product.title}</h3>
-            <div class="result-price">
-              ${product.variants[0] ? 
-                `<span class="price">$${(product.variants[0].price / 100).toFixed(2)}</span>` :
-                '<span class="price">Price unavailable</span>'
+              </div>
+              <div class="result-overlay">
+                <div class="result-badge">View Product</div>
+              </div>
+              ${comparePrice && parseFloat(comparePrice) > parseFloat(price) ? 
+                `<div class="sale-badge">Sale</div>` : ''
               }
             </div>
-          </div>
-        </a>
-      </div>
-    `).join('');
+            <div class="result-info">
+              <h3 class="result-title">${product.title}</h3>
+              <div class="result-price">
+                ${comparePrice && parseFloat(comparePrice) > parseFloat(price) ? 
+                  `<span class="price-compare">$${comparePrice}</span>` : ''
+                }
+                <span class="price">$${price}</span>
+              </div>
+              ${product.vendor ? 
+                `<div class="result-vendor">${product.vendor}</div>` : ''
+              }
+            </div>
+          </a>
+        </div>
+      `;
+    }).join('');
 
     this.searchResults.innerHTML = `
       <div class="results-header">
-        <h3>Found ${products.length} poster${products.length !== 1 ? 's' : ''} for "${query}"</h3>
+        <h3>Found ${products.length} product${products.length !== 1 ? 's' : ''} for "${query}"</h3>
       </div>
       <div class="results-grid">
         ${resultsHTML}

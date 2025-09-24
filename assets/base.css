@@ -649,9 +649,44 @@ main#MainContent {
 }
 
 .result-price {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.price {
   color: #ff8a00;
   font-weight: 600;
   font-size: 14px;
+}
+
+.price-compare {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 400;
+  font-size: 12px;
+  text-decoration: line-through;
+}
+
+.result-vendor {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.sale-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 2;
 }
 
 .search-placeholder,
