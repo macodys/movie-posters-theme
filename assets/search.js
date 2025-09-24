@@ -56,19 +56,21 @@ class SearchController {
     this.searchOverlay.innerHTML = `
       <div class="search-modal">
         <div class="search-header">
-          <div class="search-input-container">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="m21 21-4.35-4.35"/>
-            </svg>
-            <input type="text" placeholder="Search posters..." class="search-input" id="searchInput" style="color: white; background: none; border: none; outline: none; width: 100%; font-size: 16px;">
+          <div class="search-input-wrapper">
+            <div class="search-input-container">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+              </svg>
+              <input type="text" placeholder="Search posters..." class="search-input" id="searchInput">
+            </div>
+            <button class="search-close" id="searchClose">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
-          <button class="search-close" id="searchClose">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
         </div>
         <div class="search-results" id="searchResults">
           <div class="search-placeholder">
