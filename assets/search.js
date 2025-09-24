@@ -197,11 +197,13 @@ class ModernSearchController {
       const response = await fetch('/collections/all/products.json');
       const data = await response.json();
       
+      console.log('Shopify API Response:', data); // Debug log
+      
       // Enhanced search with multiple criteria
       const results = data.products.filter(product => {
         const searchTerm = query.toLowerCase();
         const title = product.title.toLowerCase();
-        const tags = product.tags.map(tag => tag.toLowerCase());
+        const tags = product.tags ? product.tags.map(tag => tag.toLowerCase()) : [];
         const vendor = (product.vendor || '').toLowerCase();
         const productType = (product.product_type || '').toLowerCase();
         
@@ -219,6 +221,8 @@ class ModernSearchController {
         if (!aTitle && bTitle) return 1;
         return 0;
       });
+
+      console.log('Search Results:', results); // Debug log
 
       // Animate results in
       setTimeout(() => {
@@ -303,28 +307,66 @@ class ModernSearchController {
     }
 
     const resultsHTML = products.map((product, index) => {
-      // Get the best available image
-      const productImage = product.featured_image || 
-                          (product.images && product.images[0]) || 
-                          null;
+      console.log('Product data:', product); // Debug log
       
-      // Get price information
-      const variant = product.variants && product.variants[0];
-      const price = variant ? (variant.price / 100).toFixed(2) : '0.00';
-      const comparePrice = variant && variant.compare_at_price ? 
-                          (variant.compare_at_price / 100).toFixed(2) : null;
+      // Get the best available image - handle different Shopify image formats
+      let productImage = null;
+      if (product.featured_image) {
+        productImage = product.featured_image;
+      } else if (product.images && product.images.length > 0) {
+        productImage = product.images[0];
+      } else if (product.image) {
+        productImage = product.image;
+      }
+      
+      // Get price information - handle different variant structures
+      let variant = null;
+      let price = '0.00';
+      let comparePrice = null;
+      
+      if (product.variants && product.variants.length > 0) {
+        variant = product.variants[0];
+        price = variant.price ? (variant.price / 100).toFixed(2) : '0.00';
+        comparePrice = variant.compare_at_price ? (variant.compare_at_price / 100).toFixed(2) : null;
+      } else if (product.price) {
+        price = (product.price / 100).toFixed(2);
+        comparePrice = product.compare_at_price ? (product.compare_at_price / 100).toFixed(2) : null;
+      }
+      
+      // Build proper product URL
+      let productUrl = '/products/';
+      if (product.handle) {
+        productUrl += product.handle;
+      } else if (product.id) {
+        productUrl += product.id;
+      } else {
+        productUrl += 'product'; // Fallback
+      }
       
       // Format image URL with proper size
-      const imageUrl = productImage ? 
-        `${productImage}?width=300&height=450&crop=center` : 
-        null;
+      let imageUrl = null;
+      if (productImage) {
+        // Handle different image URL formats
+        if (typeof productImage === 'string') {
+          imageUrl = productImage;
+        } else if (productImage.src) {
+          imageUrl = productImage.src;
+        } else if (productImage.url) {
+          imageUrl = productImage.url;
+        }
+        
+        // Add Shopify image transformation if it's a Shopify image
+        if (imageUrl && imageUrl.includes('cdn.shopify.com')) {
+          imageUrl = `${imageUrl}?width=300&height=450&crop=center`;
+        }
+      }
 
       return `
         <div class="modern-search-result-item" style="animation-delay: ${index * 0.1}s">
-          <a href="${product.url}" class="modern-search-result-link">
+          <a href="${productUrl}" class="modern-search-result-link">
             <div class="result-image-container">
               ${imageUrl ? 
-                `<img src="${imageUrl}" alt="${product.title}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` :
+                `<img src="${imageUrl}" alt="${product.title || 'Product'}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` :
                 ''
               }
               <div class="result-placeholder" style="display: ${imageUrl ? 'none' : 'flex'}">
@@ -342,7 +384,7 @@ class ModernSearchController {
               }
             </div>
             <div class="result-info">
-              <h3 class="result-title">${product.title}</h3>
+              <h3 class="result-title">${product.title || 'Untitled Product'}</h3>
               <div class="result-price">
                 ${comparePrice && parseFloat(comparePrice) > parseFloat(price) ? 
                   `<span class="price-compare">$${comparePrice}</span>` : ''
