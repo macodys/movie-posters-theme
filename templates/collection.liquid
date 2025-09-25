@@ -75,7 +75,29 @@
   </div>
 
   <div class="products-grid" id="products-grid">
-    {% for product in collection.products %}
+    {% comment %} Debug: Collection info {% endcomment %}
+    <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; font-family: monospace; font-size: 12px;">
+      <strong>Collection Debug Info:</strong><br>
+      Collection Handle: {{ collection.handle }}<br>
+      Collection Title: {{ collection.title }}<br>
+      Products Count: {{ collection.products.size }}<br>
+      Collection ID: {{ collection.id }}<br>
+      {% if collection.products.size == 0 %}
+        <span style="color: red;">⚠️ No products found in this collection!</span><br>
+        <span style="color: blue;">💡 Make sure products are assigned to the "{{ collection.handle }}" collection in Shopify admin.</span>
+      {% endif %}
+    </div>
+    
+    {% comment %} Use collection products, or fallback to all products if collection is empty {% endcomment %}
+    {% assign products_to_show = collection.products %}
+    {% if collection.products.size == 0 %}
+      {% assign products_to_show = collections.all.products %}
+      <div style="background: #fff3cd; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ffeaa7;">
+        <strong>📋 Fallback Mode:</strong> Showing products from "All" collection since "{{ collection.title }}" is empty.
+      </div>
+    {% endif %}
+    
+    {% for product in products_to_show %}
       {% if product.variants.size > 0 %}
         {% comment %} Group variants by color (option1) {% endcomment %}
         {% assign color_groups = '' | split: '' %}
@@ -181,7 +203,7 @@
     {% endfor %}
   </div>
 
-  {% if collection.products.size == 0 %}
+  {% if products_to_show.size == 0 %}
     <div class="empty-collection">
       <h2>No products found</h2>
       <p>Try adjusting your filters or check back later for new products.</p>
