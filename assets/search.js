@@ -349,18 +349,12 @@ class ModernSearchController {
       return;
     }
 
-    const resultsHTML = products.map((product, index) => {
+    // Create results for each color variant
+    let allResults = [];
+    let animationDelay = 0;
+
+    products.forEach((product) => {
       console.log('Product data:', product); // Debug log
-      console.log('Product price info:', {
-        title: product.title,
-        price: product.price,
-        priceType: typeof product.price,
-        variants: product.variants,
-        variantPrice: product.variants?.[0]?.price,
-        variantPriceType: typeof product.variants?.[0]?.price,
-        variantComparePrice: product.variants?.[0]?.compare_at_price,
-        variantComparePriceType: typeof product.variants?.[0]?.compare_at_price
-      }); // Debug price info
       
       // Get the best available image - handle different Shopify image formats
       let productImage = null;
@@ -372,61 +366,14 @@ class ModernSearchController {
         productImage = product.image;
       }
       
-      // Get price information - handle different variant structures
-      let variant = null;
-      let price = '0.00';
-      let comparePrice = null;
-      
-      if (product.variants && product.variants.length > 0) {
-        variant = product.variants[0];
-        // Check if price is already in dollars (less than 100) or in cents (100 or more)
-        const rawPrice = parseFloat(variant.price);
-        if (!isNaN(rawPrice)) {
-          if (rawPrice < 100) {
-            // Price is already in dollars
-            price = rawPrice.toFixed(2);
-          } else {
-            // Price is in cents, convert to dollars
-            price = (rawPrice / 100).toFixed(2);
-          }
-        }
-        
-        const rawComparePrice = parseFloat(variant.compare_at_price);
-        if (!isNaN(rawComparePrice)) {
-          if (rawComparePrice < 100) {
-            comparePrice = rawComparePrice.toFixed(2);
-          } else {
-            comparePrice = (rawComparePrice / 100).toFixed(2);
-          }
-        }
-      } else if (product.price) {
-        const rawPrice = parseFloat(product.price);
-        if (!isNaN(rawPrice)) {
-          if (rawPrice < 100) {
-            price = rawPrice.toFixed(2);
-          } else {
-            price = (rawPrice / 100).toFixed(2);
-          }
-        }
-        
-        const rawComparePrice = parseFloat(product.compare_at_price);
-        if (!isNaN(rawComparePrice)) {
-          if (rawComparePrice < 100) {
-            comparePrice = rawComparePrice.toFixed(2);
-          } else {
-            comparePrice = (rawComparePrice / 100).toFixed(2);
-          }
-        }
-      }
-      
-      // Build proper product URL
-      let productUrl = '/products/';
+      // Build base product URL
+      let baseProductUrl = '/products/';
       if (product.handle) {
-        productUrl += product.handle;
+        baseProductUrl += product.handle;
       } else if (product.id) {
-        productUrl += product.id;
+        baseProductUrl += product.id;
       } else {
-        productUrl += 'product'; // Fallback
+        baseProductUrl += 'product'; // Fallback
       }
       
       // Format image URL with proper size
@@ -447,48 +394,162 @@ class ModernSearchController {
         }
       }
 
-      return `
-        <div class="modern-search-result-item" style="animation-delay: ${index * 0.1}s">
-          <a href="${productUrl}" class="modern-search-result-link">
-            <div class="result-image-container">
-              ${imageUrl ? 
-                `<img src="${imageUrl}" alt="${product.title || 'Product'}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` :
-                ''
-              }
-              <div class="result-placeholder" style="display: ${imageUrl ? 'none' : 'flex'}">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <polyline points="21,15 16,10 5,21"/>
-                </svg>
-              </div>
-              <div class="result-overlay">
-                <div class="result-badge">View Product</div>
-              </div>
-              ${comparePrice && parseFloat(comparePrice) > parseFloat(price) ? 
-                `<div class="sale-badge">Sale</div>` : ''
-              }
+      // If product has variants, create a result for each color variant
+      if (product.variants && product.variants.length > 0) {
+        // Group variants by color
+        const colorGroups = {};
+        product.variants.forEach(variant => {
+          const color = variant.option1 || 'Default';
+          if (!colorGroups[color]) {
+            colorGroups[color] = [];
+          }
+          colorGroups[color].push(variant);
+        });
+
+        // Create a result for each color
+        Object.keys(colorGroups).forEach(color => {
+          const variants = colorGroups[color];
+          const variant = variants[0]; // Use first variant for this color
+          
+          // Get price information
+          let price = '0.00';
+          let comparePrice = null;
+          
+          const rawPrice = parseFloat(variant.price);
+          if (!isNaN(rawPrice)) {
+            if (rawPrice < 100) {
+              price = rawPrice.toFixed(2);
+            } else {
+              price = (rawPrice / 100).toFixed(2);
+            }
+          }
+          
+          const rawComparePrice = parseFloat(variant.compare_at_price);
+          if (!isNaN(rawComparePrice)) {
+            if (rawComparePrice < 100) {
+              comparePrice = rawComparePrice.toFixed(2);
+            } else {
+              comparePrice = (rawComparePrice / 100).toFixed(2);
+            }
+          }
+
+          // Build product URL with variant selection
+          const productUrl = `${baseProductUrl}?variant=${variant.id}`;
+          
+          // Create title with color
+          const productTitle = color !== 'Default' ? `${product.title} - ${color}` : product.title;
+
+          allResults.push(`
+            <div class="modern-search-result-item" style="animation-delay: ${animationDelay * 0.1}s">
+              <a href="${productUrl}" class="modern-search-result-link">
+                <div class="result-image-container">
+                  ${imageUrl ? 
+                    `<img src="${imageUrl}" alt="${productTitle}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` :
+                    ''
+                  }
+                  <div class="result-placeholder" style="display: ${imageUrl ? 'none' : 'flex'}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                      <circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21,15 16,10 5,21"/>
+                    </svg>
+                  </div>
+                  <div class="result-overlay">
+                    <div class="result-badge">View Product</div>
+                  </div>
+                  ${comparePrice && parseFloat(comparePrice) > parseFloat(price) ? 
+                    `<div class="sale-badge">Sale</div>` : ''
+                  }
+                  <div class="color-badge">${color}</div>
+                </div>
+                <div class="result-info">
+                  <h3 class="result-title">${productTitle}</h3>
+                  <div class="result-price">
+                    ${comparePrice && parseFloat(comparePrice) > parseFloat(price) ? 
+                      `<span class="price-compare">$${comparePrice}</span>` : ''
+                    }
+                    <span class="price">$${price}</span>
+                  </div>
+                  ${product.vendor ? 
+                    `<div class="result-vendor">${product.vendor}</div>` : ''
+                  }
+                </div>
+              </a>
             </div>
-            <div class="result-info">
-              <h3 class="result-title">${product.title || 'Untitled Product'}</h3>
-              <div class="result-price">
-                ${comparePrice && parseFloat(comparePrice) > parseFloat(price) ? 
-                  `<span class="price-compare">$${comparePrice}</span>` : ''
+          `);
+          animationDelay++;
+        });
+      } else {
+        // No variants, create single result
+        let price = '0.00';
+        let comparePrice = null;
+        
+        if (product.price) {
+          const rawPrice = parseFloat(product.price);
+          if (!isNaN(rawPrice)) {
+            if (rawPrice < 100) {
+              price = rawPrice.toFixed(2);
+            } else {
+              price = (rawPrice / 100).toFixed(2);
+            }
+          }
+          
+          const rawComparePrice = parseFloat(product.compare_at_price);
+          if (!isNaN(rawComparePrice)) {
+            if (rawComparePrice < 100) {
+              comparePrice = rawComparePrice.toFixed(2);
+            } else {
+              comparePrice = (rawComparePrice / 100).toFixed(2);
+            }
+          }
+        }
+
+        allResults.push(`
+          <div class="modern-search-result-item" style="animation-delay: ${animationDelay * 0.1}s">
+            <a href="${baseProductUrl}" class="modern-search-result-link">
+              <div class="result-image-container">
+                ${imageUrl ? 
+                  `<img src="${imageUrl}" alt="${product.title || 'Product'}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` :
+                  ''
                 }
-                <span class="price">$${price}</span>
+                <div class="result-placeholder" style="display: ${imageUrl ? 'none' : 'flex'}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21,15 16,10 5,21"/>
+                  </svg>
+                </div>
+                <div class="result-overlay">
+                  <div class="result-badge">View Product</div>
+                </div>
+                ${comparePrice && parseFloat(comparePrice) > parseFloat(price) ? 
+                  `<div class="sale-badge">Sale</div>` : ''
+                }
               </div>
-              ${product.vendor ? 
-                `<div class="result-vendor">${product.vendor}</div>` : ''
-              }
-            </div>
-          </a>
-        </div>
-      `;
-    }).join('');
+              <div class="result-info">
+                <h3 class="result-title">${product.title || 'Untitled Product'}</h3>
+                <div class="result-price">
+                  ${comparePrice && parseFloat(comparePrice) > parseFloat(price) ? 
+                    `<span class="price-compare">$${comparePrice}</span>` : ''
+                  }
+                  <span class="price">$${price}</span>
+                </div>
+                ${product.vendor ? 
+                  `<div class="result-vendor">${product.vendor}</div>` : ''
+                }
+              </div>
+            </a>
+          </div>
+        `);
+        animationDelay++;
+      }
+    });
+
+    const resultsHTML = allResults.join('');
 
     this.searchResults.innerHTML = `
       <div class="results-header">
-        <h3>Found ${products.length} product${products.length !== 1 ? 's' : ''} for "${query}"</h3>
+        <h3>Found ${allResults.length} product${allResults.length !== 1 ? 's' : ''} for "${query}"</h3>
       </div>
       <div class="results-grid">
         ${resultsHTML}

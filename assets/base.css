@@ -694,6 +694,22 @@ main#MainContent {
   z-index: 2;
 }
 
+.color-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+}
+
 .search-placeholder,
 .search-loading,
 .search-error,
@@ -4238,6 +4254,222 @@ main#MainContent {
   .search-placeholder-text {
     font-size: 13px;
   }
+}
+
+/* Collection Page Styles */
+.collection-page {
+  padding: 40px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.collection-header {
+  margin-bottom: 40px;
+}
+
+.collection-title h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.breadcrumb a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.breadcrumb .separator {
+  color: var(--muted);
+}
+
+.collection-filters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.collection-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sort-dropdown select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.view-options {
+  display: flex;
+  gap: 8px;
+}
+
+.view-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-btn:hover,
+.view-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 32px;
+}
+
+.product-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.product-image {
+  position: relative;
+  aspect-ratio: 2/3;
+  overflow: hidden;
+}
+
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image img {
+  transform: scale(1.05);
+}
+
+.product-price-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  padding: 20px 15px 15px;
+  color: white;
+}
+
+.product-price-overlay .price {
+  font-size: 18px;
+  font-weight: 600;
+  display: block;
+}
+
+.product-price-overlay .price-compare {
+  font-size: 14px;
+  text-decoration: line-through;
+  opacity: 0.7;
+  margin-left: 8px;
+}
+
+.product-title-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.8), transparent);
+  padding: 15px 15px 20px;
+}
+
+.product-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.product-title a {
+  color: white;
+  text-decoration: none;
+}
+
+.product-card .color-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+}
+
+.empty-collection {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+
+.empty-collection h2 {
+  font-size: 24px;
+  margin-bottom: 16px;
+  color: var(--text);
 }
 
 /* Reduced motion */
