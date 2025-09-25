@@ -90,12 +90,30 @@
         {% for color in color_groups %}
           {% for variant in product.variants %}
             {% if variant.option1 == color or color == 'Default' and variant.option1 == blank %}
+              {% comment %} Get variant-specific image {% endcomment %}
+              {% assign variant_image = null %}
+              {% if variant.featured_image %}
+                {% assign variant_image = variant.featured_image %}
+              {% elsif variant.image_id %}
+                {% for image in product.images %}
+                  {% if image.id == variant.image_id %}
+                    {% assign variant_image = image %}
+                    {% break %}
+                  {% endif %}
+                {% endfor %}
+              {% endif %}
+              
+              {% comment %} Fallback to product featured image {% endcomment %}
+              {% unless variant_image %}
+                {% assign variant_image = product.featured_image %}
+              {% endunless %}
+              
               <div class="product-card" data-category="{{ product.metafields.custom.category | default: 'all' | downcase }}" data-color="{{ color | downcase }}">
                 <div class="product-image">
                   <a href="{{ product.url }}?variant={{ variant.id }}">
-                    {% if product.featured_image %}
-                      <img src="{{ product.featured_image | image_url: width: 400 }}" 
-                           alt="{{ product.featured_image.alt | escape }}"
+                    {% if variant_image %}
+                      <img src="{{ variant_image | image_url: width: 400 }}" 
+                           alt="{{ variant_image.alt | default: product.title | escape }}"
                            loading="lazy">
                     {% else %}
                       <div class="placeholder-image">

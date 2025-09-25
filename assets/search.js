@@ -433,21 +433,55 @@ class ModernSearchController {
             }
           }
 
+          // Get variant-specific image
+          let variantImage = null;
+          if (variant.featured_image) {
+            variantImage = variant.featured_image;
+          } else if (variant.image_id && product.images) {
+            // Find image by variant's image_id
+            const variantImageObj = product.images.find(img => img.id === variant.image_id);
+            if (variantImageObj) {
+              variantImage = variantImageObj.src || variantImageObj.url;
+            }
+          }
+          
+          // Fallback to product featured image if no variant image
+          if (!variantImage) {
+            variantImage = productImage;
+          }
+
           // Build product URL with variant selection
           const productUrl = `${baseProductUrl}?variant=${variant.id}`;
           
           // Create title with color
           const productTitle = color !== 'Default' ? `${product.title} - ${color}` : product.title;
 
+          // Format variant-specific image URL
+          let variantImageUrl = null;
+          if (variantImage) {
+            if (typeof variantImage === 'string') {
+              variantImageUrl = variantImage;
+            } else if (variantImage.src) {
+              variantImageUrl = variantImage.src;
+            } else if (variantImage.url) {
+              variantImageUrl = variantImage.url;
+            }
+            
+            // Add Shopify image transformation if it's a Shopify image
+            if (variantImageUrl && variantImageUrl.includes('cdn.shopify.com')) {
+              variantImageUrl = `${variantImageUrl}?width=300&height=450&crop=center`;
+            }
+          }
+
           allResults.push(`
             <div class="modern-search-result-item" style="animation-delay: ${animationDelay * 0.1}s">
               <a href="${productUrl}" class="modern-search-result-link">
                 <div class="result-image-container">
-                  ${imageUrl ? 
-                    `<img src="${imageUrl}" alt="${productTitle}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` :
+                  ${variantImageUrl ? 
+                    `<img src="${variantImageUrl}" alt="${productTitle}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` :
                     ''
                   }
-                  <div class="result-placeholder" style="display: ${imageUrl ? 'none' : 'flex'}">
+                  <div class="result-placeholder" style="display: ${variantImageUrl ? 'none' : 'flex'}">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
                       <circle cx="8.5" cy="8.5" r="1.5"/>
