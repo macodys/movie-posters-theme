@@ -83,7 +83,7 @@
     
     {% for product in products_to_show %}
       
-      {% comment %} Group variants by color and show one card per color {% endcomment %}
+      {% comment %} Show each unique color as a separate product card {% endcomment %}
       {% assign processed_colors = '' %}
       {% assign has_variants = false %}
       
@@ -107,8 +107,13 @@
           {% endif %}
         {% endunless %}
         
-        {% comment %} Only process valid colors that haven't been processed yet {% endcomment %}
-        {% if is_valid_color and processed_colors contains color == false %}
+        {% comment %} Show each unique color as a separate product {% endcomment %}
+        {% assign color_processed = false %}
+        {% if processed_colors contains color %}
+          {% assign color_processed = true %}
+        {% endif %}
+        
+        {% if is_valid_color and color_processed == false %}
           {% assign processed_colors = processed_colors | append: color | append: ',' %}
           {% assign has_variants = true %}
           
