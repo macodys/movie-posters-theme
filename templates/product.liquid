@@ -59,8 +59,22 @@
                 </label>
                 <select name="id" id="option-{{ forloop.index }}" class="option-select">
                   {% for value in option.values %}
-                    <option value="{{ product.variants[forloop.index0].id }}" 
-                            {% if product.variants[forloop.index0] == product.selected_or_first_available_variant %}selected{% endif %}>
+                    {% comment %} Find the variant that matches this option value {% endcomment %}
+                    {% assign matching_variant = null %}
+                    {% for variant in product.variants %}
+                      {% if option.position == 1 and variant.option1 == value %}
+                        {% assign matching_variant = variant %}
+                        {% break %}
+                      {% elsif option.position == 2 and variant.option2 == value %}
+                        {% assign matching_variant = variant %}
+                        {% break %}
+                      {% elsif option.position == 3 and variant.option3 == value %}
+                        {% assign matching_variant = variant %}
+                        {% break %}
+                      {% endif %}
+                    {% endfor %}
+                    <option value="{{ matching_variant.id | default: product.variants.first.id }}" 
+                            {% if matching_variant == product.selected_or_first_available_variant %}selected{% endif %}>
                       {{ value }}
                     </option>
                   {% endfor %}

@@ -36,18 +36,32 @@ class ProductVariantManager {
     if (variantId && this.product) {
       const variant = this.product.variants.find(v => v.id.toString() === variantId);
       if (variant) {
+        console.log('URL variant found:', variant);
         this.selectVariant(variant);
+        
+        // Also update the option select to show the correct selection
+        const optionSelects = document.querySelectorAll('.option-select');
+        optionSelects.forEach(select => {
+          if (select.value !== variantId) {
+            select.value = variantId;
+          }
+        });
+      } else {
+        console.log('URL variant not found for ID:', variantId);
       }
     }
   }
 
   setupVariantListeners() {
-    const variantSelect = document.querySelector('select[name="id"]');
-    if (variantSelect) {
-      console.log('Setting up variant listener for select:', variantSelect);
-      variantSelect.addEventListener('change', (e) => {
+    // Handle multiple option selects (Color, Size, etc.)
+    const optionSelects = document.querySelectorAll('.option-select');
+    console.log('Found option selects:', optionSelects.length);
+    
+    optionSelects.forEach((select, index) => {
+      console.log(`Setting up listener for option select ${index}:`, select);
+      select.addEventListener('change', (e) => {
         const variantId = e.target.value;
-        console.log('Variant changed to ID:', variantId);
+        console.log('Option changed to variant ID:', variantId);
         const variant = this.product.variants.find(v => v.id.toString() === variantId);
         if (variant) {
           console.log('Found variant:', variant);
@@ -56,8 +70,23 @@ class ProductVariantManager {
           console.log('Variant not found for ID:', variantId);
         }
       });
-    } else {
-      console.log('No variant select found');
+    });
+    
+    // Also handle the main variant select if it exists
+    const variantSelect = document.querySelector('select[name="id"]');
+    if (variantSelect && !Array.from(optionSelects).includes(variantSelect)) {
+      console.log('Setting up variant listener for main select:', variantSelect);
+      variantSelect.addEventListener('change', (e) => {
+        const variantId = e.target.value;
+        console.log('Main variant changed to ID:', variantId);
+        const variant = this.product.variants.find(v => v.id.toString() === variantId);
+        if (variant) {
+          console.log('Found variant:', variant);
+          this.selectVariant(variant);
+        } else {
+          console.log('Variant not found for ID:', variantId);
+        }
+      });
     }
   }
 
