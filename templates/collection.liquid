@@ -83,8 +83,7 @@
     
     {% for product in products_to_show %}
       
-      {% comment %} Group variants by color and show one card per color {% endcomment %}
-      {% assign processed_colors = '' %}
+      {% comment %} Show each valid variant as a separate product card {% endcomment %}
       {% assign has_variants = false %}
       
       {% for variant in product.variants %}
@@ -107,9 +106,8 @@
           {% endif %}
         {% endunless %}
         
-        {% comment %} Only process valid colors that haven't been processed yet {% endcomment %}
-        {% if is_valid_color and processed_colors contains color == false %}
-          {% assign processed_colors = processed_colors | append: color | append: ',' %}
+        {% comment %} Show each valid variant as a separate product {% endcomment %}
+        {% if is_valid_color %}
           {% assign has_variants = true %}
           
           {% comment %} Get variant-specific image for this color {% endcomment %}
