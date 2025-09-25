@@ -100,15 +100,22 @@
     {% for product in products_to_show %}
       {% comment %} Debug: Product info {% endcomment %}
       <div style="background: #e8f4fd; padding: 5px; margin: 5px 0; border-radius: 3px; font-family: monospace; font-size: 11px;">
-        Product: {{ product.title }} | Variants: {{ product.variants.size }} | Handle: {{ product.handle }}
+        Product: {{ product.title }} | Variants: {{ product.variants.size }} | Handle: {{ product.handle }}<br>
+        Images: {{ product.images.size }} | Featured: {% if product.featured_image %}Yes{% else %}No{% endif %}<br>
+        {% if product.variants.size > 0 %}
+          First variant: {{ product.variants.first.option1 | default: 'No option1' }} | Image ID: {{ product.variants.first.image_id | default: 'None' }}
+        {% endif %}
       </div>
       
       {% comment %} Group variants by color and show one card per color {% endcomment %}
       {% assign processed_colors = '' %}
+      {% assign has_variants = false %}
+      
       {% for variant in product.variants %}
         {% assign color = variant.option1 | default: 'Default' %}
         {% unless processed_colors contains color %}
           {% assign processed_colors = processed_colors | append: color | append: ',' %}
+          {% assign has_variants = true %}
           
           {% comment %} Get variant-specific image for this color {% endcomment %}
           {% assign variant_image = null %}
@@ -164,8 +171,8 @@
         {% endunless %}
       {% endfor %}
       
-      {% comment %} If no variants, show single product {% endcomment %}
-      {% if product.variants.size == 0 %}
+      {% comment %} If no variants were processed, show a fallback product card {% endcomment %}
+      {% unless has_variants %}
         <div class="product-card" data-category="{{ product.metafields.custom.category | default: 'all' | downcase }}">
           <div class="product-image">
             <a href="{{ product.url }}">
@@ -196,7 +203,8 @@
             </div>
           </div>
         </div>
-      {% endif %}
+      {% endunless %}
+      
     {% endfor %}
   </div>
 
