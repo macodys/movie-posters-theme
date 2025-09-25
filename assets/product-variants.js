@@ -22,6 +22,8 @@ class ProductVariantManager {
       const response = await fetch(`/products/${productHandle}.js`);
       this.product = await response.json();
       console.log('Product data loaded:', this.product);
+      console.log('Product variants:', this.product.variants);
+      console.log('Product images:', this.product.images);
     } catch (error) {
       console.error('Error loading product data:', error);
     }
@@ -42,17 +44,25 @@ class ProductVariantManager {
   setupVariantListeners() {
     const variantSelect = document.querySelector('select[name="id"]');
     if (variantSelect) {
+      console.log('Setting up variant listener for select:', variantSelect);
       variantSelect.addEventListener('change', (e) => {
         const variantId = e.target.value;
+        console.log('Variant changed to ID:', variantId);
         const variant = this.product.variants.find(v => v.id.toString() === variantId);
         if (variant) {
+          console.log('Found variant:', variant);
           this.selectVariant(variant);
+        } else {
+          console.log('Variant not found for ID:', variantId);
         }
       });
+    } else {
+      console.log('No variant select found');
     }
   }
 
   selectVariant(variant) {
+    console.log('Selecting variant:', variant);
     this.currentVariant = variant;
     
     // Update price
@@ -99,21 +109,43 @@ class ProductVariantManager {
     const mainImage = document.getElementById('main-product-image');
     const thumbnails = document.querySelectorAll('.thumbnail-item');
     
-    if (variant.featured_image && mainImage) {
+    if (!mainImage) return;
+    
+    // Find the variant-specific image
+    let variantImage = null;
+    
+    if (variant.featured_image) {
+      // Direct featured image (rare in Shopify)
+      variantImage = variant.featured_image;
+    } else if (variant.image_id && this.product.images) {
+      // Find image by variant's image_id
+      variantImage = this.product.images.find(img => img.id === variant.image_id);
+    }
+    
+    // Fallback to product featured image if no variant image
+    if (!variantImage) {
+      variantImage = this.product.featured_image;
+    }
+    
+    if (variantImage) {
       // Update main image to variant image
-      const imageUrl = this.getImageUrl(variant.featured_image, 800);
+      const imageUrl = this.getImageUrl(variantImage, 800);
       mainImage.src = imageUrl;
-      mainImage.alt = variant.featured_image.alt || this.product.title;
+      mainImage.alt = variantImage.alt || this.product.title;
       
       // Update active thumbnail
       thumbnails.forEach(thumb => {
-        const thumbImageUrl = this.getImageUrl(variant.featured_image, 200);
+        const thumbImageUrl = this.getImageUrl(variantImage, 200);
         if (thumb.dataset.image === imageUrl) {
           thumb.classList.add('active');
         } else {
           thumb.classList.remove('active');
         }
       });
+      
+      console.log('Updated image for variant:', variant.title, 'Image:', imageUrl);
+    } else {
+      console.log('No image found for variant:', variant.title);
     }
   }
 
@@ -147,10 +179,15 @@ class ProductVariantManager {
   getImageUrl(image, width) {
     if (typeof image === 'string') {
       return `${image}?width=${width}`;
-    } else if (image.src) {
-      return `${image.src}?width=${width}`;
-    } else if (image.url) {
-      return `${image.url}?width=${width}`;
+    } else if (image && typeof image === 'object') {
+      // Handle Shopify image object
+      if (image.src) {
+        return `${image.src}?width=${width}`;
+      } else if (image.url) {
+        return `${image.url}?width=${width}`;
+      } else if (image.original_src) {
+        return `${image.original_src}?width=${width}`;
+      }
     }
     return image;
   }
