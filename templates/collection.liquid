@@ -75,39 +75,16 @@
   </div>
 
   <div class="products-grid" id="products-grid">
-    {% comment %} Debug: Collection info {% endcomment %}
-    <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; font-family: monospace; font-size: 12px;">
-      <strong>Collection Debug Info:</strong><br>
-      Collection Handle: {{ collection.handle }}<br>
-      Collection Title: {{ collection.title }}<br>
-      Products Count: {{ collection.products.size }}<br>
-      Collection ID: {{ collection.id }}<br>
-      {% if collection.products.size == 0 %}
-        <span style="color: red;">⚠️ No products found in this collection!</span><br>
-        <span style="color: blue;">💡 Make sure products are assigned to the "{{ collection.handle }}" collection in Shopify admin.</span>
-      {% endif %}
-    </div>
-    
     {% comment %} Use collection products, or fallback to all products if collection is empty {% endcomment %}
     {% assign products_to_show = collection.products %}
     {% if collection.products.size == 0 %}
       {% assign products_to_show = collections.all.products %}
-      <div style="background: #fff3cd; padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ffeaa7;">
-        <strong>📋 Fallback Mode:</strong> Showing products from "All" collection since "{{ collection.title }}" is empty.
-      </div>
     {% endif %}
     
     {% for product in products_to_show %}
-      {% comment %} Debug: Product info {% endcomment %}
-      <div style="background: #e8f4fd; padding: 5px; margin: 5px 0; border-radius: 3px; font-family: monospace; font-size: 11px;">
-        Product: {{ product.title }} | Variants: {{ product.variants.size }} | Handle: {{ product.handle }}<br>
-        Images: {{ product.images.size }} | Featured: {% if product.featured_image %}Yes{% else %}No{% endif %}<br>
-        {% if product.variants.size > 0 %}
-          First variant: {{ product.variants.first.option1 | default: 'No option1' }} | Image ID: {{ product.variants.first.image_id | default: 'None' }}
-        {% endif %}
-      </div>
       
-      {% comment %} Show each variant as a separate product card (like search results) {% endcomment %}
+      {% comment %} Group variants by color and show one card per color {% endcomment %}
+      {% assign processed_colors = '' %}
       {% assign has_variants = false %}
       
       {% for variant in product.variants %}
@@ -130,8 +107,9 @@
           {% endif %}
         {% endunless %}
         
-        {% comment %} Show each valid variant as a separate product {% endcomment %}
-        {% if is_valid_color %}
+        {% comment %} Only process valid colors that haven't been processed yet {% endcomment %}
+        {% if is_valid_color and processed_colors contains color == false %}
+          {% assign processed_colors = processed_colors | append: color | append: ',' %}
           {% assign has_variants = true %}
           
           {% comment %} Get variant-specific image for this color {% endcomment %}
