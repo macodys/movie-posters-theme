@@ -114,12 +114,22 @@
       {% for variant in product.variants %}
         {% assign color = variant.option1 | default: 'Default' %}
         
-        {% comment %} Filter out invalid color names - only accept real color names {% endcomment %}
+        {% comment %} Filter out invalid color names - accept real colors and common variant patterns {% endcomment %}
         {% assign is_valid_color = false %}
         {% assign valid_colors = 'Red,Blue,Green,Yellow,Orange,Purple,Pink,Black,White,Gray,Grey,Brown,Silver,Gold,Maroon,Navy,Teal,Turquoise,Cyan,Magenta,Lime,Olive,Indigo,Violet,Crimson,Default' %}
+        {% assign invalid_colors = 'Default Title,Title,Size,Small,Medium,Large,XL,XXL,One Size' %}
+        
+        {% comment %} Check if it's a valid color name {% endcomment %}
         {% if valid_colors contains color %}
           {% assign is_valid_color = true %}
         {% endif %}
+        
+        {% comment %} Check if it's a common variant pattern (z1, z2, etc.) and not an invalid name {% endcomment %}
+        {% unless invalid_colors contains color %}
+          {% if color contains 'z' and color.size <= 3 %}
+            {% assign is_valid_color = true %}
+          {% endif %}
+        {% endunless %}
         
         {% comment %} Only process valid colors {% endcomment %}
         {% if is_valid_color and processed_colors contains color == false %}
