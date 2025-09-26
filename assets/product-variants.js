@@ -143,7 +143,15 @@ class ProductVariantManager {
     
     if (!mainImage) return;
     
-    // Find the variant-specific image
+    // Only update image if this is a color change, not a size change
+    const isColorChange = this.isColorChange(variant);
+    
+    if (!isColorChange) {
+      console.log('Size change detected - keeping current image');
+      return;
+    }
+    
+    // Find the variant-specific image for color changes only
     let variantImage = null;
     
     // Always prioritize finding the first variant of the same color for image consistency
@@ -191,10 +199,30 @@ class ProductVariantManager {
         }
       });
       
-      console.log('Updated image for variant:', variant.title, 'Color:', variant.option1, 'Size:', variant.option2, 'Image:', imageUrl);
+      console.log('Updated image for color change:', variant.title, 'Color:', variant.option1, 'Size:', variant.option2, 'Image:', imageUrl);
     } else {
       console.log('No image found for variant:', variant.title, 'Color:', variant.option1, 'Size:', variant.option2);
     }
+  }
+
+  isColorChange(newVariant) {
+    if (!this.currentVariant) return true; // First load
+    
+    // Check if the color (option1) has changed
+    const currentColor = this.currentVariant.option1;
+    const newColor = newVariant.option1;
+    
+    const colorChanged = currentColor !== newColor;
+    
+    console.log('Color change check:', {
+      currentColor,
+      newColor,
+      colorChanged,
+      currentVariant: this.currentVariant.title,
+      newVariant: newVariant.title
+    });
+    
+    return colorChanged;
   }
 
   updateAvailability(variant) {
