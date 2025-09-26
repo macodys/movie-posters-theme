@@ -2,6 +2,9 @@ class ProductVariantManager {
   constructor() {
     this.product = null;
     this.currentVariant = null;
+    this.lockedColor = null; // Tracks the currently displayed color
+    this.lockedImageUrl = null; // Tracks the image URL for the locked color
+    this.lockedImageAlt = null; // Tracks the alt text for the locked image
     this.init();
   }
 
@@ -105,11 +108,12 @@ class ProductVariantManager {
     // Update price
     this.updatePrice(variant);
     
-    // Update image only if it's a color change
+    // Update image only if it's a color change. If size change, enforce locked image.
     if (isColorChange) {
       this.updateImage(variant);
     } else {
       console.log('Size change detected - keeping current image');
+      this.enforceLockedImage();
     }
     
     // Update availability
@@ -190,6 +194,11 @@ class ProductVariantManager {
       mainImage.src = imageUrl;
       mainImage.alt = variantImage.alt || this.product.title;
       
+      // Lock current color and image so size changes cannot override it
+      this.lockedColor = variant.option1 || this.lockedColor;
+      this.lockedImageUrl = imageUrl;
+      this.lockedImageAlt = mainImage.alt;
+      
       // Update active thumbnail
       thumbnails.forEach(thumb => {
         const thumbImageUrl = this.getImageUrl(variantImage, 200);
@@ -203,6 +212,21 @@ class ProductVariantManager {
       console.log('Updated image for color change:', variant.title, 'Color:', variant.option1, 'Size:', variant.option2, 'Image:', imageUrl);
     } else {
       console.log('No image found for variant:', variant.title, 'Color:', variant.option1, 'Size:', variant.option2);
+    }
+  }
+
+  // When only size changes, force the image back to the locked color image
+  enforceLockedImage() {
+    const mainImage = document.getElementById('main-product-image');
+    if (!mainImage) return;
+    if (!this.lockedImageUrl) return;
+    
+    if (mainImage.src !== this.lockedImageUrl) {
+      mainImage.src = this.lockedImageUrl;
+      if (this.lockedImageAlt) {
+        mainImage.alt = this.lockedImageAlt;
+      }
+      console.log('Re-applied locked image for size change:', this.lockedImageUrl);
     }
   }
 
