@@ -95,13 +95,22 @@ class ProductVariantManager {
 
   selectVariant(variant) {
     console.log('Selecting variant:', variant);
+    
+    // Check if this is a color change before updating currentVariant
+    const isColorChange = this.isColorChange(variant);
+    
+    // Update currentVariant
     this.currentVariant = variant;
     
     // Update price
     this.updatePrice(variant);
     
-    // Update image
-    this.updateImage(variant);
+    // Update image only if it's a color change
+    if (isColorChange) {
+      this.updateImage(variant);
+    } else {
+      console.log('Size change detected - keeping current image');
+    }
     
     // Update availability
     this.updateAvailability(variant);
@@ -143,15 +152,7 @@ class ProductVariantManager {
     
     if (!mainImage) return;
     
-    // Only update image if this is a color change, not a size change
-    const isColorChange = this.isColorChange(variant);
-    
-    if (!isColorChange) {
-      console.log('Size change detected - keeping current image');
-      return;
-    }
-    
-    // Find the variant-specific image for color changes only
+    // Find the variant-specific image for color changes
     let variantImage = null;
     
     // Always prioritize finding the first variant of the same color for image consistency
