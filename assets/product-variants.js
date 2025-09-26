@@ -112,15 +112,16 @@ class ProductVariantManager {
     console.log('Selected values:', selectedValues);
     
     return this.product.variants.find(variant => {
-      // Check if this variant matches the selected values
-      const variantOptions = [variant.option1, variant.option2, variant.option3].filter(Boolean);
+      // Get variant options in order
+      const variantOptions = [variant.option1, variant.option2, variant.option3];
       
-      // Check if all selected values match this variant's options
-      const matches = selectedValues.every(selectedValue => 
-        variantOptions.some(option => option === selectedValue)
-      );
+      // Check if this variant exactly matches the selected values
+      const matches = selectedValues.every((selectedValue, index) => {
+        const variantOption = variantOptions[index];
+        return variantOption === selectedValue;
+      });
       
-      console.log('Checking variant:', variant.title, 'Options:', variantOptions, 'Matches:', matches);
+      console.log('Checking variant:', variant.title, 'Options:', variantOptions, 'Selected:', selectedValues, 'Matches:', matches);
       return matches;
     });
   }
