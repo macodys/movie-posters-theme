@@ -137,14 +137,24 @@
           
           <div class="product-card" data-category="{{ product.metafields.custom.category | default: 'all' | downcase }}" data-color="{{ color | downcase }}">
             <div class="product-image">
-              {% comment %} Find the first available variant for this color {% endcomment %}
+              {% comment %} Find the first available variant for this color (first size) {% endcomment %}
               {% assign first_variant_for_color = null %}
               {% for v in product.variants %}
-                {% if v.option1 == color %}
+                {% if v.option1 == color and v.available %}
                   {% assign first_variant_for_color = v %}
                   {% break %}
                 {% endif %}
               {% endfor %}
+              {% comment %} If no available variant found, use the first variant of this color {% endcomment %}
+              {% unless first_variant_for_color %}
+                {% for v in product.variants %}
+                  {% if v.option1 == color %}
+                    {% assign first_variant_for_color = v %}
+                    {% break %}
+                  {% endif %}
+                {% endfor %}
+              {% endunless %}
+              {% comment %} Fallback to current variant if still no match {% endcomment %}
               {% unless first_variant_for_color %}
                 {% assign first_variant_for_color = variant %}
               {% endunless %}
@@ -184,9 +194,21 @@
       
       {% comment %} If no variants were processed, show a fallback product card {% endcomment %}
       {% unless has_variants %}
+        {% comment %} Find the first available variant for fallback {% endcomment %}
+        {% assign first_available_variant = null %}
+        {% for v in product.variants %}
+          {% if v.available %}
+            {% assign first_available_variant = v %}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+        {% unless first_available_variant %}
+          {% assign first_available_variant = product.variants.first %}
+        {% endunless %}
+        
         <div class="product-card" data-category="{{ product.metafields.custom.category | default: 'all' | downcase }}">
           <div class="product-image">
-            <a href="{{ product.url }}">
+            <a href="{{ product.url }}{% if first_available_variant %}?variant={{ first_available_variant.id }}{% endif %}">
               {% if product.featured_image %}
                 <img src="{{ product.featured_image | image_url: width: 400 }}" 
                      alt="{{ product.featured_image.alt | escape }}"
@@ -209,7 +231,7 @@
             </div>
             <div class="product-title-overlay">
               <h3 class="product-title">
-                <a href="{{ product.url }}">{{ product.title }}</a>
+                <a href="{{ product.url }}{% if first_available_variant %}?variant={{ first_available_variant.id }}{% endif %}">{{ product.title }}</a>
               </h3>
             </div>
           </div>
