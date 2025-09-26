@@ -60,17 +60,16 @@ class ProductVariantManager {
     optionSelects.forEach((select, index) => {
       console.log(`Setting up listener for option select ${index}:`, select);
       select.addEventListener('change', (e) => {
-        // Get all current option values
-        const currentOptions = this.getCurrentOptionValues();
-        console.log('Current options:', currentOptions);
+        const variantId = e.target.value;
+        console.log('Option select changed to variant ID:', variantId);
         
-        // Find the variant that matches all current options
-        const variant = this.findVariantByOptions(currentOptions);
+        // Find the variant by ID
+        const variant = this.product.variants.find(v => v.id.toString() === variantId);
         if (variant) {
-          console.log('Found variant for options:', variant);
+          console.log('Found variant for ID:', variant);
           this.selectVariant(variant);
         } else {
-          console.log('No variant found for options:', currentOptions);
+          console.log('Variant not found for ID:', variantId);
         }
       });
     });
@@ -93,38 +92,6 @@ class ProductVariantManager {
     }
   }
 
-  getCurrentOptionValues() {
-    const options = {};
-    const optionSelects = document.querySelectorAll('.option-select');
-    
-    optionSelects.forEach((select, index) => {
-      const optionName = select.previousElementSibling?.textContent?.trim() || `option${index + 1}`;
-      options[optionName] = select.value;
-    });
-    
-    return options;
-  }
-
-  findVariantByOptions(options) {
-    const optionSelects = document.querySelectorAll('.option-select');
-    const selectedValues = Array.from(optionSelects).map(select => select.value);
-    
-    console.log('Selected values:', selectedValues);
-    
-    return this.product.variants.find(variant => {
-      // Get variant options in order
-      const variantOptions = [variant.option1, variant.option2, variant.option3];
-      
-      // Check if this variant exactly matches the selected values
-      const matches = selectedValues.every((selectedValue, index) => {
-        const variantOption = variantOptions[index];
-        return variantOption === selectedValue;
-      });
-      
-      console.log('Checking variant:', variant.title, 'Options:', variantOptions, 'Selected:', selectedValues, 'Matches:', matches);
-      return matches;
-    });
-  }
 
   selectVariant(variant) {
     console.log('Selecting variant:', variant);
