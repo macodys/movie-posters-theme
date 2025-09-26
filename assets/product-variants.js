@@ -5,6 +5,8 @@ class ProductVariantManager {
     this.lockedColor = null; // Tracks the currently displayed color
     this.lockedImageUrl = null; // Tracks the image URL for the locked color
     this.lockedImageAlt = null; // Tracks the alt text for the locked image
+    this.isSizeChangeGuardActive = false; // While true, prevent external image changes
+    this.imageObserver = null; // MutationObserver instance for main image
     this.init();
   }
 
@@ -17,6 +19,9 @@ class ProductVariantManager {
     
     // Setup variant change listeners
     this.setupVariantListeners();
+
+    // Observe main image changes so we can enforce the locked image on size-only changes
+    this.setupImageObserver();
   }
 
   async loadProductData() {
@@ -113,7 +118,13 @@ class ProductVariantManager {
       this.updateImage(variant);
     } else {
       console.log('Size change detected - keeping current image');
+      // Engage guard and re-apply locked image to block external listeners from changing it
+      this.isSizeChangeGuardActive = true;
       this.enforceLockedImage();
+      // Disable guard shortly after in case other scripts react asynchronously
+      setTimeout(() => {
+        this.isSizeChangeGuardActive = false;
+      }, 600);
     }
     
     // Update availability
@@ -228,6 +239,29 @@ class ProductVariantManager {
       }
       console.log('Re-applied locked image for size change:', this.lockedImageUrl);
     }
+  }
+
+  setupImageObserver() {
+    const mainImage = document.getElementById('main-product-image');
+    if (!mainImage) return;
+    if (this.imageObserver && typeof this.imageObserver.disconnect === 'function') {
+      this.imageObserver.disconnect();
+    }
+    this.imageObserver = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+          if (this.isSizeChangeGuardActive && this.lockedImageUrl && mainImage.src !== this.lockedImageUrl) {
+            // Immediately revert to the locked image if a size-only change attempted to update it
+            mainImage.src = this.lockedImageUrl;
+            if (this.lockedImageAlt) {
+              mainImage.alt = this.lockedImageAlt;
+            }
+            console.log('Observer reverted image change during size-only update');
+          }
+        }
+      });
+    });
+    this.imageObserver.observe(mainImage, { attributes: true, attributeFilter: ['src'] });
   }
 
   isColorChange(newVariant) {
