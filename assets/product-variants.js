@@ -149,6 +149,17 @@ class ProductVariantManager {
     } else if (variant.image_id && this.product.images) {
       // Find image by variant's image_id
       variantImage = this.product.images.find(img => img.id === variant.image_id);
+    } else if (this.product.variants && variant.option1) {
+      // Find the first variant of the same color and use its image
+      const color = variant.option1;
+      const firstVariantOfColor = this.product.variants.find(v => v.option1 === color);
+      if (firstVariantOfColor) {
+        if (firstVariantOfColor.featured_image) {
+          variantImage = firstVariantOfColor.featured_image;
+        } else if (firstVariantOfColor.image_id && this.product.images) {
+          variantImage = this.product.images.find(img => img.id === firstVariantOfColor.image_id);
+        }
+      }
     }
     
     // Fallback to product featured image if no variant image
@@ -172,9 +183,9 @@ class ProductVariantManager {
         }
       });
       
-      console.log('Updated image for variant:', variant.title, 'Image:', imageUrl);
+      console.log('Updated image for variant:', variant.title, 'Color:', variant.option1, 'Image:', imageUrl);
     } else {
-      console.log('No image found for variant:', variant.title);
+      console.log('No image found for variant:', variant.title, 'Color:', variant.option1);
     }
   }
 
