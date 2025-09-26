@@ -213,14 +213,23 @@ class ProductVariantManager {
     const currentColor = this.currentVariant.option1;
     const newColor = newVariant.option1;
     
-    const colorChanged = currentColor !== newColor;
+    // Also check if size (option2) has changed
+    const currentSize = this.currentVariant.option2;
+    const newSize = newVariant.option2;
     
-    console.log('Color change check:', {
+    const colorChanged = currentColor !== newColor;
+    const sizeChanged = currentSize !== newSize;
+    
+    console.log('Change detection:', {
       currentColor,
       newColor,
+      currentSize,
+      newSize,
       colorChanged,
+      sizeChanged,
       currentVariant: this.currentVariant.title,
-      newVariant: newVariant.title
+      newVariant: newVariant.title,
+      isColorChange: colorChanged
     });
     
     return colorChanged;
