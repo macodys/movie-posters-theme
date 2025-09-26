@@ -146,14 +146,8 @@ class ProductVariantManager {
     // Find the variant-specific image
     let variantImage = null;
     
-    if (variant.featured_image) {
-      // Direct featured image (rare in Shopify)
-      variantImage = variant.featured_image;
-    } else if (variant.image_id && this.product.images) {
-      // Find image by variant's image_id
-      variantImage = this.product.images.find(img => img.id === variant.image_id);
-    } else if (this.product.variants && variant.option1) {
-      // Find the first variant of the same color and use its image
+    // Always prioritize finding the first variant of the same color for image consistency
+    if (this.product.variants && variant.option1) {
       const color = variant.option1;
       const firstVariantOfColor = this.product.variants.find(v => v.option1 === color);
       if (firstVariantOfColor) {
@@ -162,6 +156,17 @@ class ProductVariantManager {
         } else if (firstVariantOfColor.image_id && this.product.images) {
           variantImage = this.product.images.find(img => img.id === firstVariantOfColor.image_id);
         }
+      }
+    }
+    
+    // If no color-based image found, try the current variant's image
+    if (!variantImage) {
+      if (variant.featured_image) {
+        // Direct featured image (rare in Shopify)
+        variantImage = variant.featured_image;
+      } else if (variant.image_id && this.product.images) {
+        // Find image by variant's image_id
+        variantImage = this.product.images.find(img => img.id === variant.image_id);
       }
     }
     
@@ -186,9 +191,9 @@ class ProductVariantManager {
         }
       });
       
-      console.log('Updated image for variant:', variant.title, 'Color:', variant.option1, 'Image:', imageUrl);
+      console.log('Updated image for variant:', variant.title, 'Color:', variant.option1, 'Size:', variant.option2, 'Image:', imageUrl);
     } else {
-      console.log('No image found for variant:', variant.title, 'Color:', variant.option1);
+      console.log('No image found for variant:', variant.title, 'Color:', variant.option1, 'Size:', variant.option2);
     }
   }
 
