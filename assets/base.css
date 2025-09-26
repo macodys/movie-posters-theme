@@ -4512,3 +4512,245 @@ main#MainContent {
     transition: none;
   }
 }
+
+/* Professional Subcategory Buttons - TV & Movies Page */
+.subcategory-section {
+  margin: 2rem 0;
+  padding: 1.5rem 0;
+}
+
+.subcategory-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.subcategory-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.subcategory-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.subcategory-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.subcategory-btn:hover::before {
+  left: 100%;
+}
+
+.subcategory-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 212, 170, 0.3);
+  border-color: rgba(0, 212, 170, 0.5);
+  background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(139, 92, 246, 0.1));
+}
+
+.subcategory-btn.active {
+  background: linear-gradient(135deg, rgba(0, 212, 170, 0.2), rgba(139, 92, 246, 0.2));
+  border-color: rgba(0, 212, 170, 0.6);
+  box-shadow: 0 4px 15px rgba(0, 212, 170, 0.2);
+}
+
+.subcategory-btn.active::after {
+  content: '✓';
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 20px;
+  height: 20px;
+  background: var(--accent);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+/* Marvel-specific styling */
+.subcategory-btn[data-subcategory="marvel"] {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.1), rgba(185, 28, 28, 0.05));
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+.subcategory-btn[data-subcategory="marvel"]:hover {
+  box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);
+  border-color: rgba(220, 38, 38, 0.5);
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.2), rgba(185, 28, 28, 0.1));
+}
+
+/* DC-specific styling */
+.subcategory-btn[data-subcategory="dc"] {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05));
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.subcategory-btn[data-subcategory="dc"]:hover {
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.1));
+}
+
+/* Star Wars-specific styling */
+.subcategory-btn[data-subcategory="star-wars"] {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(245, 158, 11, 0.05));
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+.subcategory-btn[data-subcategory="star-wars"]:hover {
+  box-shadow: 0 8px 25px rgba(251, 191, 36, 0.3);
+  border-color: rgba(251, 191, 36, 0.5);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.1));
+}
+
+/* Anime-specific styling */
+.subcategory-btn[data-subcategory="anime"] {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05));
+  border-color: rgba(236, 72, 153, 0.3);
+}
+
+.subcategory-btn[data-subcategory="anime"]:hover {
+  box-shadow: 0 8px 25px rgba(236, 72, 153, 0.3);
+  border-color: rgba(236, 72, 153, 0.5);
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(219, 39, 119, 0.1));
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .subcategory-buttons {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .subcategory-btn {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9rem;
+  }
+  
+  .subcategory-title {
+    font-size: 1.25rem;
+  }
+}
+
+/* 3D Hover Effect for Collection Product Cards Only */
+.collection-page .product-card {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.collection-page .product-image {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.6s ease;
+  cursor: pointer;
+}
+
+.collection-page .product-image:hover {
+  transform: rotateY(15deg) rotateX(5deg) scale(1.05);
+}
+
+.collection-page .product-image img {
+  width: 100%;
+  height: auto;
+  transition: all 0.6s ease;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.collection-page .product-image:hover img {
+  box-shadow: 0 8px 30px rgba(0, 212, 170, 0.4);
+  filter: brightness(1.1) contrast(1.1);
+}
+
+/* Color texture overlay on hover for collection cards */
+.collection-page .product-image::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, 
+    rgba(0, 212, 170, 0.1) 0%, 
+    rgba(139, 92, 246, 0.1) 50%, 
+    rgba(0, 212, 170, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  border-radius: 8px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.collection-page .product-image:hover::before {
+  opacity: 1;
+}
+
+/* Color-specific texture effects for collection cards */
+.collection-page .product-card[data-color="z1"] .product-image:hover::before {
+  background: linear-gradient(45deg, 
+    rgba(255, 0, 0, 0.2) 0%, 
+    rgba(255, 100, 100, 0.2) 100%);
+}
+
+.collection-page .product-card[data-color="z2"] .product-image:hover::before {
+  background: linear-gradient(45deg, 
+    rgba(0, 0, 255, 0.2) 0%, 
+    rgba(100, 100, 255, 0.2) 100%);
+}
+
+.collection-page .product-card[data-color="z3"] .product-image:hover::before {
+  background: linear-gradient(45deg, 
+    rgba(0, 255, 0, 0.2) 0%, 
+    rgba(100, 255, 100, 0.2) 100%);
+}
+
+.collection-page .product-card[data-color="red"] .product-image:hover::before {
+  background: linear-gradient(45deg, 
+    rgba(255, 0, 0, 0.2) 0%, 
+    rgba(255, 100, 100, 0.2) 100%);
+}
+
+.collection-page .product-card[data-color="blue"] .product-image:hover::before {
+  background: linear-gradient(45deg, 
+    rgba(0, 0, 255, 0.2) 0%, 
+    rgba(100, 100, 255, 0.2) 100%);
+}
+
+.collection-page .product-card[data-color="green"] .product-image:hover::before {
+  background: linear-gradient(45deg, 
+    rgba(0, 255, 0, 0.2) 0%, 
+    rgba(100, 255, 100, 0.2) 100%);
+}
