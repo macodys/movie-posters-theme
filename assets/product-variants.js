@@ -14,14 +14,16 @@ class ProductVariantManager {
     // Get product data from Shopify
     await this.loadProductData();
     
-    // Handle URL variant parameter
-    this.handleUrlVariant();
-    
     // Setup variant change listeners
     this.setupVariantListeners();
 
     // Observe main image changes so we can enforce the locked image on size-only changes
     this.setupImageObserver();
+    
+    // Handle URL variant parameter after a short delay to ensure DOM is ready
+    setTimeout(() => {
+      this.handleUrlVariant();
+    }, 100);
   }
 
   async loadProductData() {
@@ -47,11 +49,17 @@ class ProductVariantManager {
         console.log('URL variant found:', variant);
         this.selectVariant(variant);
         
-        // Also update the option select to show the correct selection
+        // Update all option selects to show the correct selection
         const optionSelects = document.querySelectorAll('.option-select');
         optionSelects.forEach(select => {
-          if (select.value !== variantId) {
+          // Find the option that matches this variant
+          const matchingOption = Array.from(select.options).find(option => {
+            return option.value === variantId;
+          });
+          
+          if (matchingOption) {
             select.value = variantId;
+            console.log('Updated option select to variant:', variantId);
           }
         });
       } else {
