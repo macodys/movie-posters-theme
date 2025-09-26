@@ -137,7 +137,18 @@
           
           <div class="product-card" data-category="{{ product.metafields.custom.category | default: 'all' | downcase }}" data-color="{{ color | downcase }}">
             <div class="product-image">
-              <a href="{{ product.url }}?variant={{ variant.id }}">
+              {% comment %} Find the first available variant for this color {% endcomment %}
+              {% assign first_variant_for_color = null %}
+              {% for v in product.variants %}
+                {% if v.option1 == color %}
+                  {% assign first_variant_for_color = v %}
+                  {% break %}
+                {% endif %}
+              {% endfor %}
+              {% unless first_variant_for_color %}
+                {% assign first_variant_for_color = variant %}
+              {% endunless %}
+              <a href="{{ product.url }}?variant={{ first_variant_for_color.id }}">
                 {% if variant_image %}
                   <img src="{{ variant_image | image_url: width: 400 }}" 
                        alt="{{ variant_image.alt | default: product.title | escape }}"
@@ -161,7 +172,7 @@
               </div>
               <div class="product-title-overlay">
                 <h3 class="product-title">
-                  <a href="{{ product.url }}?variant={{ variant.id }}">
+                  <a href="{{ product.url }}?variant={{ first_variant_for_color.id }}">
                     {% if color != 'Default' %}{{ product.title }} - {{ color }}{% else %}{{ product.title }}{% endif %}
                   </a>
                 </h3>
