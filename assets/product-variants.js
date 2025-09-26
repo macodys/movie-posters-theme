@@ -60,14 +60,17 @@ class ProductVariantManager {
     optionSelects.forEach((select, index) => {
       console.log(`Setting up listener for option select ${index}:`, select);
       select.addEventListener('change', (e) => {
-        const variantId = e.target.value;
-        console.log('Option changed to variant ID:', variantId);
-        const variant = this.product.variants.find(v => v.id.toString() === variantId);
+        // Get all current option values
+        const currentOptions = this.getCurrentOptionValues();
+        console.log('Current options:', currentOptions);
+        
+        // Find the variant that matches all current options
+        const variant = this.findVariantByOptions(currentOptions);
         if (variant) {
-          console.log('Found variant:', variant);
+          console.log('Found variant for options:', variant);
           this.selectVariant(variant);
         } else {
-          console.log('Variant not found for ID:', variantId);
+          console.log('No variant found for options:', currentOptions);
         }
       });
     });
@@ -88,6 +91,38 @@ class ProductVariantManager {
         }
       });
     }
+  }
+
+  getCurrentOptionValues() {
+    const options = {};
+    const optionSelects = document.querySelectorAll('.option-select');
+    
+    optionSelects.forEach((select, index) => {
+      const optionName = select.previousElementSibling?.textContent?.trim() || `option${index + 1}`;
+      options[optionName] = select.value;
+    });
+    
+    return options;
+  }
+
+  findVariantByOptions(options) {
+    const optionSelects = document.querySelectorAll('.option-select');
+    const selectedValues = Array.from(optionSelects).map(select => select.value);
+    
+    console.log('Selected values:', selectedValues);
+    
+    return this.product.variants.find(variant => {
+      // Check if this variant matches the selected values
+      const variantOptions = [variant.option1, variant.option2, variant.option3].filter(Boolean);
+      
+      // Check if all selected values match this variant's options
+      const matches = selectedValues.every(selectedValue => 
+        variantOptions.some(option => option === selectedValue)
+      );
+      
+      console.log('Checking variant:', variant.title, 'Options:', variantOptions, 'Matches:', matches);
+      return matches;
+    });
   }
 
   selectVariant(variant) {
