@@ -71,16 +71,16 @@ class ProductVariantManager {
     optionSelects.forEach((select, index) => {
       console.log(`Setting up listener for option select ${index}:`, select);
       select.addEventListener('change', (e) => {
-        const variantId = e.target.value;
-        console.log('Option select changed to variant ID:', variantId);
+        // Get all current option values and find the matching variant
+        const selectedOptions = this.getSelectedOptions();
+        console.log('Selected options:', selectedOptions);
         
-        // Find the variant by ID
-        const variant = this.product.variants.find(v => v.id.toString() === variantId);
+        const variant = this.findVariantByOptions(selectedOptions);
         if (variant) {
-          console.log('Found variant for ID:', variant);
+          console.log('Found variant for options:', variant);
           this.selectVariant(variant);
         } else {
-          console.log('Variant not found for ID:', variantId);
+          console.log('No variant found for options:', selectedOptions);
         }
       });
     });
@@ -101,6 +101,32 @@ class ProductVariantManager {
         }
       });
     }
+  }
+
+  getSelectedOptions() {
+    const options = {};
+    const optionSelects = document.querySelectorAll('.option-select');
+    
+    optionSelects.forEach((select, index) => {
+      const optionName = select.previousElementSibling?.textContent?.trim() || `option${index + 1}`;
+      const selectedValue = select.options[select.selectedIndex]?.textContent?.trim();
+      options[optionName] = selectedValue;
+    });
+    
+    return options;
+  }
+
+  findVariantByOptions(selectedOptions) {
+    const optionValues = Object.values(selectedOptions);
+    
+    return this.product.variants.find(variant => {
+      const variantOptions = [variant.option1, variant.option2, variant.option3].filter(Boolean);
+      
+      // Check if all selected option values match this variant's options
+      return optionValues.every(selectedValue => 
+        variantOptions.some(option => option === selectedValue)
+      );
+    });
   }
 
 
