@@ -4557,33 +4557,37 @@ main#MainContent {
   text-align: center;
 }
 
-/* Logo images for subcategory buttons */
+/* Logo images for subcategory buttons - smaller and centered */
 .subcategory-btn[data-subcategory="marvel"] {
   background-image: url('Marvel.png');
-  background-size: contain;
+  background-size: 60%;
   background-repeat: no-repeat;
   background-position: center;
+  color: transparent; /* Hide text */
 }
 
 .subcategory-btn[data-subcategory="dc"] {
   background-image: url('DC.png');
-  background-size: contain;
+  background-size: 60%;
   background-repeat: no-repeat;
   background-position: center;
+  color: transparent; /* Hide text */
 }
 
 .subcategory-btn[data-subcategory="star-wars"] {
   background-image: url('StarWars.png');
-  background-size: contain;
+  background-size: 60%;
   background-repeat: no-repeat;
   background-position: center;
+  color: transparent; /* Hide text */
 }
 
 .subcategory-btn[data-subcategory="anime"] {
   background-image: url('anime.png');
-  background-size: contain;
+  background-size: 60%;
   background-repeat: no-repeat;
   background-position: center;
+  color: transparent; /* Hide text */
 }
 
 .subcategory-btn:hover {
@@ -4608,11 +4612,11 @@ main#MainContent {
   opacity: 0;
   transition: opacity 0.3s ease;
   border-radius: 6px; /* Match the 10px border-radius minus 4px border */
-  z-index: 1;
+  z-index: 0; /* Lower z-index so logo stays on top */
 }
 
 .subcategory-btn[data-subcategory="marvel"]:hover::after {
-  opacity: 0.8; /* Slightly transparent to show the red gradient underneath */
+  opacity: 0.6; /* More transparent to show logo better */
 }
 
 /* DC GIF Hover Effect - Disney+ Style */
@@ -4627,11 +4631,11 @@ main#MainContent {
   opacity: 0;
   transition: opacity 0.3s ease;
   border-radius: 6px; /* Match the 10px border-radius minus 4px border */
-  z-index: 1;
+  z-index: 0; /* Lower z-index so logo stays on top */
 }
 
 .subcategory-btn[data-subcategory="dc"]:hover::after {
-  opacity: 0.8; /* Slightly transparent to show the blue gradient underneath */
+  opacity: 0.6; /* More transparent to show logo better */
 }
 
 /* Star Wars GIF Hover Effect - Disney+ Style */
@@ -4646,11 +4650,11 @@ main#MainContent {
   opacity: 0;
   transition: opacity 0.3s ease;
   border-radius: 6px; /* Match the 10px border-radius minus 4px border */
-  z-index: 1;
+  z-index: 0; /* Lower z-index so logo stays on top */
 }
 
 .subcategory-btn[data-subcategory="star-wars"]:hover::after {
-  opacity: 0.8; /* Slightly transparent to show the gold gradient underneath */
+  opacity: 0.6; /* More transparent to show logo better */
 }
 
 /* Anime GIF Hover Effect - Disney+ Style */
@@ -4665,38 +4669,38 @@ main#MainContent {
   opacity: 0;
   transition: opacity 0.3s ease;
   border-radius: 6px; /* Match the 10px border-radius minus 4px border */
-  z-index: 1;
+  z-index: 0; /* Lower z-index so logo stays on top */
 }
 
 .subcategory-btn[data-subcategory="anime"]:hover::after {
-  opacity: 0.8; /* Slightly transparent to show the pink gradient underneath */
+  opacity: 0.6; /* More transparent to show logo better */
 }
 
 /* Category-specific hover backgrounds with logo preservation */
 .subcategory-btn[data-subcategory="marvel"]:hover {
   background: linear-gradient(135deg, rgba(220, 38, 38, 0.9), rgba(185, 28, 28, 0.9)), url('Marvel.png');
-  background-size: cover, contain;
+  background-size: cover, 60%;
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
 }
 
 .subcategory-btn[data-subcategory="dc"]:hover {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(37, 99, 235, 0.9)), url('DC.png');
-  background-size: cover, contain;
+  background-size: cover, 60%;
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
 }
 
 .subcategory-btn[data-subcategory="star-wars"]:hover {
   background: linear-gradient(135deg, rgba(251, 191, 36, 0.9), rgba(245, 158, 11, 0.9)), url('StarWars.png');
-  background-size: cover, contain;
+  background-size: cover, 60%;
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
 }
 
 .subcategory-btn[data-subcategory="anime"]:hover {
   background: linear-gradient(135deg, rgba(236, 72, 153, 0.9), rgba(219, 39, 119, 0.9)), url('anime.png');
-  background-size: cover, contain;
+  background-size: cover, 60%;
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
 }
