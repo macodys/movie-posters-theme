@@ -4557,6 +4557,35 @@ main#MainContent {
   text-align: center;
 }
 
+/* Logo images for subcategory buttons */
+.subcategory-btn[data-subcategory="marvel"] {
+  background-image: url('Marvel.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.subcategory-btn[data-subcategory="dc"] {
+  background-image: url('DC.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.subcategory-btn[data-subcategory="star-wars"] {
+  background-image: url('StarWars.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.subcategory-btn[data-subcategory="anime"] {
+  background-image: url('anime.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
 .subcategory-btn:hover {
   border: 4px solid white;
   transform: scale(1.05);
@@ -4643,21 +4672,33 @@ main#MainContent {
   opacity: 0.8; /* Slightly transparent to show the pink gradient underneath */
 }
 
-/* Category-specific hover backgrounds */
+/* Category-specific hover backgrounds with logo preservation */
 .subcategory-btn[data-subcategory="marvel"]:hover {
-  background: linear-gradient(135deg, rgba(220, 38, 38, 0.9), rgba(185, 28, 28, 0.9));
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.9), rgba(185, 28, 28, 0.9)), url('Marvel.png');
+  background-size: cover, contain;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
 }
 
 .subcategory-btn[data-subcategory="dc"]:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(37, 99, 235, 0.9));
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(37, 99, 235, 0.9)), url('DC.png');
+  background-size: cover, contain;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
 }
 
 .subcategory-btn[data-subcategory="star-wars"]:hover {
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.9), rgba(245, 158, 11, 0.9));
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.9), rgba(245, 158, 11, 0.9)), url('StarWars.png');
+  background-size: cover, contain;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
 }
 
 .subcategory-btn[data-subcategory="anime"]:hover {
-  background: linear-gradient(135deg, rgba(236, 72, 153, 0.9), rgba(219, 39, 119, 0.9));
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.9), rgba(219, 39, 119, 0.9)), url('anime.png');
+  background-size: cover, contain;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
 }
 
 /* Disney+ Style Filter Buttons - TV & Movies Page */
