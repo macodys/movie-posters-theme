@@ -4564,6 +4564,8 @@ main#MainContent {
   background-repeat: no-repeat;
   background-position: center;
   color: transparent; /* Hide text */
+  position: relative;
+  z-index: 2; /* Ensure logo stays on top */
 }
 
 .subcategory-btn[data-subcategory="dc"] {
@@ -4572,6 +4574,8 @@ main#MainContent {
   background-repeat: no-repeat;
   background-position: center;
   color: transparent; /* Hide text */
+  position: relative;
+  z-index: 2; /* Ensure logo stays on top */
 }
 
 .subcategory-btn[data-subcategory="star-wars"] {
@@ -4580,6 +4584,8 @@ main#MainContent {
   background-repeat: no-repeat;
   background-position: center;
   color: transparent; /* Hide text */
+  position: relative;
+  z-index: 2; /* Ensure logo stays on top */
 }
 
 .subcategory-btn[data-subcategory="anime"] {
@@ -4588,6 +4594,8 @@ main#MainContent {
   background-repeat: no-repeat;
   background-position: center;
   color: transparent; /* Hide text */
+  position: relative;
+  z-index: 2; /* Ensure logo stays on top */
 }
 
 .subcategory-btn:hover {
@@ -4682,6 +4690,7 @@ main#MainContent {
   background-size: cover, 60%;
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
+  opacity: 1; /* Ensure full opacity on hover */
 }
 
 .subcategory-btn[data-subcategory="dc"]:hover {
@@ -4689,6 +4698,7 @@ main#MainContent {
   background-size: cover, 60%;
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
+  opacity: 1; /* Ensure full opacity on hover */
 }
 
 .subcategory-btn[data-subcategory="star-wars"]:hover {
@@ -4696,6 +4706,7 @@ main#MainContent {
   background-size: cover, 60%;
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
+  opacity: 1; /* Ensure full opacity on hover */
 }
 
 .subcategory-btn[data-subcategory="anime"]:hover {
@@ -4703,6 +4714,7 @@ main#MainContent {
   background-size: cover, 60%;
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
+  opacity: 1; /* Ensure full opacity on hover */
 }
 
 /* Disney+ Style Filter Buttons - TV & Movies Page */
