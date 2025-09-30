@@ -4586,6 +4586,25 @@ main#MainContent {
   opacity: 0.8; /* Slightly transparent to show the red gradient underneath */
 }
 
+/* DC GIF Hover Effect - Disney+ Style */
+.subcategory-btn[data-subcategory="dc"]::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('dc.gif') center/cover no-repeat;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 6px; /* Match the 10px border-radius minus 4px border */
+  z-index: 1;
+}
+
+.subcategory-btn[data-subcategory="dc"]:hover::after {
+  opacity: 0.8; /* Slightly transparent to show the blue gradient underneath */
+}
+
 /* Category-specific hover backgrounds */
 .subcategory-btn[data-subcategory="marvel"]:hover {
   background: linear-gradient(135deg, rgba(220, 38, 38, 0.9), rgba(185, 28, 28, 0.9));
