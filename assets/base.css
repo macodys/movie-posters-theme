@@ -4733,8 +4733,8 @@ main#MainContent {
 .subcategory-btn.active::after {
   content: '✕';
   position: absolute;
-  top: -8px;
-  right: -8px;
+  top: -15px;
+  right: -15px;
   width: 24px;
   height: 24px;
   background: rgba(239, 68, 68, 0.95);
@@ -4752,11 +4752,42 @@ main#MainContent {
   visibility: visible;
   border: 2px solid rgba(255, 255, 255, 0.9);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transform: none;
 }
 
 .subcategory-btn.active:hover::after {
   background: rgba(220, 38, 38, 1);
   transform: scale(1.1);
+}
+
+/* Ensure consistent X icon positioning for all subcategory buttons */
+.subcategory-btn[data-subcategory="marvel"].active::after,
+.subcategory-btn[data-subcategory="dc"].active::after,
+.subcategory-btn[data-subcategory="star-wars"].active::after,
+.subcategory-btn[data-subcategory="anime"].active::after {
+  content: '✕';
+  position: absolute;
+  top: -15px !important;
+  right: -15px !important;
+  left: auto !important;
+  width: 24px;
+  height: 24px;
+  background: rgba(239, 68, 68, 0.95);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+  z-index: 20;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  opacity: 1;
+  visibility: visible;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transform: none;
 }
 
 /* Compact Filter Buttons - TV & Movies Page */
