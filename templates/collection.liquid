@@ -15,6 +15,7 @@
               <button class="subcategory-btn" data-subcategory="dc">DC</button>
               <button class="subcategory-btn" data-subcategory="star-wars">Star Wars</button>
               <button class="subcategory-btn" data-subcategory="anime">Anime</button>
+              <button class="subcategory-btn clear-filters" data-subcategory="clear">Clear Filters</button>
             </div>
           </div>
         {% else %}
@@ -286,37 +287,27 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Subcategory functionality with toggle
+  // Subcategory functionality - simple selection (no toggle for now)
   const subcategoryButtons = document.querySelectorAll('.subcategory-btn');
   console.log('Found subcategory buttons:', subcategoryButtons.length);
-  
-  // Ensure all subcategory buttons start as inactive
-  subcategoryButtons.forEach(button => {
-    button.classList.remove('active');
-  });
   
   subcategoryButtons.forEach(button => {
     button.addEventListener('click', function() {
       console.log('Subcategory button clicked:', this.dataset.subcategory);
       const subcategory = this.dataset.subcategory;
-      const isActive = this.classList.contains('active');
       
-      console.log('Button is currently active:', isActive);
-      
-      // Toggle the active state
-      if (isActive) {
-        // If already active, deselect it
-        console.log('Deselecting subcategory:', subcategory);
-        this.classList.remove('active');
-        // Show all products from the current main category
+      if (subcategory === 'clear') {
+        // Clear all subcategory filters
+        console.log('Clearing subcategory filters');
+        subcategoryButtons.forEach(btn => btn.classList.remove('active'));
         const activeMainCategory = document.querySelector('.filter-btn.active').dataset.category;
-        console.log('Returning to main category:', activeMainCategory);
         filterProductsByMainCategory(activeMainCategory);
       } else {
-        // If not active, select it and deselect others
+        // Simple selection - just select this button and filter
         console.log('Selecting subcategory:', subcategory);
         subcategoryButtons.forEach(btn => btn.classList.remove('active'));
         this.classList.add('active');
+        
         // Filter by subcategory
         filterProductsBySubcategory(subcategory);
       }
