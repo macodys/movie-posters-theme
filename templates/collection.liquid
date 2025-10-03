@@ -256,6 +256,9 @@ document.addEventListener('DOMContentLoaded', function() {
       filterButtons.forEach(btn => btn.classList.remove('active'));
       this.classList.add('active');
       
+      // Clear all subcategory selections when main category changes
+      document.querySelectorAll('.subcategory-btn').forEach(btn => btn.classList.remove('active'));
+      
       // Filter products
       productCards.forEach(card => {
         const productCategory = card.dataset.category;
@@ -282,6 +285,83 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   });
+
+  // Subcategory functionality with toggle
+  const subcategoryButtons = document.querySelectorAll('.subcategory-btn');
+  subcategoryButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const subcategory = this.dataset.subcategory;
+      const isActive = this.classList.contains('active');
+      
+      // Toggle the active state
+      if (isActive) {
+        // If already active, deselect it
+        this.classList.remove('active');
+        // Show all products from the current main category
+        const activeMainCategory = document.querySelector('.filter-btn.active').dataset.category;
+        filterProductsByMainCategory(activeMainCategory);
+      } else {
+        // If not active, select it and deselect others
+        subcategoryButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        // Filter by subcategory
+        filterProductsBySubcategory(subcategory);
+      }
+    });
+  });
+
+  // Helper function to filter by main category
+  function filterProductsByMainCategory(category) {
+    productCards.forEach(card => {
+      const productCategory = card.dataset.category;
+      let shouldShow = false;
+      
+      if (category === 'all') {
+        shouldShow = true;
+      } else if (category === 'movies' && (productCategory === 'movies' || productCategory === 'tv-movies')) {
+        shouldShow = true;
+      } else if (category === 'tv-shows' && (productCategory === 'tv-shows' || productCategory === 'tv-movies')) {
+        shouldShow = true;
+      } else if (category === 'anime' && (productCategory === 'anime' || productCategory === 'tv-movies')) {
+        shouldShow = true;
+      } else if (productCategory === category) {
+        shouldShow = true;
+      }
+      
+      if (shouldShow) {
+        card.style.display = 'block';
+        card.classList.add('fade-in');
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  // Helper function to filter by subcategory
+  function filterProductsBySubcategory(subcategory) {
+    productCards.forEach(card => {
+      const productColor = card.dataset.color;
+      let shouldShow = false;
+      
+      // Check if product matches the subcategory
+      if (subcategory === 'marvel' && productColor === 'marvel') {
+        shouldShow = true;
+      } else if (subcategory === 'dc' && productColor === 'dc') {
+        shouldShow = true;
+      } else if (subcategory === 'star-wars' && productColor === 'star-wars') {
+        shouldShow = true;
+      } else if (subcategory === 'anime' && productColor === 'anime') {
+        shouldShow = true;
+      }
+      
+      if (shouldShow) {
+        card.style.display = 'block';
+        card.classList.add('fade-in');
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
 
   // Sort functionality
   sortSelect.addEventListener('change', function() {
