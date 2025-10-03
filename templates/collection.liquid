@@ -15,7 +15,6 @@
               <button class="subcategory-btn" data-subcategory="dc">DC</button>
               <button class="subcategory-btn" data-subcategory="star-wars">Star Wars</button>
               <button class="subcategory-btn" data-subcategory="anime">Anime</button>
-              <button class="subcategory-btn clear-filters" data-subcategory="clear">Clear Filters</button>
             </div>
           </div>
         {% else %}
@@ -292,18 +291,27 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log('Found subcategory buttons:', subcategoryButtons.length);
   
   subcategoryButtons.forEach(button => {
-    button.addEventListener('click', function() {
+    button.addEventListener('click', function(e) {
       console.log('Subcategory button clicked:', this.dataset.subcategory);
       const subcategory = this.dataset.subcategory;
+      const isActive = this.classList.contains('active');
       
-      if (subcategory === 'clear') {
-        // Clear all subcategory filters
-        console.log('Clearing subcategory filters');
-        subcategoryButtons.forEach(btn => btn.classList.remove('active'));
+      // Check if click was on the X icon
+      const rect = this.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+      
+      // X icon area (top right corner)
+      const isXClick = clickX > rect.width - 30 && clickY < 30;
+      
+      if (isActive && isXClick) {
+        // Clicked on X icon - deselect
+        console.log('Deselecting subcategory via X:', subcategory);
+        this.classList.remove('active');
         const activeMainCategory = document.querySelector('.filter-btn.active').dataset.category;
         filterProductsByMainCategory(activeMainCategory);
-      } else {
-        // Simple selection - just select this button and filter
+      } else if (!isActive) {
+        // Not active - select this button and filter
         console.log('Selecting subcategory:', subcategory);
         subcategoryButtons.forEach(btn => btn.classList.remove('active'));
         this.classList.add('active');
