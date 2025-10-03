@@ -288,20 +288,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Subcategory functionality with toggle
   const subcategoryButtons = document.querySelectorAll('.subcategory-btn');
+  console.log('Found subcategory buttons:', subcategoryButtons.length);
+  
   subcategoryButtons.forEach(button => {
     button.addEventListener('click', function() {
+      console.log('Subcategory button clicked:', this.dataset.subcategory);
       const subcategory = this.dataset.subcategory;
       const isActive = this.classList.contains('active');
       
       // Toggle the active state
       if (isActive) {
         // If already active, deselect it
+        console.log('Deselecting subcategory:', subcategory);
         this.classList.remove('active');
         // Show all products from the current main category
         const activeMainCategory = document.querySelector('.filter-btn.active').dataset.category;
+        console.log('Returning to main category:', activeMainCategory);
         filterProductsByMainCategory(activeMainCategory);
       } else {
         // If not active, select it and deselect others
+        console.log('Selecting subcategory:', subcategory);
         subcategoryButtons.forEach(btn => btn.classList.remove('active'));
         this.classList.add('active');
         // Filter by subcategory
@@ -339,10 +345,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Helper function to filter by subcategory
   function filterProductsBySubcategory(subcategory) {
+    console.log('Filtering by subcategory:', subcategory);
+    let shownCount = 0;
+    
     productCards.forEach(card => {
       const productTitle = card.querySelector('.product-title a').textContent.toLowerCase();
       const productColor = card.dataset.color;
       let shouldShow = false;
+      
+      console.log('Product:', productTitle, 'Color:', productColor);
       
       // Check if product matches the subcategory by title or color
       if (subcategory === 'marvel' && (productTitle.includes('marvel') || productColor === 'marvel')) {
@@ -358,10 +369,14 @@ document.addEventListener('DOMContentLoaded', function() {
       if (shouldShow) {
         card.style.display = 'block';
         card.classList.add('fade-in');
+        shownCount++;
+        console.log('Showing product:', productTitle);
       } else {
         card.style.display = 'none';
       }
     });
+    
+    console.log('Total products shown:', shownCount);
   }
 
   // Sort functionality
