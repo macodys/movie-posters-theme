@@ -4748,6 +4748,8 @@ main#MainContent {
   z-index: 20;
   cursor: pointer;
   transition: all 0.2s ease;
+  opacity: 1;
+  visibility: visible;
 }
 
 .subcategory-btn.active:hover::after {
