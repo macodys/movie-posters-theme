@@ -301,8 +301,8 @@ document.addEventListener('DOMContentLoaded', function() {
       const clickX = e.clientX - rect.left;
       const clickY = e.clientY - rect.top;
       
-      // X icon area (top right corner)
-      const isXClick = clickX > rect.width - 30 && clickY < 30;
+      // X icon area (top right corner, extending outside button)
+      const isXClick = clickX > rect.width - 20 && clickY < 20;
       
       if (isActive && isXClick) {
         // Clicked on X icon - deselect
