@@ -290,11 +290,18 @@ document.addEventListener('DOMContentLoaded', function() {
   const subcategoryButtons = document.querySelectorAll('.subcategory-btn');
   console.log('Found subcategory buttons:', subcategoryButtons.length);
   
+  // Ensure all subcategory buttons start as inactive
+  subcategoryButtons.forEach(button => {
+    button.classList.remove('active');
+  });
+  
   subcategoryButtons.forEach(button => {
     button.addEventListener('click', function() {
       console.log('Subcategory button clicked:', this.dataset.subcategory);
       const subcategory = this.dataset.subcategory;
       const isActive = this.classList.contains('active');
+      
+      console.log('Button is currently active:', isActive);
       
       // Toggle the active state
       if (isActive) {
