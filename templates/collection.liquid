@@ -340,17 +340,18 @@ document.addEventListener('DOMContentLoaded', function() {
   // Helper function to filter by subcategory
   function filterProductsBySubcategory(subcategory) {
     productCards.forEach(card => {
+      const productTitle = card.querySelector('.product-title a').textContent.toLowerCase();
       const productColor = card.dataset.color;
       let shouldShow = false;
       
-      // Check if product matches the subcategory
-      if (subcategory === 'marvel' && productColor === 'marvel') {
+      // Check if product matches the subcategory by title or color
+      if (subcategory === 'marvel' && (productTitle.includes('marvel') || productColor === 'marvel')) {
         shouldShow = true;
-      } else if (subcategory === 'dc' && productColor === 'dc') {
+      } else if (subcategory === 'dc' && (productTitle.includes('dc') || productTitle.includes('batman') || productTitle.includes('superman') || productTitle.includes('wonder woman') || productColor === 'dc')) {
         shouldShow = true;
-      } else if (subcategory === 'star-wars' && productColor === 'star-wars') {
+      } else if (subcategory === 'star-wars' && (productTitle.includes('star wars') || productTitle.includes('starwars') || productColor === 'star-wars')) {
         shouldShow = true;
-      } else if (subcategory === 'anime' && productColor === 'anime') {
+      } else if (subcategory === 'anime' && (productTitle.includes('anime') || productTitle.includes('naruto') || productTitle.includes('dragon ball') || productTitle.includes('one piece') || productColor === 'anime')) {
         shouldShow = true;
       }
       
