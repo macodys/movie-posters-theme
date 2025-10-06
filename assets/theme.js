@@ -237,11 +237,23 @@
     // Remove active class from all subcategory buttons
     subcategoryButtons.forEach(btn => btn.classList.remove('active'));
     
+    // Show/hide close button
+    const closeBtn = document.getElementById('subcategoryCloseBtn');
+    
     // Add active class to clicked button if subcategory is provided
     if (subcategory) {
       const button = document.querySelector(`[data-subcategory="${subcategory}"]`);
       if (button) {
         button.classList.add('active');
+      }
+      // Show close button
+      if (closeBtn) {
+        closeBtn.style.display = 'flex';
+      }
+    } else {
+      // Hide close button
+      if (closeBtn) {
+        closeBtn.style.display = 'none';
       }
     }
     
@@ -299,29 +311,24 @@
   subcategoryButtons.forEach(button => {
     // Handle button clicks
     button.addEventListener('click', (e) => {
-      // Check if the click was on the close icon
-      if (e.target.classList.contains('subcategory-close-icon')) {
-        // If button is already active, deactivate it
-        if (button.classList.contains('active')) {
-          filterBySubcategory(null);
-        } else {
-          // If not active, activate it
-          const subcategory = button.getAttribute('data-subcategory');
-          filterBySubcategory(subcategory);
-        }
+      const subcategory = button.getAttribute('data-subcategory');
+      if (button.classList.contains('active')) {
+        // If already active, deactivate
+        filterBySubcategory(null);
       } else {
-        // Regular button click - toggle behavior
-        const subcategory = button.getAttribute('data-subcategory');
-        if (button.classList.contains('active')) {
-          // If already active, deactivate
-          filterBySubcategory(null);
-        } else {
-          // If not active, activate
-          filterBySubcategory(subcategory);
-        }
+        // If not active, activate
+        filterBySubcategory(subcategory);
       }
     });
   });
+  
+  // Handle external close button
+  const closeBtn = document.getElementById('subcategoryCloseBtn');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      filterBySubcategory(null);
+    });
+  }
   
   // Handle subcategory from URL on page load
   const urlParams = new URLSearchParams(window.location.search);
