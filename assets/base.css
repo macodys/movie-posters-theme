@@ -4690,8 +4690,8 @@ main#MainContent {
 
 /* Category-specific hover backgrounds with logo preservation */
 .subcategory-btn[data-subcategory="marvel"]:hover {
-  background: linear-gradient(135deg, rgba(220, 38, 38, 0.9), rgba(185, 28, 28, 0.9)), url('Marvel.png');
-  background-size: cover, 60%;
+  background: url('Marvel.png'), linear-gradient(135deg, rgba(220, 38, 38, 0.3), rgba(185, 28, 28, 0.3));
+  background-size: 60%, cover;
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
   opacity: 1 !important; /* Force full opacity on hover */
@@ -4700,8 +4700,8 @@ main#MainContent {
 }
 
 .subcategory-btn[data-subcategory="dc"]:hover {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(37, 99, 235, 0.9)), url('DC.png');
-  background-size: cover, 60%;
+  background: url('DC.png'), linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(37, 99, 235, 0.3));
+  background-size: 60%, cover;
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
   opacity: 1 !important; /* Force full opacity on hover */
@@ -4710,8 +4710,8 @@ main#MainContent {
 }
 
 .subcategory-btn[data-subcategory="star-wars"]:hover {
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.9), rgba(245, 158, 11, 0.9)), url('StarWars.png');
-  background-size: cover, 60%;
+  background: url('StarWars.png'), linear-gradient(135deg, rgba(251, 191, 36, 0.3), rgba(245, 158, 11, 0.3));
+  background-size: 60%, cover;
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
   opacity: 1 !important; /* Force full opacity on hover */
@@ -4720,8 +4720,8 @@ main#MainContent {
 }
 
 .subcategory-btn[data-subcategory="anime"]:hover {
-  background: linear-gradient(135deg, rgba(236, 72, 153, 0.9), rgba(219, 39, 119, 0.9)), url('anime.png');
-  background-size: cover, 60%;
+  background: url('anime.png'), linear-gradient(135deg, rgba(236, 72, 153, 0.3), rgba(219, 39, 119, 0.3));
+  background-size: 60%, cover;
   background-repeat: no-repeat, no-repeat;
   background-position: center, center;
   opacity: 1 !important; /* Force full opacity on hover */
