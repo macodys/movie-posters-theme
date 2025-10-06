@@ -229,71 +229,77 @@
     root.style.setProperty('--accent', window.themeSettings.colorAccent);
   }
 
-  // Subcategory filtering for TV & Movies collection
+  // Category and subcategory filtering for TV & Movies collection
+  const filterButtons = document.querySelectorAll('.filter-btn');
   const subcategoryButtons = document.querySelectorAll('.subcategory-btn');
   const productCards = document.querySelectorAll('.product-card, .collection-item');
   
-  function filterBySubcategory(subcategory) {
-    // Remove active class from all subcategory buttons
-    subcategoryButtons.forEach(btn => btn.classList.remove('active'));
-    
+  let currentCategory = 'all';
+  let currentSubcategory = null;
+  
+  function filterProducts() {
     // Show/hide close button
     const closeBtn = document.getElementById('subcategoryCloseBtn');
-    
-    // Add active class to clicked button if subcategory is provided
-    if (subcategory) {
-      const button = document.querySelector(`[data-subcategory="${subcategory}"]`);
-      if (button) {
-        button.classList.add('active');
-      }
-      // Show close button
+    if (currentSubcategory) {
       if (closeBtn) {
         closeBtn.style.display = 'flex';
       }
     } else {
-      // Hide close button
       if (closeBtn) {
         closeBtn.style.display = 'none';
       }
     }
     
-    console.log('Filtering by subcategory:', subcategory);
+    console.log('Filtering by category:', currentCategory, 'subcategory:', currentSubcategory);
     
-    // Filter products based on subcategory
+    // Filter products based on both category and subcategory
     productCards.forEach(card => {
-      if (!subcategory) {
-        // If no subcategory selected, show all products
-        card.style.display = 'block';
-        card.classList.remove('hidden');
-        return;
-      }
-      
       const productTitle = card.querySelector('.product-title, .card-title, h3')?.textContent.toLowerCase() || '';
       const productTags = card.getAttribute('data-tags')?.toLowerCase() || '';
       const productType = card.getAttribute('data-type')?.toLowerCase() || '';
+      const productCategory = card.getAttribute('data-category')?.toLowerCase() || '';
       
-      let shouldShow = false;
+      let shouldShow = true;
       
-      if (subcategory === 'marvel') {
-        shouldShow = productTitle.includes('marvel') || productTags.includes('marvel') || 
-                    productTitle.includes('avengers') || productTitle.includes('spider-man') ||
-                    productTitle.includes('iron man') || productTitle.includes('thor') ||
-                    productTitle.includes('captain america') || productTitle.includes('hulk');
-      } else if (subcategory === 'dc') {
-        shouldShow = productTitle.includes('dc') || productTags.includes('dc') || 
-                    productTitle.includes('batman') || productTitle.includes('superman') ||
-                    productTitle.includes('wonder woman') || productTitle.includes('flash') ||
-                    productTitle.includes('aquaman') || productTitle.includes('justice league');
-      } else if (subcategory === 'star-wars') {
-        shouldShow = productTitle.includes('star wars') || productTags.includes('star-wars') || 
-                    productTitle.includes('starwars') || productTitle.includes('jedi') ||
-                    productTitle.includes('sith') || productTitle.includes('yoda') ||
-                    productTitle.includes('darth vader') || productTitle.includes('luke skywalker');
-      } else if (subcategory === 'anime') {
-        shouldShow = productTitle.includes('anime') || productTags.includes('anime') || 
-                    productTitle.includes('naruto') || productTitle.includes('dragon ball') ||
-                    productTitle.includes('one piece') || productTitle.includes('attack on titan') ||
-                    productTitle.includes('demon slayer') || productTitle.includes('my hero academia');
+      // First filter by main category
+      if (currentCategory !== 'all') {
+        if (currentCategory === 'movies') {
+          shouldShow = productTitle.includes('movie') || productTags.includes('movie') || 
+                      productCategory === 'movies' || productType === 'movie';
+        } else if (currentCategory === 'tv-shows') {
+          shouldShow = productTitle.includes('tv') || productTitle.includes('series') || 
+                      productTags.includes('tv') || productTags.includes('series') ||
+                      productCategory === 'tv-shows' || productType === 'tv';
+        }
+      }
+      
+      // Then filter by subcategory if one is selected
+      if (shouldShow && currentSubcategory) {
+        let subcategoryMatch = false;
+        
+        if (currentSubcategory === 'marvel') {
+          subcategoryMatch = productTitle.includes('marvel') || productTags.includes('marvel') || 
+                            productTitle.includes('avengers') || productTitle.includes('spider-man') ||
+                            productTitle.includes('iron man') || productTitle.includes('thor') ||
+                            productTitle.includes('captain america') || productTitle.includes('hulk');
+        } else if (currentSubcategory === 'dc') {
+          subcategoryMatch = productTitle.includes('dc') || productTags.includes('dc') || 
+                            productTitle.includes('batman') || productTitle.includes('superman') ||
+                            productTitle.includes('wonder woman') || productTitle.includes('flash') ||
+                            productTitle.includes('aquaman') || productTitle.includes('justice league');
+        } else if (currentSubcategory === 'star-wars') {
+          subcategoryMatch = productTitle.includes('star wars') || productTags.includes('star-wars') || 
+                            productTitle.includes('starwars') || productTitle.includes('jedi') ||
+                            productTitle.includes('sith') || productTitle.includes('yoda') ||
+                            productTitle.includes('darth vader') || productTitle.includes('luke skywalker');
+        } else if (currentSubcategory === 'anime') {
+          subcategoryMatch = productTitle.includes('anime') || productTags.includes('anime') || 
+                            productTitle.includes('naruto') || productTitle.includes('dragon ball') ||
+                            productTitle.includes('one piece') || productTitle.includes('attack on titan') ||
+                            productTitle.includes('demon slayer') || productTitle.includes('my hero academia');
+        }
+        
+        shouldShow = subcategoryMatch;
       }
       
       if (shouldShow) {
@@ -305,26 +311,69 @@
       }
     });
     
-    // Update URL with subcategory parameter
+    // Update URL with parameters
     const url = new URL(window.location);
-    if (subcategory) {
-      url.searchParams.set('subcategory', subcategory);
+    if (currentCategory !== 'all') {
+      url.searchParams.set('category', currentCategory);
+    } else {
+      url.searchParams.delete('category');
+    }
+    if (currentSubcategory) {
+      url.searchParams.set('subcategory', currentSubcategory);
     } else {
       url.searchParams.delete('subcategory');
     }
     window.history.pushState({}, '', url);
   }
   
+  function setCategory(category) {
+    // Remove active class from all filter buttons
+    filterButtons.forEach(btn => btn.classList.remove('active'));
+    
+    // Add active class to clicked button
+    const button = document.querySelector(`[data-category="${category}"]`);
+    if (button) {
+      button.classList.add('active');
+    }
+    
+    currentCategory = category;
+    filterProducts();
+  }
+  
+  function setSubcategory(subcategory) {
+    // Remove active class from all subcategory buttons
+    subcategoryButtons.forEach(btn => btn.classList.remove('active'));
+    
+    // Add active class to clicked button if subcategory is provided
+    if (subcategory) {
+      const button = document.querySelector(`[data-subcategory="${subcategory}"]`);
+      if (button) {
+        button.classList.add('active');
+      }
+    }
+    
+    currentSubcategory = subcategory;
+    filterProducts();
+  }
+  
+  // Handle main category filter buttons
+  filterButtons.forEach(button => {
+    button.addEventListener('click', (e) => {
+      const category = button.getAttribute('data-category');
+      setCategory(category);
+    });
+  });
+  
+  // Handle subcategory buttons
   subcategoryButtons.forEach(button => {
-    // Handle button clicks
     button.addEventListener('click', (e) => {
       const subcategory = button.getAttribute('data-subcategory');
       if (button.classList.contains('active')) {
         // If already active, deactivate
-        filterBySubcategory(null);
+        setSubcategory(null);
       } else {
         // If not active, activate
-        filterBySubcategory(subcategory);
+        setSubcategory(subcategory);
       }
     });
   });
@@ -333,18 +382,21 @@
   const closeBtn = document.getElementById('subcategoryCloseBtn');
   if (closeBtn) {
     closeBtn.addEventListener('click', () => {
-      filterBySubcategory(null);
+      setSubcategory(null);
     });
   }
   
-  // Handle subcategory from URL on page load
+  // Handle URL parameters on page load
   const urlParams = new URLSearchParams(window.location.search);
+  const categoryParam = urlParams.get('category');
   const subcategoryParam = urlParams.get('subcategory');
+  
+  if (categoryParam) {
+    setCategory(categoryParam);
+  }
+  
   if (subcategoryParam) {
-    const matchingButton = document.querySelector(`[data-subcategory="${subcategoryParam}"]`);
-    if (matchingButton) {
-      matchingButton.click();
-    }
+    setSubcategory(subcategoryParam);
   }
 
   // Stylish Movie Carousel functionality
