@@ -113,36 +113,46 @@
   <script src="{{ 'reverse-image-search.js' | asset_url }}" defer></script>
   <script src="{{ 'free-reverse-search.js' | asset_url }}" defer></script>
   <script src="{{ 'auto-reverse-search.js' | asset_url }}" defer></script>
+  <script src="{{ 'auto-image-replacer.js' | asset_url }}" defer></script>
   
-  <!-- Global Reverse Search Widget -->
-  <div id="globalReverseSearch" style="display: none;">
-    <div class="reverse-search-widget">
-      <div class="widget-header">
-        <h3>🤖 Automated Reverse Search</h3>
-        <button id="closeWidget" class="close-btn">×</button>
+  <!-- Automated Image Replacement System -->
+  <div id="autoImageReplacement" style="display: none;">
+    <div class="replacement-status">
+      <div class="status-header">
+        <h3>🔄 Auto Image Replacement</h3>
+        <div class="status-indicator" id="statusIndicator">Running</div>
       </div>
-      <div class="widget-content">
-        <div class="widget-section">
-          <h4>Process All Products</h4>
-          <p>Automatically find original source images for all your products</p>
-          <button id="startAutoSearch" class="btn btn-primary">Start Automated Search</button>
+      <div class="status-content">
+        <div class="progress-section">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-text" id="progressText">Initializing...</div>
+          <div class="progress-stats">
+            <div class="progress-stat">
+              <div class="progress-stat-label">Processed</div>
+              <div class="progress-stat-value" id="processedCount">0</div>
+            </div>
+            <div class="progress-stat">
+              <div class="progress-stat-label">Replaced</div>
+              <div class="progress-stat-value" id="replacedCount">0</div>
+            </div>
+            <div class="progress-stat">
+              <div class="progress-stat-label">No Match</div>
+              <div class="progress-stat-value" id="noMatchCount">0</div>
+            </div>
+            <div class="progress-stat">
+              <div class="progress-stat-label">Errors</div>
+              <div class="progress-stat-value" id="errorCount">0</div>
+            </div>
+          </div>
         </div>
-        <div class="widget-section">
-          <h4>Process Single Product</h4>
-          <p>Upload an image to find its original source</p>
-          <input type="file" id="singleImageInput" accept="image/*" style="margin-bottom: 10px;">
-          <button id="startSingleSearch" class="btn btn-secondary">Search This Image</button>
+        <div class="results-section" id="resultsSection">
+          <h4>Recent Activity</h4>
+          <div class="results-list" id="resultsList"></div>
         </div>
       </div>
     </div>
   </div>
-  
-  <!-- Floating Toggle Button -->
-  <button id="reverseSearchToggle" class="floating-toggle">
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="11" cy="11" r="8"></circle>
-      <path d="m21 21-4.35-4.35"></path>
-    </svg>
-  </button>
   </body>
 </html>
