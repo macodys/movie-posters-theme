@@ -261,6 +261,13 @@
     
     // Filter products based on subcategory
     productCards.forEach(card => {
+      if (!subcategory) {
+        // If no subcategory selected, show all products
+        card.style.display = 'block';
+        card.classList.remove('hidden');
+        return;
+      }
+      
       const productTitle = card.querySelector('.product-title, .card-title, h3')?.textContent.toLowerCase() || '';
       const productTags = card.getAttribute('data-tags')?.toLowerCase() || '';
       const productType = card.getAttribute('data-type')?.toLowerCase() || '';
