@@ -1,0 +1,732 @@
+{% comment %}
+  Automated Reverse Image Search Admin Interface
+  Automatically processes all product images and finds original source images
+{% endcomment %}
+
+<div class="auto-reverse-search-admin">
+  <div class="admin-header">
+    <h1>🤖 Automated Reverse Image Search</h1>
+    <p>Automatically find and replace original source images for all your products</p>
+  </div>
+
+  <div class="admin-content">
+    <!-- Control Panel -->
+    <div class="control-panel">
+      <div class="control-section">
+        <h2>🚀 Start Automated Search</h2>
+        <p>This will process all your products and find original source images automatically.</p>
+        
+        <div class="control-actions">
+          <button id="startButton" class="btn btn-primary btn-large">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5,3 19,12 5,21"></polygon>
+            </svg>
+            Start Automated Search
+          </button>
+          
+          <button id="stopButton" class="btn btn-secondary btn-large" disabled>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+            Stop Processing
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress Section -->
+      <div class="progress-section" id="progressSection" style="display: none;">
+        <h2>📊 Processing Progress</h2>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+          </div>
+          <div class="progress-text" id="progressText">Ready to start...</div>
+        </div>
+        
+        <div class="progress-stats">
+          <div class="stat">
+            <span class="stat-label">Processed:</span>
+            <span class="stat-value" id="processedCount">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Total:</span>
+            <span class="stat-value" id="totalCount">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Found Matches:</span>
+            <span class="stat-value" id="foundMatches">0</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">Errors:</span>
+            <span class="stat-value" id="errorCount">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="results-section" id="resultsSection" style="display: none;">
+      <h2>📋 Search Results</h2>
+      
+      <div class="results-summary" id="resultsSummary">
+        <!-- Summary will be populated here -->
+      </div>
+      
+      <div class="results-filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="found">Found Matches</button>
+        <button class="filter-btn" data-filter="no-match">No Match</button>
+        <button class="filter-btn" data-filter="error">Errors</button>
+      </div>
+      
+      <div class="results-list" id="resultsList">
+        <!-- Results will be populated here -->
+      </div>
+    </div>
+
+    <!-- Instructions Section -->
+    <div class="instructions-section">
+      <h2>📖 How It Works</h2>
+      <div class="instructions-grid">
+        <div class="instruction-step">
+          <div class="step-number">1</div>
+          <h3>Fetch Products</h3>
+          <p>Automatically loads all your products from Shopify</p>
+        </div>
+        <div class="instruction-step">
+          <div class="step-number">2</div>
+          <h3>Download Images</h3>
+          <p>Downloads each product's featured image for analysis</p>
+        </div>
+        <div class="instruction-step">
+          <div class="step-number">3</div>
+          <h3>Reverse Search</h3>
+          <p>Uses Google, Yandex, and TinEye to find original sources</p>
+        </div>
+        <div class="instruction-step">
+          <div class="step-number">4</div>
+          <h3>Find Best Match</h3>
+          <p>Analyzes results and finds the best quality original image</p>
+        </div>
+        <div class="instruction-step">
+          <div class="step-number">5</div>
+          <h3>Generate Report</h3>
+          <p>Creates a detailed report with all found matches and links</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Section -->
+    <div class="export-section" id="exportSection" style="display: none;">
+      <h2>📤 Export Results</h2>
+      <div class="export-actions">
+        <button id="exportCSV" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14,2 14,8 20,8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10,9 9,9 8,9"></polyline>
+          </svg>
+          Export CSV
+        </button>
+        
+        <button id="exportJSON" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14,2 14,8 20,8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10,9 9,9 8,9"></polyline>
+          </svg>
+          Export JSON
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.auto-reverse-search-admin {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.admin-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.admin-header h1 {
+  font-size: 2.5rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.admin-header p {
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.control-panel {
+  background: #f8f9fa;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 3rem;
+}
+
+.control-section h2 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.control-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #0056b3;
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #545b62;
+}
+
+.btn-large {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+}
+
+.progress-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #ddd;
+}
+
+.progress-container {
+  margin-bottom: 1.5rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 20px;
+  background: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #007bff, #28a745);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  text-align: center;
+  color: #666;
+  font-weight: 500;
+}
+
+.progress-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.stat-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.stat-value {
+  color: #333;
+  font-weight: 600;
+}
+
+.results-section {
+  background: #f8f9fa;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 3rem;
+}
+
+.results-summary {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  border: 1px solid #ddd;
+}
+
+.results-filters {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  background: white;
+  color: #666;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-btn.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.filter-btn:hover:not(.active) {
+  background: #f8f9fa;
+}
+
+.results-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.result-item {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  transition: transform 0.3s ease;
+}
+
+.result-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.result-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.result-status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.result-status.found {
+  background: #d4edda;
+  color: #155724;
+}
+
+.result-status.no-match {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.result-status.error {
+  background: #f5c6cb;
+  color: #721c24;
+}
+
+.result-details {
+  color: #666;
+  line-height: 1.5;
+}
+
+.result-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.instructions-section {
+  background: #f8f9fa;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 3rem;
+}
+
+.instructions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.instruction-step {
+  text-align: center;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  background: #007bff;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin: 0 auto 1rem;
+}
+
+.instruction-step h3 {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.instruction-step p {
+  color: #666;
+  line-height: 1.5;
+}
+
+.export-section {
+  background: #f8f9fa;
+  padding: 2rem;
+  border-radius: 12px;
+}
+
+.export-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .auto-reverse-search-admin {
+    padding: 1rem;
+  }
+  
+  .admin-header h1 {
+    font-size: 2rem;
+  }
+  
+  .control-actions {
+    flex-direction: column;
+  }
+  
+  .progress-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .results-filters {
+    flex-direction: column;
+  }
+  
+  .export-actions {
+    flex-direction: column;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const startButton = document.getElementById('startButton');
+  const stopButton = document.getElementById('stopButton');
+  const progressSection = document.getElementById('progressSection');
+  const resultsSection = document.getElementById('resultsSection');
+  const exportSection = document.getElementById('exportSection');
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
+  const processedCount = document.getElementById('processedCount');
+  const totalCount = document.getElementById('totalCount');
+  const foundMatches = document.getElementById('foundMatches');
+  const errorCount = document.getElementById('errorCount');
+  const resultsSummary = document.getElementById('resultsSummary');
+  const resultsList = document.getElementById('resultsList');
+  const filterButtons = document.querySelectorAll('.filter-btn');
+  const exportCSV = document.getElementById('exportCSV');
+  const exportJSON = document.getElementById('exportJSON');
+
+  let autoSearch = null;
+  let currentFilter = 'all';
+  let allResults = [];
+
+  // Initialize
+  if (typeof AutoReverseSearch !== 'undefined') {
+    autoSearch = new AutoReverseSearch();
+  }
+
+  // Start button handler
+  startButton.addEventListener('click', async () => {
+    if (!autoSearch) {
+      alert('AutoReverseSearch not available. Please refresh the page.');
+      return;
+    }
+
+    startButton.disabled = true;
+    stopButton.disabled = false;
+    progressSection.style.display = 'block';
+    resultsSection.style.display = 'none';
+    exportSection.style.display = 'none';
+
+    try {
+      await autoSearch.initialize();
+      
+      // Show results
+      displayResults();
+      
+    } catch (error) {
+      alert('Automated search failed: ' + error.message);
+    } finally {
+      startButton.disabled = false;
+      stopButton.disabled = true;
+    }
+  });
+
+  // Stop button handler
+  stopButton.addEventListener('click', () => {
+    if (autoSearch) {
+      autoSearch.stop();
+      stopButton.disabled = true;
+      startButton.disabled = false;
+    }
+  });
+
+  // Filter buttons
+  filterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      displayResults();
+    });
+  });
+
+  // Export handlers
+  exportCSV.addEventListener('click', () => {
+    exportResults('csv');
+  });
+
+  exportJSON.addEventListener('click', () => {
+    exportResults('json');
+  });
+
+  function displayResults() {
+    if (!autoSearch) return;
+
+    const status = autoSearch.getStatus();
+    allResults = status.results;
+
+    // Update progress
+    progressBar.style.width = `${status.progress}%`;
+    progressText.textContent = `Processed ${status.processedCount}/${status.totalCount} products`;
+    processedCount.textContent = status.processedCount;
+    totalCount.textContent = status.totalCount;
+    
+    const foundCount = allResults.filter(r => r.status === 'found_match').length;
+    const errorCountValue = status.errors.length;
+    
+    foundMatches.textContent = foundCount;
+    errorCount.textContent = errorCountValue;
+
+    // Show results section
+    resultsSection.style.display = 'block';
+    exportSection.style.display = 'block';
+
+    // Update summary
+    resultsSummary.innerHTML = `
+      <h3>📊 Search Summary</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+        <div style="text-align: center; padding: 1rem; background: #e8f5e8; border-radius: 8px;">
+          <div style="font-size: 2rem; font-weight: bold; color: #28a745;">${foundCount}</div>
+          <div style="color: #666;">Found Matches</div>
+        </div>
+        <div style="text-align: center; padding: 1rem; background: #fff3cd; border-radius: 8px;">
+          <div style="font-size: 2rem; font-weight: bold; color: #856404;">${allResults.filter(r => r.status === 'no_match').length}</div>
+          <div style="color: #666;">No Match</div>
+        </div>
+        <div style="text-align: center; padding: 1rem; background: #f8d7da; border-radius: 8px;">
+          <div style="font-size: 2rem; font-weight: bold; color: #721c24;">${errorCountValue}</div>
+          <div style="color: #666;">Errors</div>
+        </div>
+      </div>
+    `;
+
+    // Filter and display results
+    const filteredResults = filterResults(allResults, currentFilter);
+    displayResultsList(filteredResults);
+  }
+
+  function filterResults(results, filter) {
+    switch (filter) {
+      case 'found':
+        return results.filter(r => r.status === 'found_match');
+      case 'no-match':
+        return results.filter(r => r.status === 'no_match');
+      case 'error':
+        return results.filter(r => r.status === 'error');
+      default:
+        return results;
+    }
+  }
+
+  function displayResultsList(results) {
+    resultsList.innerHTML = '';
+
+    if (results.length === 0) {
+      resultsList.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;">No results to display</div>';
+      return;
+    }
+
+    results.forEach(result => {
+      const resultItem = document.createElement('div');
+      resultItem.className = 'result-item';
+      
+      const statusClass = result.status.replace('_', '-');
+      const statusText = result.status.replace('_', ' ').toUpperCase();
+      
+      let details = '';
+      let actions = '';
+
+      if (result.status === 'found_match') {
+        details = `
+          <div><strong>Confidence:</strong> ${(result.confidence * 100).toFixed(1)}%</div>
+          <div><strong>New Image:</strong> <a href="${result.newImageUrl}" target="_blank">View Source</a></div>
+        `;
+        actions = `
+          <button class="btn btn-primary" onclick="window.open('${result.newImageUrl}', '_blank')">View Source</button>
+          <button class="btn btn-secondary" onclick="downloadImage('${result.newImageUrl}', '${result.title.replace(/[^a-z0-9]/gi, '_')}.jpg')">Download</button>
+        `;
+      } else if (result.status === 'no_match') {
+        details = '<div>No matching original image found in search results</div>';
+      } else if (result.status === 'error') {
+        details = `<div><strong>Error:</strong> ${result.error}</div>`;
+      }
+
+      resultItem.innerHTML = `
+        <div class="result-header">
+          <div class="result-title">${result.title}</div>
+          <div class="result-status ${statusClass}">${statusText}</div>
+        </div>
+        <div class="result-details">${details}</div>
+        <div class="result-actions">${actions}</div>
+      `;
+
+      resultsList.appendChild(resultItem);
+    });
+  }
+
+  function exportResults(format) {
+    if (allResults.length === 0) {
+      alert('No results to export');
+      return;
+    }
+
+    let content = '';
+    let filename = '';
+    let mimeType = '';
+
+    if (format === 'csv') {
+      content = generateCSV(allResults);
+      filename = 'reverse-search-results.csv';
+      mimeType = 'text/csv';
+    } else {
+      content = JSON.stringify(allResults, null, 2);
+      filename = 'reverse-search-results.json';
+      mimeType = 'application/json';
+    }
+
+    const blob = new Blob([content], { type: mimeType });
+    const url = window.URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }
+
+  function generateCSV(results) {
+    const headers = ['Product ID', 'Title', 'Status', 'Confidence', 'New Image URL', 'Error'];
+    const rows = results.map(result => [
+      result.productId,
+      `"${result.title}"`,
+      result.status,
+      result.confidence ? (result.confidence * 100).toFixed(1) + '%' : '',
+      result.newImageUrl || '',
+      result.error || ''
+    ]);
+
+    return [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+  }
+
+  // Global function for downloading images
+  window.downloadImage = async function(url, filename) {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      alert('Download failed: ' + error.message);
+    }
+  };
+});
+</script>
