@@ -370,6 +370,102 @@ class AutoReverseSearch {
   }
 
   /**
+   * Start automated search (public method for widget)
+   * @returns {Promise<void>}
+   */
+  async startAutomatedSearch() {
+    try {
+      console.log('🚀 Starting automated reverse image search...');
+      
+      // Fetch all products from Shopify
+      await this.fetchAllProducts();
+      
+      // Start processing
+      await this.processAllProducts();
+      
+      console.log('✅ Automated search completed!');
+      this.displayResults();
+      
+    } catch (error) {
+      console.error('❌ Automated search failed:', error);
+      this.errors.push(`Initialization failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Search a single image (public method for widget)
+   * @param {File} imageFile - The image file to search
+   * @returns {Promise<void>}
+   */
+  async searchSingleImage(imageFile) {
+    try {
+      console.log('🔍 Searching single image...');
+      
+      // Convert file to base64
+      const base64 = await this.fileToBase64(imageFile);
+      
+      // Search the image
+      const results = await this.searchImage(base64);
+      
+      // Display results
+      this.displaySingleResult(imageFile.name, results);
+      
+    } catch (error) {
+      console.error('❌ Single image search failed:', error);
+      alert(`Search failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Convert file to base64
+   * @param {File} file - The file to convert
+   * @returns {Promise<string>} Base64 string
+   */
+  fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /**
+   * Display single search result
+   * @param {string} fileName - Name of the searched file
+   * @param {Array} results - Search results
+   */
+  displaySingleResult(fileName, results) {
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsList = document.getElementById('resultsList');
+    
+    if (resultsSection && resultsList) {
+      resultsSection.style.display = 'block';
+      
+      const resultItem = document.createElement('div');
+      resultItem.className = 'result-item';
+      
+      let statusClass = 'no-match';
+      let statusText = 'No Match';
+      
+      if (results && results.length > 0) {
+        statusClass = 'found';
+        statusText = 'Found';
+      }
+      
+      resultItem.innerHTML = `
+        <div class="result-title">${fileName}</div>
+        <span class="result-status ${statusClass}">${statusText}</span>
+        <div class="result-actions">
+          <button class="btn btn-primary" onclick="window.open('${results[0]?.url || '#'}', '_blank')">View Source</button>
+        </div>
+      `;
+      
+      resultsList.appendChild(resultItem);
+    }
+  }
+
+  /**
    * Delay function
    * @param {number} ms - Milliseconds to delay
    * @returns {Promise<void>}
@@ -379,5 +475,159 @@ class AutoReverseSearch {
   }
 }
 
+// Global widget management
+class GlobalReverseSearchWidget {
+    constructor() {
+        this.isVisible = false;
+        this.autoSearch = null;
+        this.init();
+    }
+
+    init() {
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        // Toggle button
+        const toggleBtn = document.getElementById('reverseSearchToggle');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => this.toggleWidget());
+        }
+
+        // Close button
+        const closeBtn = document.getElementById('closeWidget');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.hideWidget());
+        }
+
+        // Start auto search
+        const startAutoBtn = document.getElementById('startAutoSearch');
+        if (startAutoBtn) {
+            startAutoBtn.addEventListener('click', () => this.startAutoSearch());
+        }
+
+        // Start single search
+        const startSingleBtn = document.getElementById('startSingleSearch');
+        const singleImageInput = document.getElementById('singleImageInput');
+        if (startSingleBtn && singleImageInput) {
+            startSingleBtn.addEventListener('click', () => this.startSingleSearch());
+        }
+
+        // Close on background click
+        const widget = document.getElementById('globalReverseSearch');
+        if (widget) {
+            widget.addEventListener('click', (e) => {
+                if (e.target === widget) {
+                    this.hideWidget();
+                }
+            });
+        }
+    }
+
+    toggleWidget() {
+        if (this.isVisible) {
+            this.hideWidget();
+        } else {
+            this.showWidget();
+        }
+    }
+
+    showWidget() {
+        const widget = document.getElementById('globalReverseSearch');
+        if (widget) {
+            widget.style.display = 'flex';
+            this.isVisible = true;
+        }
+    }
+
+    hideWidget() {
+        const widget = document.getElementById('globalReverseSearch');
+        if (widget) {
+            widget.style.display = 'none';
+            this.isVisible = false;
+        }
+    }
+
+    startAutoSearch() {
+        if (!this.autoSearch) {
+            this.autoSearch = new AutoReverseSearch();
+        }
+        
+        // Add progress section to widget
+        this.addProgressSection();
+        
+        // Start the automated search
+        this.autoSearch.startAutomatedSearch();
+        
+        // Hide the widget after starting
+        this.hideWidget();
+    }
+
+    startSingleSearch() {
+        const input = document.getElementById('singleImageInput');
+        if (input && input.files && input.files[0]) {
+            if (!this.autoSearch) {
+                this.autoSearch = new AutoReverseSearch();
+            }
+            
+            this.autoSearch.searchSingleImage(input.files[0]);
+            this.hideWidget();
+        } else {
+            alert('Please select an image first.');
+        }
+    }
+
+    addProgressSection() {
+        const widgetContent = document.querySelector('.widget-content');
+        if (widgetContent && !document.querySelector('.progress-section')) {
+            const progressSection = document.createElement('div');
+            progressSection.className = 'progress-section';
+            progressSection.innerHTML = `
+                <h4>Processing Products...</h4>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Starting...</div>
+                <div class="progress-stats">
+                    <div class="progress-stat">
+                        <div class="progress-stat-label">Processed</div>
+                        <div class="progress-stat-value" id="processedCount">0</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="progress-stat-label">Found</div>
+                        <div class="progress-stat-value" id="foundCount">0</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="progress-stat-label">No Match</div>
+                        <div class="progress-stat-value" id="noMatchCount">0</div>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="progress-stat-label">Errors</div>
+                        <div class="progress-stat-value" id="errorCount">0</div>
+                    </div>
+                </div>
+                <div class="results-section" id="resultsSection" style="display: none;">
+                    <h4>Results</h4>
+                    <div class="results-list" id="resultsList"></div>
+                </div>
+            `;
+            widgetContent.appendChild(progressSection);
+        }
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if we're on the admin page (legacy support)
+    if (window.location.pathname.includes('auto-reverse-search-admin')) {
+        const autoSearch = new AutoReverseSearch();
+        autoSearch.init();
+    } else {
+        // Initialize global widget for all other pages
+        new GlobalReverseSearchWidget();
+    }
+});
+
 // Export for use in other modules
 window.AutoReverseSearch = AutoReverseSearch;
+window.GlobalReverseSearchWidget = GlobalReverseSearchWidget;
