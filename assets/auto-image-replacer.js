@@ -222,7 +222,7 @@ class AutoImageReplacer {
             };
             
             await this.replaceProductImage(product, fallbackImage);
-            this.addResult(product.title, 'replaced', `Created fallback image: ${fallbackImage.width}x${fallbackImage.height}`);
+            this.addResult(product.title, 'replaced', `Created fallback image: ${fallbackImage.width}x${fallbackImage.height}`, fallbackImage.url);
             this.replacedCount++;
             this.processedCount++;
             this.updateProgress();
@@ -237,7 +237,7 @@ class AutoImageReplacer {
         if (originalImage) {
           // Replace the image
           await this.replaceProductImage(product, originalImage);
-          this.addResult(product.title, 'replaced', `Found original: ${originalImage.width}x${originalImage.height}`);
+          this.addResult(product.title, 'replaced', `Found original: ${originalImage.width}x${originalImage.height}`, originalImage.url);
           this.replacedCount++;
         } else {
           // Create a fallback high-quality image
@@ -251,7 +251,7 @@ class AutoImageReplacer {
           };
           
           await this.replaceProductImage(product, fallbackImage);
-          this.addResult(product.title, 'replaced', `Found high-quality version: ${fallbackImage.width}x${fallbackImage.height}`);
+          this.addResult(product.title, 'replaced', `Found high-quality version: ${fallbackImage.width}x${fallbackImage.height}`, fallbackImage.url);
           this.replacedCount++;
         }
         
@@ -727,61 +727,95 @@ class AutoImageReplacer {
     try {
       console.log(`🔄 Replacing image for ${product.title} with ${originalImage.url}`);
       
-      // Find the product card on the page and replace its image
-      const productCards = document.querySelectorAll(`
-        .product-card, .poster-card, [data-product-id],
-        .collection-card, .product-item, .poster-item,
-        [class*="product"], [class*="poster"], [class*="card"]
-      `);
-      
+      // Find ALL images on the page that might be product images
+      const allImages = document.querySelectorAll('img');
       let imageReplaced = false;
       
-      productCards.forEach(card => {
-        const titleElement = card.querySelector('.product-title, .poster-title, .collection-title, h3, h2, h4');
-        const title = titleElement?.textContent?.trim();
+      allImages.forEach((img, index) => {
+        // Check if this image is related to the product
+        const isProductImage = this.isProductImage(img, product);
         
-        if (title && title.toLowerCase().includes(product.title.toLowerCase())) {
-          const img = card.querySelector('img');
-          if (img) {
-            // Replace the image source
-            img.src = originalImage.url;
-            img.alt = originalImage.title || product.title;
-            
-            // Add a visual indicator that the image was replaced
-            img.style.border = '2px solid #28a745';
-            img.style.boxShadow = '0 0 10px rgba(40, 167, 69, 0.5)';
-            
-            // Add a small "REPLACED" badge
-            const badge = document.createElement('div');
-            badge.textContent = 'REPLACED';
-            badge.style.cssText = `
-              position: absolute;
-              top: 5px;
-              right: 5px;
-              background: #28a745;
-              color: white;
-              padding: 2px 6px;
-              border-radius: 3px;
-              font-size: 10px;
-              font-weight: bold;
-              z-index: 10;
-            `;
-            
-            // Make sure the card has relative positioning
-            if (card.style.position !== 'relative') {
-              card.style.position = 'relative';
-            }
-            
-            card.appendChild(badge);
-            
-            imageReplaced = true;
-            console.log(`✅ Image replaced on page for ${product.title}`);
+        if (isProductImage) {
+          console.log(`🔄 Found product image ${index + 1} for ${product.title}`);
+          
+          // Store original source for reference
+          const originalSrc = img.src;
+          
+          // Replace the image source
+          img.src = originalImage.url;
+          img.alt = originalImage.title || product.title;
+          
+          // Add a visual indicator that the image was replaced
+          img.style.border = '3px solid #28a745';
+          img.style.boxShadow = '0 0 15px rgba(40, 167, 69, 0.8)';
+          img.style.transform = 'scale(1.02)';
+          img.style.transition = 'all 0.3s ease';
+          
+          // Add a "REPLACED" badge
+          const badge = document.createElement('div');
+          badge.textContent = 'REPLACED';
+          badge.style.cssText = `
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+          `;
+          
+          // Make sure the parent has relative positioning
+          const parent = img.closest('.product-card, .poster-card, .collection-card, [class*="card"], [class*="product"], [class*="poster"]') || img.parentElement;
+          if (parent) {
+            parent.style.position = 'relative';
+            parent.appendChild(badge);
           }
+          
+          // Add source link info
+          const sourceInfo = document.createElement('div');
+          sourceInfo.innerHTML = `
+            <div style="
+              position: absolute;
+              bottom: 5px;
+              left: 5px;
+              background: rgba(0,0,0,0.8);
+              color: white;
+              padding: 4px 8px;
+              border-radius: 4px;
+              font-size: 10px;
+              z-index: 1000;
+            ">
+              Source: <a href="${originalImage.url}" target="_blank" style="color: #28a745;">View Original</a>
+            </div>
+          `;
+          
+          if (parent) {
+            parent.appendChild(sourceInfo);
+          }
+          
+          imageReplaced = true;
+          console.log(`✅ Image replaced on page for ${product.title} - New URL: ${originalImage.url}`);
         }
       });
       
       if (!imageReplaced) {
-        console.log(`⚠️ Could not find product card for ${product.title} on page`);
+        console.log(`⚠️ Could not find any images for ${product.title} on page`);
+        // Try to find by title text anywhere on the page
+        const textElements = document.querySelectorAll('*');
+        textElements.forEach(element => {
+          if (element.textContent && element.textContent.toLowerCase().includes(product.title.toLowerCase())) {
+            console.log(`🔍 Found text match for ${product.title}:`, element.textContent);
+            // Look for nearby images
+            const nearbyImages = element.querySelectorAll('img') || element.parentElement?.querySelectorAll('img');
+            if (nearbyImages && nearbyImages.length > 0) {
+              console.log(`🔄 Found ${nearbyImages.length} nearby images for ${product.title}`);
+            }
+          }
+        });
       }
       
       // Simulate processing time
@@ -794,13 +828,57 @@ class AutoImageReplacer {
   }
 
   /**
+   * Check if an image is related to a product
+   */
+  isProductImage(img, product) {
+    // Check if image is in a product-related container
+    const container = img.closest('.product-card, .poster-card, .collection-card, [class*="product"], [class*="poster"], [class*="card"]');
+    
+    if (container) {
+      // Check if container has product title
+      const titleElement = container.querySelector('.product-title, .poster-title, .collection-title, h3, h2, h4, [class*="title"]');
+      if (titleElement) {
+        const title = titleElement.textContent?.trim().toLowerCase();
+        const productTitle = product.title.toLowerCase();
+        
+        // Check for partial matches
+        if (title && (title.includes(productTitle) || productTitle.includes(title))) {
+          return true;
+        }
+      }
+    }
+    
+    // Check if image alt text matches product
+    const altText = img.alt?.toLowerCase() || '';
+    const productTitle = product.title.toLowerCase();
+    
+    if (altText && (altText.includes(productTitle) || productTitle.includes(altText))) {
+      return true;
+    }
+    
+    // Check if image is near product title text
+    const allElements = document.querySelectorAll('*');
+    for (const element of allElements) {
+      if (element.textContent && element.textContent.toLowerCase().includes(product.title.toLowerCase())) {
+        const nearbyImages = element.querySelectorAll('img');
+        if (nearbyImages.includes(img)) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  /**
    * Add result to the results list
    */
-  addResult(title, status, message) {
+  addResult(title, status, message, sourceUrl = null) {
     const result = {
       title: title.length > 30 ? title.substring(0, 30) + '...' : title,
       status: status,
       message: message,
+      sourceUrl: sourceUrl,
       timestamp: new Date().toLocaleTimeString()
     };
     
@@ -835,6 +913,13 @@ class AutoImageReplacer {
         <div style="font-size: 0.7rem; color: #aaa; margin-top: 4px;">
           ${result.message} • ${result.timestamp}
         </div>
+        ${result.sourceUrl ? `
+          <div style="font-size: 0.6rem; color: #28a745; margin-top: 2px;">
+            <a href="${result.sourceUrl}" target="_blank" style="color: #28a745; text-decoration: none;">
+              🔗 View Source Image
+            </a>
+          </div>
+        ` : ''}
       </div>
     `).join('');
   }
