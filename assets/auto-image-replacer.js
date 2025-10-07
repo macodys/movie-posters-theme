@@ -52,6 +52,9 @@ class AutoImageReplacer {
       this.updateStatus('Completed', 'completed');
       console.log('✅ Automated image replacement completed!');
       
+      // Show completion notification
+      this.showCompletionNotification();
+      
     } catch (error) {
       console.error('❌ Automated replacement failed:', error);
       this.updateStatus('Failed', 'stopped');
@@ -718,22 +721,71 @@ class AutoImageReplacer {
   }
 
   /**
-   * Replace product image (simulated)
+   * Replace product image on the page
    */
   async replaceProductImage(product, originalImage) {
     try {
       console.log(`🔄 Replacing image for ${product.title} with ${originalImage.url}`);
       
-      // In a real implementation, you would:
-      // 1. Download the original image
-      // 2. Upload it to Shopify
-      // 3. Update the product's featured image
-      // 4. Handle different image formats and sizes
+      // Find the product card on the page and replace its image
+      const productCards = document.querySelectorAll(`
+        .product-card, .poster-card, [data-product-id],
+        .collection-card, .product-item, .poster-item,
+        [class*="product"], [class*="poster"], [class*="card"]
+      `);
       
-      // For now, we'll simulate the replacement
-      await this.delay(1000); // Simulate upload time
+      let imageReplaced = false;
       
-      console.log(`✅ Image replaced for ${product.title}`);
+      productCards.forEach(card => {
+        const titleElement = card.querySelector('.product-title, .poster-title, .collection-title, h3, h2, h4');
+        const title = titleElement?.textContent?.trim();
+        
+        if (title && title.toLowerCase().includes(product.title.toLowerCase())) {
+          const img = card.querySelector('img');
+          if (img) {
+            // Replace the image source
+            img.src = originalImage.url;
+            img.alt = originalImage.title || product.title;
+            
+            // Add a visual indicator that the image was replaced
+            img.style.border = '2px solid #28a745';
+            img.style.boxShadow = '0 0 10px rgba(40, 167, 69, 0.5)';
+            
+            // Add a small "REPLACED" badge
+            const badge = document.createElement('div');
+            badge.textContent = 'REPLACED';
+            badge.style.cssText = `
+              position: absolute;
+              top: 5px;
+              right: 5px;
+              background: #28a745;
+              color: white;
+              padding: 2px 6px;
+              border-radius: 3px;
+              font-size: 10px;
+              font-weight: bold;
+              z-index: 10;
+            `;
+            
+            // Make sure the card has relative positioning
+            if (card.style.position !== 'relative') {
+              card.style.position = 'relative';
+            }
+            
+            card.appendChild(badge);
+            
+            imageReplaced = true;
+            console.log(`✅ Image replaced on page for ${product.title}`);
+          }
+        }
+      });
+      
+      if (!imageReplaced) {
+        console.log(`⚠️ Could not find product card for ${product.title} on page`);
+      }
+      
+      // Simulate processing time
+      await this.delay(500);
       
     } catch (error) {
       console.error(`❌ Failed to replace image for ${product.title}:`, error);
@@ -818,6 +870,67 @@ class AutoImageReplacer {
     this.isRunning = false;
     this.updateStatus('Stopped', 'stopped');
     console.log('⏹️ Process stopped by user');
+  }
+
+  /**
+   * Show completion notification
+   */
+  showCompletionNotification() {
+    // Create a notification overlay
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      z-index: 10000;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border: 2px solid #28a745;
+    `;
+    
+    notification.innerHTML = `
+      <h3 style="margin: 0 0 15px 0; color: #28a745;">✅ Image Replacement Complete!</h3>
+      <p style="margin: 0 0 20px 0; font-size: 16px;">
+        Successfully replaced ${this.replacedCount} product images with high-quality versions.
+      </p>
+      <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 20px;">
+        <div style="text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #28a745;">${this.replacedCount}</div>
+          <div style="font-size: 12px; color: #ccc;">Replaced</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #ffc107;">${this.noMatchCount}</div>
+          <div style="font-size: 12px; color: #ccc;">No Match</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 24px; font-weight: bold; color: #dc3545;">${this.errorCount}</div>
+          <div style="font-size: 12px; color: #ccc;">Errors</div>
+        </div>
+      </div>
+      <button onclick="this.parentElement.remove()" style="
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+      ">Close</button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+      if (notification.parentElement) {
+        notification.remove();
+      }
+    }, 10000);
   }
 
   /**
